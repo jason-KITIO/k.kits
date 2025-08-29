@@ -1,0 +1,546 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========== MODÈLES EXISTANTS ==========
+
+model User {
+  id                      String    @id @default(cuid())
+  email                   String    @unique
+  username                String?   @unique
+  passwordHash            String
+  firstName               String?
+  lastName                String?
+  phone                   String?   @unique
+  profileImageUrl         String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  lastSignInAt            DateTime?
+  emailVerified           Boolean   @default(false)
+  phoneVerified           Boolean   @default(false)
+  twoFactorEnabled        Boolean   @default(false)
+  banned                  Boolean   @default(false)
+  resetToken              String?
+  resetTokenExpiry        DateTime?
+  verificationToken       String?
+  verificationTokenExpiry DateTime?
+
+  // Relations existantes
+  sessions            UserSession[]
+  roles               UserRole[]
+  twoFactorAuth       TwoFactorAuth?
+  loginAttempts       LoginAttempt[]
+  auditLogs           AuditLog[]
+  organizationMembers OrganizationMember[]
+
+  // Nouvelles relations pour le stock
+  employeeStocks     EmployeeStock[]
+  warehousesCreated  Warehouse[]
+  purchaseOrders     PurchaseOrder[]
+  stockAlertsCreated StockAlert[]
+
+  // Relations pour StockTransfer (multiples rôles)
+  requestedTransfers  StockTransfer[] @relation("RequestedTransfers")
+  sourceUserTransfers StockTransfer[] @relation("SourceUserTransfers")
+  destUserTransfers   StockTransfer[] @relation("DestUserTransfers")
+
+  // Relations pour StockMovement (multiples rôles)
+  employeeStockMovements  StockMovement[] @relation("EmployeeStockMovements")
+  performedStockMovements StockMovement[] @relation("PerformedStockMovements")
+
+  // Relations pour StockInventory (multiples rôles)
+  employeeStockInventories  StockInventory[] @relation("EmployeeStockInventories")
+  performedStockInventories StockInventory[] @relation("PerformedStockInventories")
+}
+
+model UserSession {
+  id           String    @id @default(cuid())
+  userId       String
+  sessionToken String    @unique
+  refreshToken String?   @unique
+  deviceInfo   String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+  lastActiveAt DateTime?
+  expiresAt    DateTime?
+  active       Boolean   @default(true)
+  location     String?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  color       String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userRoles        UserRole[]
+  rolePermissions  RolePermission[]
+  OrganizationRole OrganizationRole[]
+  Invitation       Invitation[]
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  resource    String
+  action      String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+}
+
+model UserRole {
+  id             String    @id @default(cuid())
+  userId         String
+  roleId         String
+  assignedAt     DateTime  @default(now())
+  expiresAt      DateTime?
+  assignedBy     String?
+  active         Boolean   @default(true)
+  organizationId String
+
+  user         User         @relation(fields: [userId], references: [id])
+  role         Role         @relation(fields: [roleId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+  assignedAt   DateTime @default(now())
+  assignedBy   String?
+  active       Boolean  @default(true)
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  domain      String?
+  logo        String?
+  address     String?
+  phone       String?
+  email       String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+
+  // Relations existantes
+  members          OrganizationMember[]
+  invitations      Invitation[]
+  UserRole         UserRole[]
+  OrganizationRole OrganizationRole[]
+
+  // Nouvelles relations pour le stock
+  warehouses     Warehouse[]
+  suppliers      Supplier[]
+  categories     Category[]
+  products       Product[]
+  purchaseOrders PurchaseOrder[]
+}
+
+model OrganizationMember {
+  id             String    @id @default(cuid())
+  userId         String
+  organizationId String
+  joinedAt       DateTime  @default(now())
+  leftAt         DateTime?
+  active         Boolean   @default(true)
+  invitedBy      String?
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+}
+
+model OrganizationRole {
+  id             String @id @default(cuid())
+  roleId         String
+  organizationId String
+
+  role         Role         @relation(fields: [roleId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Invitation {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String
+  roleId         String
+  invitedBy      String?
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+  status         String
+  token          String   @unique
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  role         Role         @relation(fields: [roleId], references: [id])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  resource    String
+  resourceId  String
+  oldValues   String?
+  newValues   String?
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime @default(now())
+  result      String?
+  description String?
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+model LoginAttempt {
+  id            String   @id @default(cuid())
+  email         String
+  ipAddress     String?
+  userAgent     String?
+  successful    Boolean
+  failureReason String?
+  attemptedAt   DateTime @default(now())
+  location      String?
+
+  user User? @relation(fields: [email], references: [email], onDelete: Cascade)
+}
+
+model TwoFactorAuth {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  secret      String
+  enabled     Boolean   @default(false)
+  backupCodes String?
+  enabledAt   DateTime?
+  lastUsedAt  DateTime?
+  method      String?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PasswordPolicy {
+  id                   String  @id @default(cuid())
+  minLength            Int
+  maxLength            Int
+  requireUppercase     Boolean
+  requireLowercase     Boolean
+  requireNumbers       Boolean
+  requireSpecialChars  Boolean
+  passwordHistoryCount Int
+  maxAge               Int // en jours
+  active               Boolean @default(true)
+}
+
+// ========== NOUVEAUX MODÈLES POUR LA GESTION DE STOCK ==========
+
+model Category {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  color          String?
+  icon           String?
+  parentId       String?
+  organizationId String
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  parent       Category?    @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children     Category[]   @relation("CategoryHierarchy")
+  products     Product[]
+
+  @@unique([name, organizationId])
+}
+
+model Supplier {
+  id             String   @id @default(cuid())
+  name           String
+  email          String?
+  phone          String?
+  address        String?
+  contactPerson  String?
+  taxNumber      String?
+  paymentTerms   String?
+  notes          String?
+  organizationId String
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  products       Product[]
+  purchaseOrders PurchaseOrder[]
+
+  @@unique([name, organizationId])
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  sku            String
+  barcode        String?
+  categoryId     String?
+  supplierId     String?
+  organizationId String
+  unitPrice      Decimal? @db.Decimal(10, 2)
+  costPrice      Decimal? @db.Decimal(10, 2)
+  minStock       Int      @default(0)
+  maxStock       Int?
+  unit           String   @default("pcs") // pcs, kg, liter, etc.
+  weight         Decimal? @db.Decimal(8, 3)
+  dimensions     String?
+  imageUrl       String?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization       Organization        @relation(fields: [organizationId], references: [id])
+  category           Category?           @relation(fields: [categoryId], references: [id])
+  supplier           Supplier?           @relation(fields: [supplierId], references: [id])
+  warehouseStocks    WarehouseStock[]
+  employeeStocks     EmployeeStock[]
+  stockMovements     StockMovement[]
+  stockTransfers     StockTransfer[]
+  stockInventories   StockInventory[]
+  stockAlerts        StockAlert[]
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@unique([sku, organizationId])
+}
+
+model Warehouse {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  address        String?
+  managerId      String?
+  organizationId String
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization     Organization     @relation(fields: [organizationId], references: [id])
+  manager          User?            @relation(fields: [managerId], references: [id])
+  stocks           WarehouseStock[]
+  locations        StockLocation[]
+  stockMovements   StockMovement[]
+  stockInventories StockInventory[]
+
+  // Relations pour StockTransfer (source et destination)
+  sourceTransfers StockTransfer[] @relation("SourceTransfers")
+  destTransfers   StockTransfer[] @relation("DestTransfers")
+
+  @@unique([name, organizationId])
+}
+
+model StockLocation {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  warehouseId String
+  zone        String?
+  aisle       String?
+  shelf       String?
+  bin         String?
+  active      Boolean @default(true)
+
+  // Relations
+  warehouse       Warehouse        @relation(fields: [warehouseId], references: [id])
+  warehouseStocks WarehouseStock[]
+
+  @@unique([name, warehouseId])
+}
+
+model WarehouseStock {
+  id          String   @id @default(cuid())
+  productId   String
+  warehouseId String
+  locationId  String?
+  quantity    Int      @default(0)
+  reservedQty Int      @default(0)
+  lastUpdated DateTime @updatedAt
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  // Relations
+  product   Product        @relation(fields: [productId], references: [id])
+  warehouse Warehouse      @relation(fields: [warehouseId], references: [id])
+  location  StockLocation? @relation(fields: [locationId], references: [id])
+
+  @@unique([productId, warehouseId, locationId])
+}
+
+model EmployeeStock {
+  id          String   @id @default(cuid())
+  productId   String
+  userId      String
+  quantity    Int      @default(0)
+  reservedQty Int      @default(0)
+  lastUpdated DateTime @updatedAt
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([productId, userId])
+}
+
+model StockMovement {
+  id           String   @id @default(cuid())
+  productId    String
+  warehouseId  String?
+  userId       String?
+  movementType String // IN, OUT, TRANSFER, ADJUSTMENT, INVENTORY
+  quantity     Int
+  remainingQty Int?
+  reference    String?
+  reason       String?
+  notes        String?
+  performedBy  String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  product         Product    @relation(fields: [productId], references: [id])
+  warehouse       Warehouse? @relation(fields: [warehouseId], references: [id])
+  employee        User?      @relation("EmployeeStockMovements", fields: [userId], references: [id])
+  performedByUser User       @relation("PerformedStockMovements", fields: [performedBy], references: [id])
+}
+
+model StockTransfer {
+  id        String @id @default(cuid())
+  productId String
+  quantity  Int
+
+  // Source (d'où ça vient)
+  sourceWarehouseId String?
+  sourceUserId      String?
+
+  // Destination (où ça va)
+  destWarehouseId String?
+  destUserId      String?
+
+  status      String    @default("PENDING") // PENDING, APPROVED, COMPLETED, CANCELLED
+  notes       String?
+  requestedBy String
+  approvedBy  String?
+  completedBy String?
+  requestedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  completedAt DateTime?
+
+  // Relations
+  product         Product    @relation(fields: [productId], references: [id])
+  sourceWarehouse Warehouse? @relation("SourceTransfers", fields: [sourceWarehouseId], references: [id])
+  destWarehouse   Warehouse? @relation("DestTransfers", fields: [destWarehouseId], references: [id])
+  sourceUser      User?      @relation("SourceUserTransfers", fields: [sourceUserId], references: [id])
+  destUser        User?      @relation("DestUserTransfers", fields: [destUserId], references: [id])
+  requester       User       @relation("RequestedTransfers", fields: [requestedBy], references: [id])
+}
+
+model StockInventory {
+  id            String    @id @default(cuid())
+  productId     String
+  warehouseId   String?
+  userId        String?
+  expectedQty   Int
+  actualQty     Int
+  difference    Int
+  status        String    @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  notes         String?
+  performedBy   String
+  scheduledDate DateTime
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  product         Product    @relation(fields: [productId], references: [id])
+  warehouse       Warehouse? @relation(fields: [warehouseId], references: [id])
+  employee        User?      @relation("EmployeeStockInventories", fields: [userId], references: [id])
+  performedByUser User       @relation("PerformedStockInventories", fields: [performedBy], references: [id])
+}
+
+model StockAlert {
+  id         String    @id @default(cuid())
+  productId  String
+  alertType  String // LOW_STOCK, OUT_OF_STOCK, OVERSTOCK
+  threshold  Int
+  currentQty Int
+  message    String
+  isRead     Boolean   @default(false)
+  isActive   Boolean   @default(true)
+  createdBy  String
+  createdAt  DateTime  @default(now())
+  readAt     DateTime?
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id])
+  creator User    @relation(fields: [createdBy], references: [id])
+}
+
+model PurchaseOrder {
+  id             String    @id @default(cuid())
+  orderNumber    String    @unique
+  supplierId     String
+  organizationId String
+  status         String    @default("DRAFT") // DRAFT, SENT, CONFIRMED, RECEIVED, CANCELLED
+  orderDate      DateTime  @default(now())
+  expectedDate   DateTime?
+  receivedDate   DateTime?
+  totalAmount    Decimal   @default(0) @db.Decimal(10, 2)
+  notes          String?
+  createdBy      String
+  approvedBy     String?
+  receivedBy     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  supplier     Supplier            @relation(fields: [supplierId], references: [id])
+  organization Organization        @relation(fields: [organizationId], references: [id])
+  creator      User                @relation(fields: [createdBy], references: [id])
+  items        PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  id              String  @id @default(cuid())
+  purchaseOrderId String
+  productId       String
+  quantity        Int
+  unitPrice       Decimal @db.Decimal(10, 2)
+  totalPrice      Decimal @db.Decimal(10, 2)
+  receivedQty     Int     @default(0)
+  notes           String?
+
+  // Relations
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  product       Product       @relation(fields: [productId], references: [id])
+
+  @@unique([purchaseOrderId, productId])
+}
