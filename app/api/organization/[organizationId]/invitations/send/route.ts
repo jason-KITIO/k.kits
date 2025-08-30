@@ -7,7 +7,7 @@ import crypto from "crypto";
 const prisma = new PrismaClient();
 
 interface Params {
-  id: string;
+  organizationId: string;
 }
 
 /**
@@ -88,7 +88,7 @@ export async function POST(
 ) {
   try {
     const params = await context.params;
-    const organizationId = params.id;
+    const organizationId = params.organizationId;
 
     // Extraire le cookie session_token pour identifier l'utilisateur connecté
     const cookie = request.headers.get("cookie") || "";

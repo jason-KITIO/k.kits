@@ -99,8 +99,35 @@ export async function GET(request: NextRequest) {
         name: true,
         description: true,
         domain: true,
+        logo: true,
+        address: true,
+        phone: true,
+        email: true,
+        active: true,
         createdAt: true,
         updatedAt: true,
+        // Si vous souhaitez inclure des relations, ajoutez-les ici
+        members: {
+          select: {
+            id: true,
+            active: true,
+            joinedAt: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                profileImageUrl: true,
+              },
+            },
+          },
+        },
+        warehouses: true,
+        suppliers: true,
+        categories: true,
+        products: true,
+        purchaseOrders: true,
       },
     });
 

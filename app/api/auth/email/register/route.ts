@@ -129,7 +129,7 @@ export async function POST(request: Request) {
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
       expiresIn: "1h",
     });
-    const magicLink = `${process.env.NEXT_PUBLIC_BASE_URL}/?token=${token}`;
+    const magicLink = `${process.env.NEXT_PUBLIC_BASE_URL}/register/verification/?token=${token}`;
     const emailHtml = emailMagicLinkTemplate(magicLink);
 
     await sendMagicLinkEmail(email, emailHtml);

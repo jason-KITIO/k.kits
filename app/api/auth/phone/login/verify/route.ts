@@ -20,8 +20,17 @@ export async function POST(request: NextRequest) {
 
     const redisKey = OTP_REDIS_PREFIX + phone;
     const storedOtp = await redis.get(redisKey);
+    console.log("Stored OTP:", typeof storedOtp, storedOtp);
+    console.log("Received OTP:", typeof otp, otp);
 
-    if (!storedOtp || storedOtp !== otp) {
+    // Convertir storedOtp en string (dans le cas où ce serait un nombre)
+    const storedOtpString =
+      storedOtp !== null && storedOtp !== undefined ? String(storedOtp) : null;
+
+    // Convertir otp reçu (au cas où ce ne serait pas une string)
+    const otpString = typeof otp === "string" ? otp : String(otp);
+
+    if (!storedOtpString || storedOtpString !== otpString) {
       return NextResponse.json(
         { message: "Code OTP invalide ou expiré" },
         { status: 401 }

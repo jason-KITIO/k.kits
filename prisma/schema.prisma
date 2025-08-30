@@ -72,7 +72,7 @@ model UserSession {
   active       Boolean   @default(true)
   location     String?
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Role {
@@ -112,9 +112,9 @@ model UserRole {
   active         Boolean   @default(true)
   organizationId String
 
-  user         User         @relation(fields: [userId], references: [id])
-  role         Role         @relation(fields: [roleId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model RolePermission {
@@ -125,8 +125,8 @@ model RolePermission {
   assignedBy   String?
   active       Boolean  @default(true)
 
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Organization {
@@ -166,8 +166,8 @@ model OrganizationMember {
   active         Boolean   @default(true)
   invitedBy      String?
 
-  user         User         @relation(fields: [userId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model OrganizationRole {
@@ -175,8 +175,8 @@ model OrganizationRole {
   roleId         String
   organizationId String
 
-  role         Role         @relation(fields: [roleId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Invitation {
@@ -190,8 +190,8 @@ model Invitation {
   status         String
   token          String   @unique
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  role         Role         @relation(fields: [roleId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model AuditLog {
@@ -208,7 +208,7 @@ model AuditLog {
   result      String?
   description String?
 
-  user User? @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 }
 
 model LoginAttempt {
@@ -221,7 +221,7 @@ model LoginAttempt {
   attemptedAt   DateTime @default(now())
   location      String?
 
-  user User? @relation(fields: [email], references: [email], onDelete: Cascade)
+  user User? @relation(fields: [email], references: [email], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model TwoFactorAuth {
@@ -234,7 +234,7 @@ model TwoFactorAuth {
   lastUsedAt  DateTime?
   method      String?
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model PasswordPolicy {
@@ -265,8 +265,8 @@ model Category {
   updatedAt      DateTime @updatedAt
 
   // Relations
-  organization Organization @relation(fields: [organizationId], references: [id])
-  parent       Category?    @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  parent       Category?    @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   children     Category[]   @relation("CategoryHierarchy")
   products     Product[]
 
@@ -289,7 +289,7 @@ model Supplier {
   updatedAt      DateTime @updatedAt
 
   // Relations
-  organization   Organization    @relation(fields: [organizationId], references: [id])
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   products       Product[]
   purchaseOrders PurchaseOrder[]
 
@@ -318,9 +318,9 @@ model Product {
   updatedAt      DateTime @updatedAt
 
   // Relations
-  organization       Organization        @relation(fields: [organizationId], references: [id])
-  category           Category?           @relation(fields: [categoryId], references: [id])
-  supplier           Supplier?           @relation(fields: [supplierId], references: [id])
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category           Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  supplier           Supplier?           @relation(fields: [supplierId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   warehouseStocks    WarehouseStock[]
   employeeStocks     EmployeeStock[]
   stockMovements     StockMovement[]
@@ -344,8 +344,8 @@ model Warehouse {
   updatedAt      DateTime @updatedAt
 
   // Relations
-  organization     Organization     @relation(fields: [organizationId], references: [id])
-  manager          User?            @relation(fields: [managerId], references: [id])
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  manager          User?            @relation(fields: [managerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   stocks           WarehouseStock[]
   locations        StockLocation[]
   stockMovements   StockMovement[]
@@ -370,7 +370,7 @@ model StockLocation {
   active      Boolean @default(true)
 
   // Relations
-  warehouse       Warehouse        @relation(fields: [warehouseId], references: [id])
+  warehouse       Warehouse        @relation(fields: [warehouseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   warehouseStocks WarehouseStock[]
 
   @@unique([name, warehouseId])
@@ -388,9 +388,9 @@ model WarehouseStock {
   createdAt   DateTime @default(now())
 
   // Relations
-  product   Product        @relation(fields: [productId], references: [id])
-  warehouse Warehouse      @relation(fields: [warehouseId], references: [id])
-  location  StockLocation? @relation(fields: [locationId], references: [id])
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  warehouse Warehouse      @relation(fields: [warehouseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  location  StockLocation? @relation(fields: [locationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@unique([productId, warehouseId, locationId])
 }
@@ -406,8 +406,8 @@ model EmployeeStock {
   createdAt   DateTime @default(now())
 
   // Relations
-  product Product @relation(fields: [productId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([productId, userId])
 }
@@ -427,10 +427,10 @@ model StockMovement {
   createdAt    DateTime @default(now())
 
   // Relations
-  product         Product    @relation(fields: [productId], references: [id])
-  warehouse       Warehouse? @relation(fields: [warehouseId], references: [id])
-  employee        User?      @relation("EmployeeStockMovements", fields: [userId], references: [id])
-  performedByUser User       @relation("PerformedStockMovements", fields: [performedBy], references: [id])
+  product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  warehouse       Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  employee        User?      @relation("EmployeeStockMovements", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  performedByUser User       @relation("PerformedStockMovements", fields: [performedBy], references: [id], onDelete: Restrict, onUpdate: Cascade)
 }
 
 model StockTransfer {
@@ -456,12 +456,12 @@ model StockTransfer {
   completedAt DateTime?
 
   // Relations
-  product         Product    @relation(fields: [productId], references: [id])
-  sourceWarehouse Warehouse? @relation("SourceTransfers", fields: [sourceWarehouseId], references: [id])
-  destWarehouse   Warehouse? @relation("DestTransfers", fields: [destWarehouseId], references: [id])
-  sourceUser      User?      @relation("SourceUserTransfers", fields: [sourceUserId], references: [id])
-  destUser        User?      @relation("DestUserTransfers", fields: [destUserId], references: [id])
-  requester       User       @relation("RequestedTransfers", fields: [requestedBy], references: [id])
+  product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  sourceWarehouse Warehouse? @relation("SourceTransfers", fields: [sourceWarehouseId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  destWarehouse   Warehouse? @relation("DestTransfers", fields: [destWarehouseId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  sourceUser      User?      @relation("SourceUserTransfers", fields: [sourceUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  destUser        User?      @relation("DestUserTransfers", fields: [destUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  requester       User       @relation("RequestedTransfers", fields: [requestedBy], references: [id], onDelete: Restrict, onUpdate: Cascade)
 }
 
 model StockInventory {
@@ -480,10 +480,10 @@ model StockInventory {
   createdAt     DateTime  @default(now())
 
   // Relations
-  product         Product    @relation(fields: [productId], references: [id])
-  warehouse       Warehouse? @relation(fields: [warehouseId], references: [id])
-  employee        User?      @relation("EmployeeStockInventories", fields: [userId], references: [id])
-  performedByUser User       @relation("PerformedStockInventories", fields: [performedBy], references: [id])
+  product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  warehouse       Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  employee        User?      @relation("EmployeeStockInventories", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  performedByUser User       @relation("PerformedStockInventories", fields: [performedBy], references: [id], onDelete: Restrict, onUpdate: Cascade)
 }
 
 model StockAlert {
@@ -500,8 +500,8 @@ model StockAlert {
   readAt     DateTime?
 
   // Relations
-  product Product @relation(fields: [productId], references: [id])
-  creator User    @relation(fields: [createdBy], references: [id])
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creator User    @relation(fields: [createdBy], references: [id], onDelete: Restrict, onUpdate: Cascade)
 }
 
 model PurchaseOrder {
@@ -522,9 +522,9 @@ model PurchaseOrder {
   updatedAt      DateTime  @updatedAt
 
   // Relations
-  supplier     Supplier            @relation(fields: [supplierId], references: [id])
-  organization Organization        @relation(fields: [organizationId], references: [id])
-  creator      User                @relation(fields: [createdBy], references: [id])
+  supplier     Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creator      User                @relation(fields: [createdBy], references: [id], onDelete: Restrict, onUpdate: Cascade)
   items        PurchaseOrderItem[]
 }
 
@@ -539,8 +539,8 @@ model PurchaseOrderItem {
   notes           String?
 
   // Relations
-  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-  product       Product       @relation(fields: [productId], references: [id])
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@unique([purchaseOrderId, productId])
 }

@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
         `selected-org-id=${selectedOrg.id}; HttpOnly; Path=/; Max-Age=${SESSION_EXPIRES_IN}; SameSite=Strict` +
         (process.env.NODE_ENV === "production" ? "; Secure" : "");
       response.headers.append("Set-Cookie", cookieOrg);
-      
+
       // Ajouter info organisation choisie dans réponse
       responsePayload.selectedOrganization = selectedOrg;
     } else {

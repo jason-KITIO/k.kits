@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 interface Params {
-  id: string; // organizationId
+  organizationId: string; // organizationId
 }
 
 /**
@@ -62,7 +62,7 @@ export async function GET(
 ) {
   try {
     const params = await context.params; // await ici
-    const organizationId = params.id;
+    const organizationId = params.organizationId;
 
     if (!organizationId) {
       return NextResponse.json(
@@ -149,7 +149,7 @@ export async function POST(
 ) {
   try {
     const params = await context.params;
-    const organizationId = params.id;
+    const organizationId = params.organizationId;
     const { name, description, color } = await request.json();
 
     if (!organizationId || !name) {

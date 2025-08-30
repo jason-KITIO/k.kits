@@ -169,16 +169,7 @@
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
-body {
-  letter-spacing: var(--tracking-normal);
-}
 
 @layer base {
   * {
@@ -187,4 +178,36 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+body {
+  letter-spacing: var(--tracking-normal);
+  font-family: var(--font-manjari);
+}
+
+.titre {
+  font-family: var(--font-bricolage-grotesque);
+  font-weight: 500;
+  font-size: 20px;
+}
+
+.sous-titre {
+  font-family: var(--font-manjari);
+  font-size: 16px;
+}
+
+.texte {
+  font-family: var(--font-ibm-plex-sans);
+  font-size: 12px;
+}
+
+.nombre {
+  font-family: var(--font-ibm-plex-mono);
+}
+
+/* Cible l'input dans react-phone-number-input */
+#phone {
+  outline: none;
+  border: none;
+  padding-left: 10px;
 }

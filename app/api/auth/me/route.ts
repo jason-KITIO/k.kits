@@ -42,7 +42,7 @@ const prisma = new PrismaClient();
  *                       example: "Doe"
  *                     phone:
  *                       type: string
- *                       example: "+33123456789"
+ *                       example: "++237 698 765 432"
  *                     profileImageUrl:
  *                       type: string
  *                       example: "https://example.com/avatar.jpg"

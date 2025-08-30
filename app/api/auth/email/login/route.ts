@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 import { sendOtpVerificationEmail } from "@/lib/email";
 
 const prisma = new PrismaClient();
@@ -10,6 +11,7 @@ const OTP_VALIDITY_MINUTES = 10;
  * @param length - Longueur du code OTP (par défaut 6)
  * @returns Code OTP généré
  */
+
 function generateOtp(length = 6): string {
   const digits = "0123456789";
   let otp = "";
@@ -93,13 +95,14 @@ function generateOtp(length = 6): string {
  *                   type: string
  *                   example: "Erreur serveur, veuillez réessayer plus tard"
  */
+
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { email, password } = await request.json();
 
-    if (!email) {
+    if (!email || !password) {
       return NextResponse.json(
-        { message: "Email est requis" },
+        { message: "Email et mot de passe sont requis" },
         { status: 400 }
       );
     }
@@ -107,8 +110,15 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      // Pour éviter de révéler l'existence de l'utilisateur,
-      // on peut répondre de façon générique
+      return NextResponse.json(
+        { message: "Email ou mot de passe incorrect" },
+        { status: 401 }
+      );
+    }
+
+    // Vérifier le mot de passe avec bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
       return NextResponse.json(
         { message: "Email ou mot de passe incorrect" },
         { status: 401 }
