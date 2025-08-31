@@ -41,15 +41,16 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string; barcode: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId, barcode } = await params;
+    checkOrganization(organizationId);
 
     const product = await prisma.product.findFirst({
       where: {
-        organizationId: params.organizationId,
-        barcode: params.barcode,
+        organizationId,
+        barcode,
         active: true,
       },
     });
@@ -65,7 +66,7 @@ export async function GET(
     }
 
     return NextResponse.json(product);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la recherche par code-barres." },
       { status: 500 }

@@ -13,14 +13,11 @@ import {
   Package,
   ShoppingCart,
   Truck,
-  Users,
   Settings2,
   LifeBuoy,
   Send,
   FileText,
   TrendingUp,
-  MapPin,
-  Archive,
   Bell,
   Search,
 } from "lucide-react";
@@ -45,15 +42,23 @@ function prefixUrl(base: string | null, path: string) {
   return `${baseClean}${pathClean}`;
 }
 
-function markActive(items: any[], currentPath: string): any[] {
+interface NavItem {
+  title: string;
+  url: string;
+  icon?: React.ComponentType;
+  isActive?: boolean;
+  items?: NavItem[];
+}
+
+function markActive(items: NavItem[], currentPath: string): NavItem[] {
   return items.map((item) => {
     // L’item est actif si currentPath commence par son url
     const isActive = currentPath.startsWith(item.url);
-    let newItem = { ...item, isActive };
+    const newItem = { ...item, isActive };
     // Traitement récursif pour sous-menus
     if (item.items) {
       newItem.items = markActive(item.items, currentPath);
-      if (newItem.items.some((i: any) => i.isActive)) {
+      if (newItem.items.some((i) => i.isActive)) {
         newItem.isActive = true;
       }
     }

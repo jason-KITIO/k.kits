@@ -6,19 +6,20 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ purchaseOrdersId: string }> }
 ) {
   try {
+    const { purchaseOrdersId } = await params;
     const organizationId = request.cookies.get("selected-org-id")?.value;
     if (!organizationId)
       return NextResponse.json(
         { message: "Organisation non sélectionnée." },
         { status: 403 }
       );
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const order = await prisma.purchaseOrder.findUnique({
-      where: { id: params.id },
+      where: { id: purchaseOrdersId },
       include: { items: { include: { product: true } } },
     });
 
@@ -29,9 +30,9 @@ export async function GET(
       );
 
     return NextResponse.json(order.items);
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { message: error.message ?? "Erreur serveur." },
+      { message: "Erreur serveur." },
       { status: 500 }
     );
   }
@@ -39,19 +40,20 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ purchaseOrdersId: string }> }
 ) {
   try {
+    const { purchaseOrdersId } = await params;
     const organizationId = request.cookies.get("selected-org-id")?.value;
     if (!organizationId)
       return NextResponse.json(
         { message: "Organisation non sélectionnée." },
         { status: 403 }
       );
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const order = await prisma.purchaseOrder.findUnique({
-      where: { id: params.id },
+      where: { id: purchaseOrdersId },
     });
 
     if (!order || order.organizationId !== organizationId)
@@ -82,7 +84,7 @@ export async function POST(
 
     const item = await prisma.purchaseOrderItem.create({
       data: {
-        purchaseOrderId: params.id,
+        purchaseOrderId: purchaseOrdersId,
         productId: data.productId,
         quantity: data.quantity,
         unitPrice: data.unitPrice,
@@ -92,9 +94,9 @@ export async function POST(
     });
 
     return NextResponse.json(item, { status: 201 });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { message: error.message ?? "Erreur serveur." },
+      { message: "Erreur serveur." },
       { status: 500 }
     );
   }

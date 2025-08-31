@@ -140,9 +140,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(warehouseStock);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { message: error.message || "Erreur serveur." },
+      { message: error instanceof Error ? error.message : "Erreur serveur." },
       { status: 500 }
     );
   }

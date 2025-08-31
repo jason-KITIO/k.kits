@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import redis from "@/lib/redis";
-import jwt from "jsonwebtoken";
-import { updateUserPhoneVerified } from "@/lib/db";
-import { sendWelcomeEmail } from "@/lib/email";
 import { PrismaClient } from "@prisma/client";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
 const prisma = new PrismaClient();
 
 /**
@@ -142,7 +138,7 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json({ message: "Code invalide" }, { status: 400 });
     }
-  } catch (error) {
+  } catch {
     console.error("Erreur vérification code :", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }

@@ -81,7 +81,8 @@ export function NavMain({
                             <SidebarMenuSubButton
                               asChild
                               className={cn(
-                                isItemActive(subItem.url) && "text-sidebar-accent-foreground font-medium"
+                                isItemActive(subItem.url) &&
+                                  "text-sidebar-accent-foreground font-medium"
                               )}
                             >
                               <a href={subItem.url}>

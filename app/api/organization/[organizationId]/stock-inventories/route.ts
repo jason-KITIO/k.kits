@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       );
     }
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const inventories = await prisma.stockInventory.findMany({
       where: {
@@ -31,9 +31,9 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(inventories);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { message: error.message || "Erreur serveur." },
+      { message: error instanceof Error ? error.message : "Erreur serveur." },
       { status: 500 }
     );
   }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const data = await request.json();
 
@@ -121,9 +121,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(inventory, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { message: error.message || "Erreur serveur." },
+      { message: error instanceof Error ? error.message : "Erreur serveur." },
       { status: 500 }
     );
   }

@@ -6,17 +6,18 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string; supplierId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     // Vérifier que le fournisseur appartient bien à l'organisation
     const supplier = await prisma.supplier.findUnique({
-      where: { id: params.supplierId },
+      where: { id: supplierId },
     });
 
-    if (!supplier || supplier.organizationId !== params.organizationId) {
+    if (!supplier || supplier.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Fournisseur non trouvé dans cette organisation." },
         { status: 404 }
@@ -26,15 +27,15 @@ export async function GET(
     // Récupérer les produits du fournisseur
     const products = await prisma.product.findMany({
       where: {
-        supplierId: params.supplierId,
-        organizationId: params.organizationId,
+        supplierId: supplierId,
+        organizationId: organizationId,
         active: true,
       },
       orderBy: { name: "asc" },
     });
 
     return NextResponse.json(products);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message:

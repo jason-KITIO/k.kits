@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeClosed } from "@solar-icons/react";
 import { useRegisterUser } from "@/hooks/use-auth";
@@ -20,9 +19,7 @@ import Link from "next/link";
 export function RegisterForm({
   className,
   ...props
-}: React.ComponentProps<"div">) {
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
+}: React.ComponentProps<"div">) {const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",

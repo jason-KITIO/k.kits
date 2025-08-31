@@ -6,10 +6,6 @@ import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
-interface Params {
-  organizationId: string;
-}
-
 /**
  * @swagger
  * /api/organization/{organizationId}/invitations/send:
@@ -83,12 +79,10 @@ interface Params {
  *         description: Erreur serveur
  */
 export async function POST(
-  request: NextRequest,
-  context: { params: Params | Promise<Params> }
+  request: NextRequest
 ) {
   try {
-    const params = await context.params;
-    const organizationId = params.organizationId;
+    const { organizationId } = await context.params;
 
     // Extraire le cookie session_token pour identifier l'utilisateur connecté
     const cookie = request.headers.get("cookie") || "";
@@ -172,7 +166,7 @@ export async function POST(
     });
 
     return NextResponse.json({ message: "Invitation envoyée", invitation });
-  } catch (error) {
+  } catch {
     console.error("Erreur envoi invitation :", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }

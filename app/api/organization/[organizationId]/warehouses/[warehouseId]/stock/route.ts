@@ -6,16 +6,17 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string; warehouseId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const warehouse = await prisma.warehouse.findUnique({
-      where: { id: params.warehouseId },
+      where: { id: warehouseId },
     });
 
-    if (!warehouse || warehouse.organizationId !== params.organizationId) {
+    if (!warehouse || warehouse.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Entrepôt non trouvé dans cette organisation." },
         { status: 404 }
@@ -23,14 +24,17 @@ export async function GET(
     }
 
     const stock = await prisma.warehouseStock.findMany({
-      where: { warehouseId: params.warehouseId },
+      where: { warehouseId: warehouseId },
       include: { product: true },
     });
 
     return NextResponse.json(stock);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { message: "Erreur serveur lors de la récupération du stock de l’entrepôt." },
+      {
+        message:
+          "Erreur serveur lors de la récupération du stock de l’entrepôt.",
+      },
       { status: 500 }
     );
   }

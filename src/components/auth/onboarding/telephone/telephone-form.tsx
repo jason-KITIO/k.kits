@@ -40,7 +40,13 @@ export function TelephoneForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6 p-4 mx-auto max-w-md sm:max-w-lg md:max-w-xl", className)} {...props}>
+    <div
+      className={cn(
+        "flex flex-col gap-6 p-4 mx-auto max-w-md sm:max-w-lg md:max-w-xl",
+        className
+      )}
+      {...props}
+    >
       <Card>
         <CardHeader className="text-center px-4 sm:px-6 md:px-8">
           <CardTitle className="text-xl sm:text-2xl md:text-3xl">
@@ -54,7 +60,12 @@ export function TelephoneForm({
         <CardContent className="px-4 sm:px-6 md:px-8">
           <form onSubmit={handleSubmit} className="grid gap-6">
             <div className="grid gap-3">
-              <Label htmlFor="phone" className="text-sm sm:text-base md:text-lg">Numéro de téléphone</Label>
+              <Label
+                htmlFor="phone"
+                className="text-sm sm:text-base md:text-lg"
+              >
+                Numéro de téléphone
+              </Label>
               <PhoneInput
                 international
                 countryCallingCodeEditable={false}
@@ -68,8 +79,14 @@ export function TelephoneForm({
                 disabled={isPending}
               />
             </div>
-            <Button type="submit" className="w-full py-3 text-base sm:text-lg" disabled={isPending}>
-              {isPending ? "Envoi en cours..." : "Envoyer le code de vérification"}
+            <Button
+              type="submit"
+              className="w-full py-3 text-base sm:text-lg"
+              disabled={isPending}
+            >
+              {isPending
+                ? "Envoi en cours..."
+                : "Envoyer le code de vérification"}
             </Button>
             {error && (
               <p className="text-red-600 text-center mt-2 px-2">

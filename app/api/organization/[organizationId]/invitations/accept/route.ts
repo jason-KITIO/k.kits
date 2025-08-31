@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import prisma from "@/lib/prisma";
 
-interface Params {
-  token: string;
-}
-
-export async function POST(
-  request: NextRequest,
-  context: { params: Params | Promise<Params> }
-) {
+export async function POST(request: NextRequest) {
   try {
     const token = request.nextUrl.searchParams.get("token") || "";
     const { username, password } = await request.json();
@@ -96,7 +89,7 @@ export async function POST(
     return NextResponse.json({
       message: "Compte créé et invitation acceptée avec succès",
     });
-  } catch (error) {
+  } catch {
     console.error("Erreur acceptation invitation:", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }

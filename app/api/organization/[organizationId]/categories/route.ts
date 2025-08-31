@@ -58,19 +58,20 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const categories = await prisma.category.findMany({
-      where: { organizationId: params.organizationId, active: true },
+      where: { organizationId, active: true },
       include: { children: true },
       orderBy: { name: "asc" },
     });
 
     return NextResponse.json(categories);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message: "Accès refusé : organisation non valide ou non sélectionnée.",
@@ -145,10 +146,11 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const data = await request.json();
     if (!data.name) {
@@ -165,13 +167,13 @@ export async function POST(
         color: data.color,
         icon: data.icon,
         parentId: data.parentId ?? null,
-        organizationId: params.organizationId,
+        organizationId,
         active: true,
       },
     });
 
     return NextResponse.json(category, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la création de la catégorie." },
       { status: 500 }

@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(stocks);
-  } catch (e: any) {
+  } catch (e: unknown) {
     return NextResponse.json(
       { message: e.message ?? "Erreur serveur." },
       { status: 500 }

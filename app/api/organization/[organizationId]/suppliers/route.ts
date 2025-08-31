@@ -55,18 +55,19 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const suppliers = await prisma.supplier.findMany({
-      where: { organizationId: params.organizationId, active: true },
+      where: { organizationId, active: true },
       orderBy: { name: "asc" },
     });
 
     return NextResponse.json(suppliers);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message: "Accès refusé : organisation non valide ou non sélectionnée.",
@@ -129,10 +130,11 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const data = await request.json();
     if (!data.name) {
@@ -152,13 +154,13 @@ export async function POST(
         taxNumber: data.taxNumber ?? null,
         paymentTerms: data.paymentTerms ?? null,
         notes: data.notes ?? null,
-        organizationId: params.organizationId,
+        organizationId,
         active: true,
       },
     });
 
     return NextResponse.json(supplier, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la création du fournisseur." },
       { status: 500 }

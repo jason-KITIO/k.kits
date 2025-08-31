@@ -4,14 +4,20 @@ import { checkOrganization } from "@/helper/check-organization";
 
 const prisma = new PrismaClient();
 
-export async function PUT(request: NextRequest, { params }: { params: { transferId: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ transferId: string }> }
+) {
   try {
     const organizationId = request.cookies.get("selected-org-id")?.value;
     const approverId = request.cookies.get("user-id")?.value;
     if (!organizationId || !approverId) {
-      return NextResponse.json({ message: "Organisation ou utilisateur non authentifié" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Organisation ou utilisateur non authentifié" },
+        { status: 403 }
+      );
     }
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const transfer = await prisma.stockTransfer.findUnique({
       where: { id: params.transferId },
@@ -19,11 +25,17 @@ export async function PUT(request: NextRequest, { params }: { params: { transfer
     });
 
     if (!transfer || transfer.product.organizationId !== organizationId) {
-      return NextResponse.json({ message: "Transfert non trouvé ou accès refusé" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Transfert non trouvé ou accès refusé" },
+        { status: 404 }
+      );
     }
 
     if (transfer.status !== "PENDING") {
-      return NextResponse.json({ message: "Transfert non en attente d'approbation" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Transfert non en attente d'approbation" },
+        { status: 400 }
+      );
     }
 
     const updated = await prisma.stockTransfer.update({
@@ -36,7 +48,10 @@ export async function PUT(request: NextRequest, { params }: { params: { transfer
     });
 
     return NextResponse.json(updated);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message || "Erreur serveur" }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "Erreur serveur" },
+      { status: 500 }
+    );
   }
 }

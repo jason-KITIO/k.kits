@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ organizations });
-  } catch (error) {
+  } catch {
     console.error("Erreur récupération organisations :", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
@@ -361,7 +361,7 @@ export async function POST(request: NextRequest) {
         "Organisation créée avec succès, rôle auteur attribué avec toutes permissions",
       organization,
     });
-  } catch (error) {
+  } catch {
     console.error("Erreur création organisation:", error);
     return NextResponse.json(
       { message: "Erreur serveur lors de la création d'organisation" },

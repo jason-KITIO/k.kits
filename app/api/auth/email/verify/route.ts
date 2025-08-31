@@ -68,7 +68,7 @@ export async function GET(request: Request) {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET) as { userId: string };
-    } catch (error) {
+    } catch {
       console.error("Erreur jwt.verify :", error);
       return NextResponse.json(
         { message: "Token invalide ou expiré" },
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ message: "Email vérifié avec succès" });
-  } catch (error) {
+  } catch {
     console.error("Erreur vérification email:", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }

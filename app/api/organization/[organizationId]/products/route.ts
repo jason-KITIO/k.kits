@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkOrganization } from "@/helper/check-organization";
+import { generateSku, generateUniqueSku } from "@/helper/generate-sku";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -66,18 +67,19 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const products = await prisma.product.findMany({
-      where: { organizationId: params.organizationId, active: true },
+      where: { organizationId, active: true },
       orderBy: { name: "asc" },
     });
 
     return NextResponse.json(products);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message: "Accès refusé : organisation non valide ou non sélectionnée.",
@@ -112,7 +114,6 @@ export async function GET(
  *             type: object
  *             required:
  *               - name
- *               - sku
  *             properties:
  *               name:
  *                 type: string
@@ -120,8 +121,8 @@ export async function GET(
  *                 example: "Ordinateur portable"
  *               sku:
  *                 type: string
- *                 description: Code SKU unique
- *                 example: "LAPTOP-001"
+ *                 description: Code SKU (généré automatiquement si non fourni)
+ *                 example: "ordinateur-portable"
  *               description:
  *                 type: string
  *                 description: Description du produit
@@ -161,6 +162,15 @@ export async function GET(
  *               imageUrl:
  *                 type: string
  *                 description: URL de l'image
+ *               color:
+ *                 type: string
+ *                 description: Couleur du produit
+ *               material:
+ *                 type: string
+ *                 description: Matière du produit
+ *               size:
+ *                 type: string
+ *                 description: Taille du produit
  *     responses:
  *       201:
  *         description: Produit créé avec succès
@@ -178,7 +188,7 @@ export async function GET(
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Les champs 'name' et 'sku' sont obligatoires."
+ *                   example: "Le champ 'name' est obligatoire."
  *       500:
  *         description: Erreur interne du serveur
  *         content:
@@ -192,28 +202,41 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const data = await request.json();
-    if (!data.name || !data.sku) {
+    if (!data.name) {
       return NextResponse.json(
-        { message: "Les champs 'name' et 'sku' sont obligatoires." },
+        { message: "Le champ 'name' est obligatoire." },
         { status: 400 }
       );
+    }
+
+    // Générer le SKU automatiquement si non fourni
+    let sku = data.sku;
+    if (!sku) {
+      const baseSku = generateSku(data.name);
+      const existingProducts = await prisma.product.findMany({
+        where: { organizationId },
+        select: { sku: true },
+      });
+      const existingSkus = existingProducts.map((p) => p.sku);
+      sku = generateUniqueSku(baseSku, existingSkus);
     }
 
     const product = await prisma.product.create({
       data: {
         name: data.name,
         description: data.description ?? null,
-        sku: data.sku,
+        sku: sku,
         barcode: data.barcode ?? null,
         categoryId: data.categoryId ?? null,
         supplierId: data.supplierId ?? null,
-        organizationId: params.organizationId,
+        organizationId,
         unitPrice: data.unitPrice ?? null,
         costPrice: data.costPrice ?? null,
         minStock: data.minStock ?? 0,
@@ -227,7 +250,7 @@ export async function POST(
     });
 
     return NextResponse.json(product, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la création du produit." },
       { status: 500 }

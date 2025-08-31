@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const data = await request.json();
     if (
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(whStock);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
       {
         message:

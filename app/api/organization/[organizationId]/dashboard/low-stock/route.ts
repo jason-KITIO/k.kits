@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         { message: "Organisation non sélectionnée." },
         { status: 403 }
       );
-    checkOrganization(request, orgId);
+    checkOrganization(orgId);
 
     // Seuil par défaut, paramétrable via requête
     const threshold = Number(
@@ -83,9 +83,9 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(result);
-  } catch (e: any) {
+  } catch (e: unknown) {
     return NextResponse.json(
-      { message: e.message || "Erreur serveur." },
+      { message: e instanceof Error ? e.message : "Erreur serveur." },
       { status: 500 }
     );
   }

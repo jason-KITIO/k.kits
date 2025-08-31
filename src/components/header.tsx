@@ -1,13 +1,5 @@
 "use client";
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Separator } from "@radix-ui/react-separator";
@@ -28,8 +20,8 @@ export function Header() {
   const getPageTitle = () => {
     const pathMap: Record<string, string> = {
       dashboard: `Bonjour, ${user.username}`,
-      products: "Vos produits",
-      warehouses: "Vos entrepôts",
+      products: "Mes produits",
+      warehouses: "Mes entrepôts",
       "employee-stock": "Votre stock",
       transfers: "Vos transferts",
       inventories: "Vos inventaires",
@@ -53,27 +45,6 @@ export function Header() {
       ""
     );
   };
-
-  const generateBreadcrumbs = () => {
-    const segments = pathname.split("/").filter(Boolean);
-    const breadcrumbs = [];
-
-    for (let i = 0; i < segments.length; i++) {
-      const href = "/" + segments.slice(0, i + 1).join("/");
-      const label = segments[i].charAt(0).toUpperCase() + segments[i].slice(1);
-      const isLast = i === segments.length - 1;
-
-      breadcrumbs.push({
-        href,
-        label: label.replace(/-/g, " "),
-        isLast,
-      });
-    }
-
-    return breadcrumbs;
-  };
-
-  const breadcrumbs = generateBreadcrumbs();
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2">
@@ -104,7 +75,7 @@ export function Header() {
               ))}
             </BreadcrumbList>
           </Breadcrumb> */}
-          <h1 className="text-lg font-semibold titre">{getPageTitle()}</h1>
+          <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
         </div>
       </div>
     </header>

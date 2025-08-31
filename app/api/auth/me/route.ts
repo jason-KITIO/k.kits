@@ -94,10 +94,7 @@ export async function GET(request: NextRequest) {
     // Extraire le token de session depuis le cookie 'session_token'
     const match = cookie.match(/session_token=([^;]+)/);
     if (!match) {
-      return NextResponse.json(
-        { message: "Non authentifié" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Non authentifié" }, { status: 401 });
     }
     const sessionToken = match[1];
 
@@ -143,11 +140,8 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json({ user: userSafe });
-  } catch (error) {
+  } catch {
     console.error("Erreur /api/auth/me :", error);
-    return NextResponse.json(
-      { message: "Erreur serveur" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

@@ -32,7 +32,7 @@ export function NavUser() {
   const { data, isLoading, isError } = useCurrentUser();
 
   const user = data?.user;
-  
+
   if (isLoading) {
     return (
       <SidebarMenu>
@@ -67,7 +67,10 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.profileImageUrl || undefined} alt={user.username || undefined} />
+                <AvatarImage
+                  src={user.profileImageUrl || undefined}
+                  alt={user.username || undefined}
+                />
                 <AvatarFallback className="rounded-lg">
                   {user.username?.charAt(0)}
                 </AvatarFallback>
@@ -88,7 +91,10 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.profileImageUrl || undefined} alt={user.username || undefined} />
+                  <AvatarImage
+                    src={user.profileImageUrl || undefined}
+                    alt={user.username || undefined}
+                  />
                   <AvatarFallback className="rounded-lg">
                     {user.username?.charAt(0)}
                   </AvatarFallback>

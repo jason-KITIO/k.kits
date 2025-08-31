@@ -43,10 +43,11 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q");
@@ -60,7 +61,7 @@ export async function GET(
 
     const products = await prisma.product.findMany({
       where: {
-        organizationId: params.organizationId,
+        organizationId,
         active: true,
         OR: [
           { name: { contains: query, mode: "insensitive" } },
@@ -72,7 +73,7 @@ export async function GET(
     });
 
     return NextResponse.json(products);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la recherche des produits." },
       { status: 500 }

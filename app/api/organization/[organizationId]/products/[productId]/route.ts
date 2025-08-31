@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkOrganization } from "@/helper/check-organization";
+import { generateSku, generateUniqueSku } from "@/helper/generate-sku";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -39,16 +40,17 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string; productId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId, productId } = await params;
+    checkOrganization(organizationId);
 
     const product = await prisma.product.findUnique({
-      where: { id: params.productId },
+      where: { id: productId },
     });
 
-    if (!product || product.organizationId !== params.organizationId) {
+    if (!product || product.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Produit non trouvé dans cette organisation." },
         { status: 404 }
@@ -56,7 +58,7 @@ export async function GET(
     }
 
     return NextResponse.json(product);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message:
@@ -122,6 +124,12 @@ export async function GET(
  *                 type: string
  *               imageUrl:
  *                 type: string
+ *               color:
+ *                 type: string
+ *               material:
+ *                 type: string
+ *               size:
+ *                 type: string
  *               active:
  *                 type: boolean
  *     responses:
@@ -134,16 +142,17 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { organizationId: string; productId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId, productId } = await params;
+    checkOrganization(organizationId);
 
     const existing = await prisma.product.findUnique({
-      where: { id: params.productId },
+      where: { id: productId },
     });
 
-    if (!existing || existing.organizationId !== params.organizationId) {
+    if (!existing || existing.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Produit non trouvé dans cette organisation." },
         { status: 404 }
@@ -152,12 +161,27 @@ export async function PUT(
 
     const data = await request.json();
 
+    // Générer un nouveau SKU si le nom a changé et qu'aucun SKU n'est fourni
+    let sku = data.sku;
+    if (data.name && data.name !== existing.name && !sku) {
+      const baseSku = generateSku(data.name);
+      const existingProducts = await prisma.product.findMany({
+        where: {
+          organizationId,
+          id: { not: productId },
+        },
+        select: { sku: true },
+      });
+      const existingSkus = existingProducts.map((p) => p.sku);
+      sku = generateUniqueSku(baseSku, existingSkus);
+    }
+
     const updated = await prisma.product.update({
-      where: { id: params.productId },
+      where: { id: productId },
       data: {
         name: data.name ?? existing.name,
         description: data.description ?? existing.description,
-        sku: data.sku ?? existing.sku,
+        sku: sku ?? existing.sku,
         barcode: data.barcode ?? existing.barcode,
         categoryId: data.categoryId ?? existing.categoryId,
         supplierId: data.supplierId ?? existing.supplierId,
@@ -169,12 +193,15 @@ export async function PUT(
         weight: data.weight ?? existing.weight,
         dimensions: data.dimensions ?? existing.dimensions,
         imageUrl: data.imageUrl ?? existing.imageUrl,
+        color: data.color ?? existing.color,
+        material: data.material ?? existing.material,
+        size: data.size ?? existing.size,
         active: data.active ?? existing.active,
       },
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la mise à jour du produit." },
       { status: 500 }
@@ -213,26 +240,27 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { organizationId: string; productId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId, productId } = await params;
+    checkOrganization(organizationId);
 
     const existing = await prisma.product.findUnique({
-      where: { id: params.productId },
+      where: { id: productId },
     });
 
-    if (!existing || existing.organizationId !== params.organizationId) {
+    if (!existing || existing.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Produit non trouvé dans cette organisation." },
         { status: 404 }
       );
     }
 
-    await prisma.product.delete({ where: { id: params.productId } });
+    await prisma.product.delete({ where: { id: productId } });
 
     return NextResponse.json({ message: "Produit supprimé avec succès." });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la suppression du produit." },
       { status: 500 }

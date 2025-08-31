@@ -16,18 +16,19 @@ async function getItem(purchaseOrderId: string, itemId: string) {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; itemId: string } }
+  { params }: { params: Promise<{ purchaseOrdersId: string; itemId: string }> }
 ) {
   try {
+    const { purchaseOrdersId, itemId } = await params;
     const organizationId = request.cookies.get("selected-org-id")?.value;
     if (!organizationId)
       return NextResponse.json(
         { message: "Organisation non sélectionnée." },
         { status: 403 }
       );
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
-    const item = await getItem(params.id, params.itemId);
+    const item = await getItem(purchaseOrdersId, itemId);
     if (!item || item.purchaseOrder.organizationId !== organizationId)
       return NextResponse.json(
         { message: "Article non trouvé ou accès refusé." },
@@ -37,7 +38,7 @@ export async function PUT(
     const data = await request.json();
 
     const updated = await prisma.purchaseOrderItem.update({
-      where: { id: params.itemId },
+      where: { id: itemId },
       data: {
         quantity: data.quantity ?? item.quantity,
         unitPrice: data.unitPrice ?? item.unitPrice,
@@ -48,9 +49,9 @@ export async function PUT(
     });
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { message: error.message ?? "Erreur serveur." },
+      { message: "Erreur serveur." },
       { status: 500 }
     );
   }
@@ -58,30 +59,31 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; itemId: string } }
+  { params }: { params: Promise<{ purchaseOrdersId: string; itemId: string }> }
 ) {
   try {
+    const { purchaseOrdersId, itemId } = await params;
     const organizationId = request.cookies.get("selected-org-id")?.value;
     if (!organizationId)
       return NextResponse.json(
         { message: "Organisation non sélectionnée." },
         { status: 403 }
       );
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
-    const item = await getItem(params.id, params.itemId);
+    const item = await getItem(purchaseOrdersId, itemId);
     if (!item || item.purchaseOrder.organizationId !== organizationId)
       return NextResponse.json(
         { message: "Article non trouvé ou accès refusé." },
         { status: 404 }
       );
 
-    await prisma.purchaseOrderItem.delete({ where: { id: params.itemId } });
+    await prisma.purchaseOrderItem.delete({ where: { id: itemId } });
 
     return NextResponse.json({ message: "Article supprimé avec succès." });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { message: error.message ?? "Erreur serveur." },
+      { message: "Erreur serveur." },
       { status: 500 }
     );
   }

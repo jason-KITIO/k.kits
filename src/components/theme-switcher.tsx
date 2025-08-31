@@ -1,18 +1,9 @@
 "use client";
 
-import { Palette, Sun, Moon, Monitor } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { useTheme } from "next-themes";
 import { useRef } from "react";
+import { Moon, Sun } from "lucide-react";
 import { flushSync } from "react-dom";
 
 export function ThemeSwitcher() {

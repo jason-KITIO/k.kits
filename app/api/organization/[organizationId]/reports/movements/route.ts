@@ -64,7 +64,11 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     const orgId = request.cookies.get("selected-org-id")?.value;
-    if (!orgId) return NextResponse.json({ message: "Organisation non sélectionnée." }, { status: 403 });
+    if (!orgId)
+      return NextResponse.json(
+        { message: "Organisation non sélectionnée." },
+        { status: 403 }
+      );
     checkOrganization(request, orgId);
 
     const movements = await prisma.stockMovement.findMany({
@@ -74,7 +78,10 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(movements);
-  } catch (e: any) {
-    return NextResponse.json({ message: e.message ?? "Erreur serveur." }, { status: 500 });
+  } catch (e: unknown) {
+    return NextResponse.json(
+      { message: e.message ?? "Erreur serveur." },
+      { status: 500 }
+    );
   }
 }

@@ -179,14 +179,19 @@ export async function POST(request: NextRequest) {
     const orgFromCookie = activeOrgs.find((org) => org.id === requestedOrgId);
 
     // Organisation à utiliser
-    let selectedOrg = orgFromCookie || null;
+    const selectedOrg = orgFromCookie || null;
 
     // Construire cookies de session + organisation (si sélectionnée)
     const cookieSession =
       `session_token=${sessionToken}; HttpOnly; Path=/; Max-Age=${SESSION_EXPIRES_IN}; SameSite=Lax` +
       (process.env.NODE_ENV === "production" ? "; Secure" : "");
 
-    const responsePayload: any = {
+    const responsePayload: {
+      message: string;
+      user: typeof user;
+      organizations: typeof activeOrgs;
+      selectedOrganization?: typeof selectedOrg;
+    } = {
       message: "Connexion réussie via OTP",
       user,
       organizations: activeOrgs,
@@ -211,7 +216,7 @@ export async function POST(request: NextRequest) {
     }
 
     return response;
-  } catch (error) {
+  } catch {
     console.error("Erreur vérification OTP:", error);
     return NextResponse.json(
       { message: "Erreur serveur, veuillez réessayer plus tard" },

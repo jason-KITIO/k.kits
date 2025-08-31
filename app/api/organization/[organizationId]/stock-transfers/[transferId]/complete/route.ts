@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { transferId: string } }
+  { params }: { params: Promise<{ transferId: string }> }
 ) {
   try {
     const organizationId = request.cookies.get("selected-org-id")?.value;
@@ -17,7 +17,7 @@ export async function PUT(
         { status: 403 }
       );
     }
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const transfer = await prisma.stockTransfer.findUnique({
       where: { id: params.transferId },
@@ -48,9 +48,9 @@ export async function PUT(
     });
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { message: error.message || "Erreur serveur" },
+      { message: error instanceof Error ? error.message : "Erreur serveur" },
       { status: 500 }
     );
   }

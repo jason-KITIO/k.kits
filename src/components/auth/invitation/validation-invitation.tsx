@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Eye, EyeClosed } from "@solar-icons/react";
 import Link from "next/link";
@@ -19,14 +18,10 @@ import {
   useAcceptInvitation,
   useInvitationEmail,
 } from "@/hooks/use-invitation";
-import { useOrganizationIdFromUrl } from "@/helper/get-orgnisation-id";
-
 export function ValidationInvitationForm({
   className,
   ...props
-}: React.ComponentProps<"div">) {
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
+}: React.ComponentProps<"div">) {const [showPassword, setShowPassword] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -60,7 +55,7 @@ export function ValidationInvitationForm({
     mutate: fetchInvitationEmail,
   } = useInvitationEmail(token || "", organizationId || "");
 
-  // Déclencher la récupération de l'email quand on a le token et organizationId
+  // Déclencher la récupération de l&apos;email quand on a le token et organizationId
   useEffect(() => {
     if (token && organizationId) {
       console.log(
@@ -110,7 +105,7 @@ export function ValidationInvitationForm({
     event.preventDefault();
 
     if (!token) {
-      alert("Token d'invitation manquant dans l'URL.");
+      alert("Token d&apos;invitation manquant dans l'URL.");
       return;
     }
     if (!formData.email) {
@@ -157,11 +152,11 @@ export function ValidationInvitationForm({
             <form onSubmit={handleSubmit}>
               <div className="grid gap-6">
                 <div className="grid gap-3">
-                  <Label htmlFor="username">Nom d'utilisateur</Label>
+                  <Label htmlFor="username">Nom d&apos;utilisateur</Label>
                   <Input
                     id="username"
                     type="text"
-                    placeholder="Votre nom d'utilisateur"
+                    placeholder="Votre nom d&apos;utilisateur"
                     value={formData.username}
                     onChange={handleChange}
                     required

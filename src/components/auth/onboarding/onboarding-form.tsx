@@ -9,19 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export function OnboardingForm({
   className,
   ...props
-}: React.ComponentProps<"div">) {
-  const router = useRouter();
-  function handleSubmit(event: React.FormEvent) {
-    router.push("/onboarding/telephone")
+}: React.ComponentProps<"div">) {function handleSubmit(event: React.FormEvent) {
+    router.push("/onboarding/telephone");
   }
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -75,7 +70,7 @@ export function OnboardingForm({
                   />
                   <div className="grid gap-1.5 font-normal">
                     <p className="text-sm leading-none font-medium text-foreground">
-                      J'accepte les conditions d'utilisation
+                      J&apos;accepte les conditions d&apos;utilisation
                     </p>
                     <p className="text-muted-foreground text-sm">
                       Vous devez accepter nos conditions pour créer un compte.

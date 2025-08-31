@@ -6,40 +6,19 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ organizationId: string; userId: string }> }
 ) {
   try {
-    const organizationId = request.cookies.get("selected-org-id")?.value;
-    if (!organizationId) {
-      return NextResponse.json(
-        { message: "Organisation non sélectionnée." },
-        { status: 403 }
-      );
-    }
-    checkOrganization(request, organizationId);
-
-    // Vérifier que userId est dans l'organisation
-    const member = await prisma.organizationMember.findFirst({
-      where: { userId: params.userId, organizationId, active: true },
-    });
-    if (!member) {
-      return NextResponse.json(
-        { message: "Utilisateur non membre de l'organisation." },
-        { status: 403 }
-      );
-    }
+    const { organizationId, userId } = await params;
+    checkOrganization(organizationId);
 
     const stock = await prisma.employeeStock.findMany({
-      where: { userId: params.userId, product: { organizationId } },
+      where: { userId: userId, product: { organizationId } },
       include: { product: true },
-      orderBy: { productId: "asc" },
     });
 
     return NextResponse.json(stock);
-  } catch (error: any) {
-    return NextResponse.json(
-      { message: error.message || "Erreur serveur." },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ message: "Erreur serveur." }, { status: 500 });
   }
 }

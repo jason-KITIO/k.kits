@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
         user: session.user,
       });
     }
-  } catch (error) {
+  } catch {
     console.error("Erreur gestion session :", error);
     return NextResponse.json(
       { message: "Erreur serveur, veuillez réessayer plus tard." },

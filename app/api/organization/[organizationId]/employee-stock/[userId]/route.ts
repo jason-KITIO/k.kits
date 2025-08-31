@@ -6,21 +6,15 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ organizationId: string; userId: string }> }
 ) {
   try {
-    const organizationId = request.cookies.get("selected-org-id")?.value;
-    if (!organizationId) {
-      return NextResponse.json(
-        { message: "Organisation non sélectionnée." },
-        { status: 403 }
-      );
-    }
-    checkOrganization(request, organizationId);
+    const { organizationId, userId } = await params;
+    checkOrganization(organizationId);
 
-    // Vérifier que userId appartient à cette organisation (organisation memberships)
+    // Vérifier que userId appartient à cette organisation
     const member = await prisma.organizationMember.findFirst({
-      where: { userId: params.userId, organizationId, active: true },
+      where: { userId: userId, organizationId, active: true },
     });
     if (!member) {
       return NextResponse.json(
@@ -30,37 +24,32 @@ export async function GET(
     }
 
     const stock = await prisma.employeeStock.findMany({
-      where: { userId: params.userId, product: { organizationId } },
+      where: { userId: userId, product: { organizationId } },
       include: { product: true },
       orderBy: { productId: "asc" },
     });
 
     return NextResponse.json(stock);
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { message: error.message || "Erreur serveur." },
+      { message: "Erreur serveur." },
       { status: 500 }
     );
   }
 }
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { employeeStockId: string } }
+  { params }: { params: Promise<{ organizationId: string; userId: string }> }
 ) {
   try {
-    const organizationId = request.cookies.get("selected-org-id")?.value;
-    if (!organizationId) {
-      return NextResponse.json(
-        { message: "Organisation non sélectionnée." },
-        { status: 403 }
-      );
-    }
-    checkOrganization(request, organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const data = await request.json();
 
     const employeeStock = await prisma.employeeStock.findUnique({
-      where: { id: params.employeeStockId },
+      where: { id: data.employeeStockId },
       include: { product: true },
     });
 
@@ -75,7 +64,7 @@ export async function PUT(
     }
 
     const updated = await prisma.employeeStock.update({
-      where: { id: params.employeeStockId },
+      where: { id: data.employeeStockId },
       data: {
         quantity: data.quantity ?? employeeStock.quantity,
         reservedQty: data.reservedQty ?? employeeStock.reservedQty,
@@ -84,9 +73,9 @@ export async function PUT(
     });
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { message: error.message || "Erreur serveur." },
+      { message: "Erreur serveur." },
       { status: 500 }
     );
   }

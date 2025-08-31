@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import crypto from "crypto";
-import redis from "@/lib/redis";  // votre instance redis Upstash
+
+import redis from "@/lib/redis"; // votre instance redis Upstash
 import { sendOtpSms } from "@/lib/sms";
 
 const prisma = new PrismaClient();
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
       message: "Code OTP envoyé par SMS",
       phone,
     });
-  } catch (error) {
+  } catch {
     console.error("Erreur lors de la demande d'OTP :", error);
     return NextResponse.json(
       { message: "Erreur serveur, veuillez réessayer plus tard" },

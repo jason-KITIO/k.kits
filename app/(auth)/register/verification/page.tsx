@@ -1,15 +1,11 @@
 "use client";
 
 import { VerificationResultPage } from "@/components/auth/register/verification/verification-result";
-import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function RegisterVerificationPage() {
   const searchParams = useSearchParams();
-  const token = searchParams?.get("token") ?? null;
-  const router = useRouter();
-
-  const [success, setSuccess] = useState<boolean | null>(null);
+  const token = searchParams?.get("token") ?? null;const [success, setSuccess] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -19,9 +15,12 @@ export default function RegisterVerificationPage() {
 
     async function verifyEmail() {
       try {
-        const response = await fetch(`/api/auth/email/verify?token=${encodeURIComponent(token!)}`, {
-          method: "GET",
-        });
+        const response = await fetch(
+          `/api/auth/email/verify?token=${encodeURIComponent(token!)}`,
+          {
+            method: "GET",
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();

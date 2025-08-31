@@ -35,16 +35,17 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string; warehouseId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const warehouse = await prisma.warehouse.findUnique({
-      where: { id: params.warehouseId },
+      where: { id: warehouseId },
     });
 
-    if (!warehouse || warehouse.organizationId !== params.organizationId) {
+    if (!warehouse || warehouse.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Entrepôt non trouvé dans cette organisation." },
         { status: 404 }
@@ -52,9 +53,12 @@ export async function GET(
     }
 
     return NextResponse.json(warehouse);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { message: "Accès refusé ou erreur serveur lors de la récupération de l’entrepôt." },
+      {
+        message:
+          "Accès refusé ou erreur serveur lors de la récupération de l’entrepôt.",
+      },
       { status: 403 }
     );
   }
@@ -107,13 +111,16 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { organizationId: string; warehouseId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
-    const existing = await prisma.warehouse.findUnique({ where: { id: params.warehouseId } });
-    if (!existing || existing.organizationId !== params.organizationId) {
+    const existing = await prisma.warehouse.findUnique({
+      where: { id: warehouseId },
+    });
+    if (!existing || existing.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Entrepôt non trouvé dans cette organisation." },
         { status: 404 }
@@ -123,7 +130,7 @@ export async function PUT(
     const data = await request.json();
 
     const updated = await prisma.warehouse.update({
-      where: { id: params.warehouseId },
+      where: { id: warehouseId },
       data: {
         name: data.name ?? existing.name,
         description: data.description ?? existing.description,
@@ -134,7 +141,7 @@ export async function PUT(
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la mise à jour de l’entrepôt." },
       { status: 500 }
@@ -173,23 +180,26 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { organizationId: string; warehouseId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
-    const existing = await prisma.warehouse.findUnique({ where: { id: params.warehouseId } });
-    if (!existing || existing.organizationId !== params.organizationId) {
+    const existing = await prisma.warehouse.findUnique({
+      where: { id: warehouseId },
+    });
+    if (!existing || existing.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Entrepôt non trouvé dans cette organisation." },
         { status: 404 }
       );
     }
 
-    await prisma.warehouse.delete({ where: { id: params.warehouseId } });
+    await prisma.warehouse.delete({ where: { id: warehouseId } });
 
     return NextResponse.json({ message: "Entrepôt supprimé avec succès." });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la suppression de l’entrepôt." },
       { status: 500 }

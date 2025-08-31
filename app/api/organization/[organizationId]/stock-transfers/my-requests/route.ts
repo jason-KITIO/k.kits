@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       );
     }
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const transfers = await prisma.stockTransfer.findMany({
       where: { requestedBy: requesterId, product: { organizationId } },
@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(transfers);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { message: error.message || "Erreur serveur" },
+      { message: error instanceof Error ? error.message : "Erreur serveur" },
       { status: 500 }
     );
   }

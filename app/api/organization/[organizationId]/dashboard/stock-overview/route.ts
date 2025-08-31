@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
         { message: "Organisation non sélectionnée." },
         { status: 403 }
       );
-    checkOrganization(request, orgId);
+    checkOrganization(orgId);
 
     // Total quantité par produit dans l'organisation (sur tous warehouses)
     const stockOverview = await prisma.warehouseStock.groupBy({
@@ -78,9 +78,9 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(overview);
-  } catch (e: any) {
+  } catch (e: unknown) {
     return NextResponse.json(
-      { message: e.message || "Erreur serveur." },
+      { message: e instanceof Error ? e.message : "Erreur serveur." },
       { status: 500 }
     );
   }

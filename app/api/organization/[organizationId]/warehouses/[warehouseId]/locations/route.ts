@@ -5,17 +5,18 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function GET(
-  request: NextRequest, 
-  { params }: { params: { organizationId: string; warehouseId: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     // Vérifier que l'entrepôt appartient à l'organisation
     const warehouse = await prisma.warehouse.findUnique({
-      where: { id: params.warehouseId }
+      where: { id: warehouseId },
     });
-    if (!warehouse || warehouse.organizationId !== params.organizationId) {
+    if (!warehouse || warehouse.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Entrepôt non trouvé dans cette organisation." },
         { status: 404 }
@@ -23,12 +24,12 @@ export async function GET(
     }
 
     const locations = await prisma.stockLocation.findMany({
-      where: { warehouseId: params.warehouseId, active: true },
-      orderBy: { name: "asc" }
+      where: { warehouseId: warehouseId, active: true },
+      orderBy: { name: "asc" },
     });
 
     return NextResponse.json(locations);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la récupération des emplacements." },
       { status: 500 }
@@ -37,16 +38,17 @@ export async function GET(
 }
 
 export async function POST(
-  request: NextRequest, 
-  { params }: { params: { organizationId: string; warehouseId: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const warehouse = await prisma.warehouse.findUnique({
-      where: { id: params.warehouseId }
+      where: { id: warehouseId },
     });
-    if (!warehouse || warehouse.organizationId !== params.organizationId) {
+    if (!warehouse || warehouse.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Entrepôt non trouvé dans cette organisation." },
         { status: 404 }
@@ -65,7 +67,7 @@ export async function POST(
       data: {
         name: data.name,
         description: data.description ?? null,
-        warehouseId: params.warehouseId,
+        warehouseId: warehouseId,
         zone: data.zone ?? null,
         aisle: data.aisle ?? null,
         shelf: data.shelf ?? null,
@@ -75,7 +77,7 @@ export async function POST(
     });
 
     return NextResponse.json(location, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la création de l'emplacement." },
       { status: 500 }

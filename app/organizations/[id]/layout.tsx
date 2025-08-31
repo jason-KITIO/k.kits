@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { Header } from "@/components/header";

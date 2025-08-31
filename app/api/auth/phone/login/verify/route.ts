@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     response.headers.append("Set-Cookie", cookieValue);
 
     return response;
-  } catch (error) {
+  } catch {
     console.error("Erreur vérification OTP SMS :", error);
     return NextResponse.json(
       { message: "Erreur serveur, veuillez réessayer plus tard" },

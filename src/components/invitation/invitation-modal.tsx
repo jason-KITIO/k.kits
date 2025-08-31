@@ -59,7 +59,7 @@ export function InvitationModal({
           setEmail("");
           onOpenChange(false);
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           alert(error.message || "Erreur lors de l'envoi de l'invitation");
         },
       }
@@ -74,7 +74,7 @@ export function InvitationModal({
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email de l'invité</Label>
+            <Label htmlFor="email">Email de l&apos;invité</Label>
             <Input
               id="email"
               type="email"

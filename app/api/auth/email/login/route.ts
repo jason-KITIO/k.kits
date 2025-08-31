@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     await sendOtpVerificationEmail(email, otp);
 
     return NextResponse.json({ message: "Code OTP envoyé par email" });
-  } catch (error) {
+  } catch {
     console.error("Erreur envoi OTP:", error);
     return NextResponse.json(
       { message: "Erreur serveur, veuillez réessayer plus tard" },

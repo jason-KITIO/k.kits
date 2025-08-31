@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
         { message: "Organisation non sélectionnée." },
         { status: 403 }
       );
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const orders = await prisma.purchaseOrder.findMany({
       where: { organizationId },
@@ -77,9 +77,9 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(orders);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { message: error.message || "Erreur serveur." },
+      { message: error instanceof Error ? error.message : "Erreur serveur." },
       { status: 500 }
     );
   }
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
         { message: "Organisation ou utilisateur non authentifié." },
         { status: 403 }
       );
-    checkOrganization(request, organizationId);
+    checkOrganization(organizationId);
 
     const data = await request.json();
 
@@ -178,9 +178,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(order, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { message: error.message || "Erreur serveur." },
+      { message: error instanceof Error ? error.message : "Erreur serveur." },
       { status: 500 }
     );
   }

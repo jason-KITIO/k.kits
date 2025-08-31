@@ -15,12 +15,12 @@ export async function GET(
 ) {
   try {
     // Vérification organisation via cookie et param URL
-    checkOrganization(request, params.organizationId);
+    checkOrganization(organizationId);
 
     // Vérifier que le location appartient bien à cette organisation
     const location = await verifyLocationOwnership(
       params.locationId,
-      params.organizationId
+      organizationId
     );
     if (!location) {
       return NextResponse.json(
@@ -30,7 +30,7 @@ export async function GET(
     }
 
     return NextResponse.json(location);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
       {
         message:
@@ -51,12 +51,12 @@ export async function PUT(
   }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    checkOrganization(organizationId);
 
     // Vérifier que l'emplacement existe et appartient à l'organisation
     const existing = await verifyLocationOwnership(
       params.locationId,
-      params.organizationId
+      organizationId
     );
     if (!existing) {
       return NextResponse.json(
@@ -81,7 +81,7 @@ export async function PUT(
     });
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
       {
         message:
@@ -102,11 +102,11 @@ export async function DELETE(
   }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    checkOrganization(organizationId);
 
     const existing = await verifyLocationOwnership(
       params.locationId,
-      params.organizationId
+      organizationId
     );
     if (!existing) {
       return NextResponse.json(
@@ -118,7 +118,7 @@ export async function DELETE(
     await prisma.stockLocation.delete({ where: { id: params.locationId } });
 
     return NextResponse.json({ message: "Emplacement supprimé avec succès." });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
       {
         message:

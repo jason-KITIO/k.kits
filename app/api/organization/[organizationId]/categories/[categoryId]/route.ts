@@ -35,17 +35,18 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string; categoryId: string } }
+  { params }: { params: Promise<{ organizationId: string; categoryId: string }> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId, categoryId } = await params;
+    checkOrganization(organizationId);
 
     const category = await prisma.category.findUnique({
-      where: { id: params.categoryId },
+      where: { id: categoryId },
       include: { children: true, products: true },
     });
 
-    if (!category || category.organizationId !== params.organizationId) {
+    if (!category || category.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Catégorie non trouvée dans cette organisation." },
         { status: 404 }
@@ -53,9 +54,12 @@ export async function GET(
     }
 
     return NextResponse.json(category);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { message: "Accès refusé ou erreur serveur lors de la récupération de la catégorie." },
+      {
+        message:
+          "Accès refusé ou erreur serveur lors de la récupération de la catégorie.",
+      },
       { status: 403 }
     );
   }
@@ -110,13 +114,16 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { organizationId: string; categoryId: string } }
+  { params }: { params: Promise<{ organizationId: string; categoryId: string }> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId, categoryId } = await params;
+    checkOrganization(organizationId);
 
-    const existing = await prisma.category.findUnique({ where: { id: params.categoryId } });
-    if (!existing || existing.organizationId !== params.organizationId) {
+    const existing = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+    if (!existing || existing.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Catégorie non trouvée dans cette organisation." },
         { status: 404 }
@@ -126,7 +133,7 @@ export async function PUT(
     const data = await request.json();
 
     const updated = await prisma.category.update({
-      where: { id: params.categoryId },
+      where: { id: categoryId },
       data: {
         name: data.name ?? existing.name,
         description: data.description ?? existing.description,
@@ -138,7 +145,7 @@ export async function PUT(
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la mise à jour de la catégorie." },
       { status: 500 }
@@ -177,23 +184,26 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { organizationId: string; categoryId: string } }
+  { params }: { params: Promise<{ organizationId: string; categoryId: string }> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId, categoryId } = await params;
+    checkOrganization(organizationId);
 
-    const existing = await prisma.category.findUnique({ where: { id: params.categoryId } });
-    if (!existing || existing.organizationId !== params.organizationId) {
+    const existing = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+    if (!existing || existing.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Catégorie non trouvée dans cette organisation." },
         { status: 404 }
       );
     }
 
-    await prisma.category.delete({ where: { id: params.categoryId }});
+    await prisma.category.delete({ where: { id: categoryId } });
 
     return NextResponse.json({ message: "Catégorie supprimée avec succès." });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la suppression de la catégorie." },
       { status: 500 }

@@ -1,68 +1,75 @@
 <!DOCTYPE html>
 <html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Invitation à rejoindre une organisation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Invitation à rejoindre une organisation</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
 
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
+      h1 {
+        color: #1976d2;
+      }
 
-    h1 {
-      color: #1976d2;
-    }
+      p {
+        font-size: 16px;
+        line-height: 1.6;
+      }
 
-    p {
-      font-size: 16px;
-      line-height: 1.6;
-    }
+      .button {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 12px 24px;
+        background-color: #1976d2;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+      }
 
-    .button {
-      display: inline-block;
-      margin-top: 30px;
-      padding: 12px 24px;
-      background-color: #1976d2;
-      color: white;
-      text-decoration: none;
-      border-radius: 4px;
-      font-weight: bold;
-    }
+      .footer {
+        margin-top: 40px;
+        font-size: 12px;
+        color: #999;
+        text-align: center;
+      }
+    </style>
+  </head>
 
-    .footer {
-      margin-top: 40px;
-      font-size: 12px;
-      color: #999;
-      text-align: center;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="container">
-    <h1>Invitation à rejoindre notre organisation</h1>
-    <p>Vous avez été invité à rejoindre <strong>{{organizationName}}</strong> avec le rôle suivant : <strong>{{role}}</strong>.</p>
-    <p>Pour accepter l'invitation, veuillez cliquer sur le bouton ci-dessous :</p>
-    <a href="{{invitationLink}}" class="button">Accepter l'invitation</a>
-    <p>Si vous ne souhaitez pas rejoindre cette organisation, vous pouvez ignorer cet email.</p>
-    <div class="footer">
-      <p>&copy; 2025 Votre Entreprise. Tous droits réservés.</p>
+  <body>
+    <div class="container">
+      <h1>Invitation à rejoindre notre organisation</h1>
+      <p>
+        Vous avez été invité à rejoindre
+        <strong>{{organizationName}}</strong> avec le rôle suivant :
+        <strong>{{role}}</strong>.
+      </p>
+      <p>
+        Pour accepter l'invitation, veuillez cliquer sur le bouton ci-dessous :
+      </p>
+      <a href="{{invitationLink}}" class="button">Accepter l'invitation</a>
+      <p>
+        Si vous ne souhaitez pas rejoindre cette organisation, vous pouvez
+        ignorer cet email.
+      </p>
+      <div class="footer">
+        <p>&copy; 2025 Votre Entreprise. Tous droits réservés.</p>
+      </div>
     </div>
-  </div>
-</body>
-
+  </body>
 </html>

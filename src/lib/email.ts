@@ -82,7 +82,7 @@ export async function sendInvitationEmail(
   {
     role,
     organizationName,
-    invitationLink ,
+    invitationLink,
   }: {
     role: string;
     organizationName: string;

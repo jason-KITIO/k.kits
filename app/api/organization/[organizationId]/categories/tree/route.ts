@@ -13,18 +13,13 @@ const prisma = new PrismaClient();
 function buildTree(
   categories: Category[],
   parentId: string | null = null
-): CategoryWithChildren[] {
+): (Category & { children: any[] })[] {
   return categories
     .filter((cat) => cat.parentId === parentId)
     .map((cat) => ({
       ...cat,
       children: buildTree(categories, cat.id),
     }));
-}
-
-// Interface étendue pour inclure children
-interface CategoryWithChildren extends Category {
-  children: CategoryWithChildren[];
 }
 
 /**
@@ -81,19 +76,20 @@ interface CategoryWithChildren extends Category {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const categories = await prisma.category.findMany({
-      where: { organizationId: params.organizationId, active: true },
+      where: { organizationId: organizationId, active: true },
       orderBy: { name: "asc" },
     });
 
     const tree = buildTree(categories);
     return NextResponse.json(tree);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message:

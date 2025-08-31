@@ -7,8 +7,12 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     const organizationId = request.cookies.get("selected-org-id")?.value;
-    if (!organizationId) return NextResponse.json({ message: "Organisation non sélectionnée." }, { status: 403 });
-    checkOrganization(request, organizationId);
+    if (!organizationId)
+      return NextResponse.json(
+        { message: "Organisation non sélectionnée." },
+        { status: 403 }
+      );
+    checkOrganization(organizationId);
 
     const now = new Date();
 
@@ -30,7 +34,10 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(scheduled);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message || "Erreur serveur." }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "Erreur serveur." },
+      { status: 500 }
+    );
   }
 }

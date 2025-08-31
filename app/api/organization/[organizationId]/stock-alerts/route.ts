@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { checkOrganization } from "@/helper/check-organization";
+import { handleApiError } from "@/lib/error-handler";
 
 const prisma = new PrismaClient();
 
@@ -58,12 +59,20 @@ const prisma = new PrismaClient();
  *       500:
  *         description: Erreur serveur
  */
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { organizationId: string } }
+) {
   try {
-    const organizationId = request.cookies.get("selected-org-id")?.value;
-    if (!organizationId) 
-      return NextResponse.json({ message: "Organisation non sélectionnée." }, { status: 403 });
-    checkOrganization(request, organizationId);
+    const { organizationId } = params;
+
+    const organizationCheck = await checkOrganization(organizationId);
+    if (!organizationCheck.success) {
+      return NextResponse.json(
+        { message: organizationCheck.message },
+        { status: organizationCheck.status }
+      );
+    }
 
     const alerts = await prisma.stockAlert.findMany({
       where: { product: { organizationId } },
@@ -71,8 +80,8 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(alerts);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message || "Erreur serveur." }, { status: 500 });
+  } catch (error: unknown) {
+    return handleApiError(error, "stock-alerts GET");
   }
 }
 
@@ -130,23 +139,52 @@ export async function GET(request: NextRequest) {
  *       500:
  *         description: Erreur serveur
  */
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { organizationId: string } }
+) {
   try {
-    const organizationId = request.cookies.get("selected-org-id")?.value;
+    const { organizationId } = params;
     const creatorId = request.cookies.get("user-id")?.value;
-    if (!organizationId || !creatorId) 
-      return NextResponse.json({ message: "Organisation ou utilisateur non authentifié." }, { status: 403 });
-    checkOrganization(request, organizationId);
+
+    const organizationCheck = await checkOrganization(organizationId);
+    if (!organizationCheck.success) {
+      return NextResponse.json(
+        { message: organizationCheck.message },
+        { status: organizationCheck.status }
+      );
+    }
+
+    if (!creatorId) {
+      return NextResponse.json(
+        { message: "Utilisateur non authentifié." },
+        { status: 401 }
+      );
+    }
 
     const data = await request.json();
-    if (!data.productId || !data.alertType || data.threshold === undefined || data.currentQty === undefined || !data.message) {
-      return NextResponse.json({ message: "Données obligatoires manquantes." }, { status: 400 });
+    if (
+      !data.productId ||
+      !data.alertType ||
+      data.threshold === undefined ||
+      data.currentQty === undefined ||
+      !data.message
+    ) {
+      return NextResponse.json(
+        { message: "Données obligatoires manquantes." },
+        { status: 400 }
+      );
     }
 
     // Vérifier que le produit appartient à l'organisation
-    const product = await prisma.product.findUnique({ where: { id: data.productId } });
-    if (!product || product.organizationId !== organizationId) 
-      return NextResponse.json({ message: "Produit non trouvé dans cette organisation." }, { status: 404 });
+    const product = await prisma.product.findUnique({
+      where: { id: data.productId },
+    });
+    if (!product || product.organizationId !== organizationId)
+      return NextResponse.json(
+        { message: "Produit non trouvé dans cette organisation." },
+        { status: 404 }
+      );
 
     const alert = await prisma.stockAlert.create({
       data: {
@@ -162,7 +200,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(alert, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message || "Erreur serveur." }, { status: 500 });
+  } catch (error: unknown) {
+    return handleApiError(error, "stock-alerts POST");
   }
 }

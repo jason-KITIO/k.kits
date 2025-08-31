@@ -2,10 +2,8 @@ import { NextResponse, NextRequest } from "next/server";
 import client from "@/lib/twilio";
 import redis from "@/lib/redis";
 import { generateVerificationSMS } from "@/template/sms-template";
-import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
 const prisma = new PrismaClient();
 
 /**
@@ -155,7 +153,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ message: "SMS envoyé : ", code, userId });
-  } catch (error) {
+  } catch {
     console.error("Erreur envoi SMS :", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }

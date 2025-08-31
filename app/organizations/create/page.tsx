@@ -5,10 +5,31 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Building2,
+  Upload,
+  Loader2,
+  ArrowLeft,
+  Globe,
+  Mail,
+  Phone,
+  MapPin,
+  ImageIcon,
+} from "lucide-react";
+import Link from "next/link";
 
 const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
-const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
+const CLOUDINARY_UPLOAD_PRESET =
+  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
 export default function OrganizationCreatePage() {
   const router = useRouter();
@@ -52,7 +73,7 @@ export default function OrganizationCreatePage() {
     const { id, value } = e.target;
 
     if (id === "domain") {
-      domainManuallyEdited.current = true; // marque qu'on a édité domaine manuellement
+      domainManuallyEdited.current = true; // marque qu&apos;on a édité domaine manuellement
     }
 
     setFormData((prev) => ({
@@ -86,11 +107,11 @@ export default function OrganizationCreatePage() {
       if (data.secure_url) {
         setFormData((prev) => ({ ...prev, logo: data.secure_url }));
       } else {
-        setError("Erreur lors de l'upload de l'image");
+        setError("Erreur lors de l&apos;upload de l&apos;image");
       }
     } catch (err) {
       console.error("Upload image error", err);
-      setError("Erreur lors de l'upload de l'image, veuillez réessayer");
+      setError("Erreur lors de l&apos;upload de l&apos;image, veuillez réessayer");
     } finally {
       setUploading(false);
     }
@@ -125,130 +146,245 @@ export default function OrganizationCreatePage() {
       }
 
       router.push("/organizations");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || "Erreur inconnue");
       setIsSubmitting(false);
     }
   }
 
   return (
-    <div className={cn("max-w-3xl mx-auto p-6")}>
-      <h1 className="text-2xl font-bold mb-6">
-        Créer une nouvelle organisation
-      </h1>
-      <form onSubmit={handleSubmit} className="grid gap-6">
-        <div className="grid gap-3">
-          <Label htmlFor="name">Nom de l'organisation *</Label>
-          <Input
-            id="name"
-            type="text"
-            placeholder="Mon Entreprise"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            disabled={isSubmitting}
-          />
+    <div className="container mx-auto p-6 max-w-4xl">
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/organizations">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour
+            </Link>
+          </Button>
         </div>
-
-        <div className="grid gap-3">
-          <Label htmlFor="description">Description</Label>
-          <textarea
-            id="description"
-            placeholder="Une entreprise innovante"
-            value={formData.description}
-            onChange={handleChange}
-            className="resize-none rounded border border-input px-3 py-2 text-base"
-            rows={4}
-            disabled={isSubmitting}
-          />
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Building2 className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Créer une nouvelle organisation
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Configurez votre organisation pour commencer à gérer votre
+              inventaire
+            </p>
+          </div>
         </div>
+      </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-3">
-            <Label htmlFor="domain">Domaine</Label>
-            <div className="flex items-end space-x-2">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Informations générales
+            </CardTitle>
+            <CardDescription>
+              Définissez les informations de base de votre organisation
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nom de l&apos;organisation *</Label>
               <Input
-                id="domain"
+                id="name"
                 type="text"
-                placeholder="john-team"
-                value={formData.domain}
+                placeholder="Mon Entreprise"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Décrivez votre organisation et son activité..."
+                value={formData.description}
+                onChange={handleChange}
+                rows={4}
+                disabled={isSubmitting}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Domaine web
+              </CardTitle>
+              <CardDescription>
+                Votre adresse web personnalisée (optionnel)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="domain">Sous-domaine</Label>
+                <div className="flex items-center">
+                  <Input
+                    id="domain"
+                    type="text"
+                    placeholder="mon-entreprise"
+                    value={formData.domain}
+                    onChange={handleChange}
+                    disabled={isSubmitting}
+                    className="rounded-r-none"
+                  />
+                  <div className="px-3 py-2 bg-muted border border-l-0 rounded-r-md text-sm text-muted-foreground">
+                    .kkits.com
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Généré automatiquement à partir du nom
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                Logo
+              </CardTitle>
+              <CardDescription>
+                Ajoutez le logo de votre organisation
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="logoFile">Fichier image</Label>
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="logoFile"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={isSubmitting || uploading}
+                    className="flex-1"
+                  />
+                  {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+                </div>
+                {uploading && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Upload className="h-4 w-4" />
+                    Upload en cours...
+                  </p>
+                )}
+                {formData.logo && (
+                  <div className="mt-4">
+                    <img
+                      src={formData.logo}
+                      alt="Logo uploadé"
+                      className="h-20 w-20 object-cover rounded-lg border shadow-sm"
+                    />
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Informations de contact
+            </CardTitle>
+            <CardDescription>
+              Coordonnées de votre organisation (optionnel)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="contact@monentreprise.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  Téléphone
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+237 698 765 432"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address" className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Adresse
+              </Label>
+              <Input
+                id="address"
+                type="text"
+                placeholder="Logbessou, Douala, Cameroun"
+                value={formData.address}
                 onChange={handleChange}
                 disabled={isSubmitting}
               />
-              <span>.kkits.com</span>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="space-y-3">
-            <Label htmlFor="logoFile">Logo de l'organisation</Label>
-            <Input
-              id="logoFile"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              disabled={isSubmitting || uploading}
-              className="border rounded px-3 py-2 w-full"
-            />
-            {uploading && (
-              <p className="text-sm text-muted-foreground mt-1">Upload en cours...</p>
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex gap-4 pt-6">
+          <Button type="button" variant="outline" className="flex-1" asChild>
+            <Link href="/organizations">Annuler</Link>
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting || uploading}
+            className="flex-1"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Création en cours...
+              </>
+            ) : (
+              <>
+                <Building2 className="h-4 w-4 mr-2" />
+                Créer l&apos;organisation
+              </>
             )}
-            {formData.logo && (
-              <img
-                src={formData.logo}
-                alt="Logo uploadé"
-                className="mt-3 h-24 w-auto rounded shadow"
-              />
-            )}
-          </div>
+          </Button>
         </div>
-
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-3">
-            <Label htmlFor="address">Adresse</Label>
-            <Input
-              id="address"
-              type="text"
-              placeholder="123 Rue de la Paix, Paris"
-              value={formData.address}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <Label htmlFor="phone">Téléphone</Label>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="+237 698 765 432"
-              value={formData.phone}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="contact@monentreprise.com"
-            value={formData.email}
-            onChange={handleChange}
-            disabled={isSubmitting}
-          />
-        </div>
-
-        {error && <p className="text-destructive text-center">{error}</p>}
-
-        <Button
-          type="submit"
-          disabled={isSubmitting || uploading}
-          className="w-full"
-        >
-          {isSubmitting ? "Création en cours..." : "Créer l'organisation"}
-        </Button>
       </form>
     </div>
   );

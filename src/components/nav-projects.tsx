@@ -25,31 +25,33 @@ export function NavProjects({
   }[];
 }) {
   const { isMobile } = useSidebar();
-    const [isInviteOpen, setInviteOpen] = useState(false);
-    const organizationId = useOrganizationIdFromUrl();
-  
-    function openInvitationModal() {
-      setInviteOpen(true);
-    }
+  const [isInviteOpen, setInviteOpen] = useState(false);
+  const organizationId = useOrganizationIdFromUrl();
+
+  function openInvitationModal() {
+    setInviteOpen(true);
+  }
 
   return (
     <>
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
-      <SidebarMenu>
-        {projects.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
-        <Button onClick={openInvitationModal} variant={"outline"}>Inviter un utilisateur</Button>
-      </SidebarMenu>
-    </SidebarGroup>
+      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarMenu>
+          {projects.map((item) => (
+            <SidebarMenuItem key={item.name}>
+              <SidebarMenuButton asChild>
+                <a href={item.url}>
+                  <item.icon />
+                  <span>{item.name}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+          <Button onClick={openInvitationModal} variant={"outline"}>
+            Inviter un utilisateur
+          </Button>
+        </SidebarMenu>
+      </SidebarGroup>
 
       {organizationId && (
         <InvitationModal
@@ -58,6 +60,6 @@ export function NavProjects({
           organizationId={organizationId}
         />
       )}
-      </>
+    </>
   );
 }

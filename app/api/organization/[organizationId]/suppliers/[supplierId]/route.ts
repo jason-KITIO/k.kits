@@ -35,16 +35,17 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string; supplierId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const supplier = await prisma.supplier.findUnique({
-      where: { id: params.supplierId },
+      where: { id: supplierId },
     });
 
-    if (!supplier || supplier.organizationId !== params.organizationId) {
+    if (!supplier || supplier.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Fournisseur non trouvé dans cette organisation." },
         { status: 404 }
@@ -52,7 +53,7 @@ export async function GET(
     }
 
     return NextResponse.json(supplier);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message:
@@ -118,15 +119,16 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { organizationId: string; supplierId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const existing = await prisma.supplier.findUnique({
-      where: { id: params.supplierId },
+      where: { id: supplierId },
     });
-    if (!existing || existing.organizationId !== params.organizationId) {
+    if (!existing || existing.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Fournisseur non trouvé dans cette organisation." },
         { status: 404 }
@@ -136,7 +138,7 @@ export async function PUT(
     const data = await request.json();
 
     const updated = await prisma.supplier.update({
-      where: { id: params.supplierId },
+      where: { id: supplierId },
       data: {
         name: data.name ?? existing.name,
         email: data.email ?? existing.email,
@@ -151,7 +153,7 @@ export async function PUT(
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la mise à jour du fournisseur." },
       { status: 500 }
@@ -190,25 +192,26 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { organizationId: string; supplierId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const existing = await prisma.supplier.findUnique({
-      where: { id: params.supplierId },
+      where: { id: supplierId },
     });
-    if (!existing || existing.organizationId !== params.organizationId) {
+    if (!existing || existing.organizationId !== organizationId) {
       return NextResponse.json(
         { message: "Fournisseur non trouvé dans cette organisation." },
         { status: 404 }
       );
     }
 
-    await prisma.supplier.delete({ where: { id: params.supplierId } });
+    await prisma.supplier.delete({ where: { id: supplierId } });
 
     return NextResponse.json({ message: "Fournisseur supprimé avec succès." });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Erreur serveur lors de la suppression du fournisseur." },
       { status: 500 }

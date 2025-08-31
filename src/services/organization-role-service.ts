@@ -1,14 +1,25 @@
-import type { RoleCreatePayload, OrganizationRolesResponse, CreateRoleResponse } from "@/types/organization-role";
+import type {
+  RoleCreatePayload,
+  OrganizationRolesResponse,
+  CreateRoleResponse,
+} from "@/types/organization-role";
 
-export async function fetchOrganizationRoles(organizationId: string): Promise<OrganizationRolesResponse> {
-  const res = await fetch(`/api/organization/${organizationId}/roles?organizationId=${organizationId}`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
+export async function fetchOrganizationRoles(
+  organizationId: string
+): Promise<OrganizationRolesResponse> {
+  const res = await fetch(
+    `/api/organization/${organizationId}/roles?organizationId=${organizationId}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
 
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message || "Erreur lors de la récupération des rôles");
+    throw new Error(
+      error.message || "Erreur lors de la récupération des rôles"
+    );
   }
 
   return res.json();

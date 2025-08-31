@@ -1,4 +1,3 @@
-import { PrismaClient, Organization } from "@prisma/client";
 import { notFound } from "next/navigation";
 
 const prisma = new PrismaClient();

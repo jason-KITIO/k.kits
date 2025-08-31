@@ -49,15 +49,16 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     // Trouver produits avec stock global faible (somme des stocks dans entrepôts)
     const products = await prisma.product.findMany({
       where: {
-        organizationId: params.organizationId,
+        organizationId,
         active: true,
         warehouseStocks: {
           some: {
@@ -74,9 +75,12 @@ export async function GET(
     });
 
     return NextResponse.json(products);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { message: "Erreur serveur lors de la récupération des produits en stock faible." },
+      {
+        message:
+          "Erreur serveur lors de la récupération des produits en stock faible.",
+      },
       { status: 500 }
     );
   }

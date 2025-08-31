@@ -47,18 +47,19 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const warehouses = await prisma.warehouse.findMany({
-      where: { organizationId: params.organizationId, active: true },
+      where: { organizationId, active: true },
       orderBy: { name: "asc" },
     });
 
     return NextResponse.json(warehouses);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Accès refusé : organisation non valide ou non sélectionnée." },
       { status: 403 }
@@ -110,10 +111,11 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{$1}> }
 ) {
   try {
-    checkOrganization(request, params.organizationId);
+    const { organizationId } = await params;
+    checkOrganization(organizationId);
 
     const data = await request.json();
     if (!data.name) {
@@ -128,14 +130,15 @@ export async function POST(
         name: data.name,
         description: data.description ?? null,
         address: data.address ?? null,
-        managerId: data.managerId ?? null,
-        organizationId: params.organizationId,
+        managerId: data.managerId && data.managerId.trim() !== '' ? data.managerId : null,
+        organizationId,
         active: true,
       },
     });
 
     return NextResponse.json(warehouse, { status: 201 });
-  } catch (error) {
+  } catch {
+    console.error('Warehouse creation error:', error);
     return NextResponse.json(
       { message: "Erreur serveur lors de la création de l’entrepôt." },
       { status: 500 }
