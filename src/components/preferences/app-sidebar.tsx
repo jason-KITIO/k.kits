@@ -3,28 +3,7 @@
 import * as React from "react";
 import { usePathname } from "next/navigation";
 
-import {
-  BarChart3,
-  Box,
-  Building2,
-  AlertTriangle,
-  ArrowRightLeft,
-  ClipboardList,
-  Package,
-  ShoppingCart,
-  Truck,
-  Settings2,
-  LifeBuoy,
-  Send,
-  FileText,
-  TrendingUp,
-  Bell,
-  Search,
-  Store,
-  Mail,
-  Edit,
-  Warehouse,
-} from "lucide-react";
+import { LifeBuoy, Send, Store, Mail, Edit, Warehouse } from "lucide-react";
 
 import { NavMain } from "@/components/preferences/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";

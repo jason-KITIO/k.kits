@@ -7,11 +7,20 @@ import { Badge } from "../ui/badge";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Switch } from "../ui/switch";
 import { Label } from "../ui/label";
-import { Shield, ShieldCheck, ShieldAlert, Smartphone, Key, AlertTriangle, Settings, Download } from "lucide-react";
+import {
+  Shield,
+  ShieldCheck,
+  ShieldAlert,
+  Smartphone,
+  Key,
+  AlertTriangle,
+  Settings,
+  Download,
+} from "lucide-react";
 
 const Legacy2FA = () => {
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-  const [authMethod, setAuthMethod] = useState<'sms' | 'app'>('app');
+  const [authMethod] = useState<"sms" | "app">("app");
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
@@ -21,16 +30,20 @@ const Legacy2FA = () => {
             <Shield className="h-8 w-8 text-blue-600" />
             Authentification à deux facteurs
           </h1>
-          <p className="text-gray-600 mt-1">Renforcez la sécurité de votre compte</p>
+          <p className="text-gray-600 mt-1">
+            Renforcez la sécurité de votre compte
+          </p>
         </div>
 
         {/* Alerte de dépréciation */}
         <Alert className="border-amber-200 bg-amber-50">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800">
-            <strong>L'authentification 2FA héritée est désormais obsolète.</strong>
+            <strong>
+              L&apos;authentification 2FA héritée est désormais obsolète.
+            </strong>
             <br />
-            Configurez l'authentification multifacteur (MFA) pour votre compte{" "}
+            Configurez l&apos;authentification multifacteur (MFA) pour votre compte{" "}
             <a href="#" className="underline font-medium hover:text-amber-900">
               ici
             </a>
@@ -72,8 +85,8 @@ const Legacy2FA = () => {
                   />
                 </div>
               </div>
-              
-              <Badge 
+
+              <Badge
                 variant={is2FAEnabled ? "default" : "destructive"}
                 className="w-fit"
               >
@@ -82,7 +95,7 @@ const Legacy2FA = () => {
             </CardContent>
           </Card>
 
-          {/* Méthodes d'authentification */}
+          {/* Méthodes d&apos;authentification */}
           <Card className="bg-white">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -96,15 +109,19 @@ const Legacy2FA = () => {
                   <div className="flex items-center gap-3">
                     <Smartphone className="h-5 w-5 text-blue-600" />
                     <div>
-                      <p className="font-medium">Application d'authentification</p>
-                      <p className="text-sm text-gray-600">Google Authenticator, Authy</p>
+                      <p className="font-medium">
+                        Application d&apos;authentification
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Google Authenticator, Authy
+                      </p>
                     </div>
                   </div>
-                  <Badge variant={authMethod === 'app' ? "default" : "outline"}>
-                    {authMethod === 'app' ? "Actif" : "Disponible"}
+                  <Badge variant={authMethod === "app" ? "default" : "outline"}>
+                    {authMethod === "app" ? "Actif" : "Disponible"}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <Smartphone className="h-5 w-5 text-green-600" />
@@ -113,8 +130,8 @@ const Legacy2FA = () => {
                       <p className="text-sm text-gray-600">Code par message</p>
                     </div>
                   </div>
-                  <Badge variant={authMethod === 'sms' ? "default" : "outline"}>
-                    {authMethod === 'sms' ? "Actif" : "Disponible"}
+                  <Badge variant={authMethod === "sms" ? "default" : "outline"}>
+                    {authMethod === "sms" ? "Actif" : "Disponible"}
                   </Badge>
                 </div>
               </div>
@@ -135,8 +152,9 @@ const Legacy2FA = () => {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 bg-gray-50 rounded-lg">
                 <div className="flex-1">
                   <p className="text-gray-700 mb-2">
-                    Utilisez le bouton à droite pour modifier votre numéro, 
-                    changer de méthode d'authentification ou générer des codes de récupération.
+                    Utilisez le bouton à droite pour modifier votre numéro,
+                    changer de méthode d&apos;authentification ou générer des codes
+                    de récupération.
                   </p>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm">

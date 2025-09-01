@@ -26,7 +26,7 @@ const Personalization = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Personnalisation</h1>
           <p className="text-gray-600 mt-1">
-            Configurez vos préférences d'affichage et de localisation
+            Configurez vos préférences d&apos;affichage et de localisation
           </p>
         </div>
 
@@ -76,7 +76,7 @@ const Personalization = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-sm">
-                Choisissez comment les dates sont affichées dans l'application.
+                Choisissez comment les dates sont affichées dans l&apos;application.
               </p>
               <div className="space-y-2">
                 <Label htmlFor="date-select">Format de date</Label>
@@ -103,20 +103,20 @@ const Personalization = () => {
             </CardContent>
           </Card>
 
-          {/* Format d'heure */}
+          {/* Format d&apos;heure */}
           <Card className="bg-white">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-purple-600" />
-                Format d'heure
+                Format d&apos;heure
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-sm">
-                Définissez le format d'affichage des heures.
+                Définissez le format d&apos;affichage des heures.
               </p>
               <div className="space-y-2">
-                <Label htmlFor="time-select">Format d'heure</Label>
+                <Label htmlFor="time-select">Format d&apos;heure</Label>
                 <Select value={timeFormat} onValueChange={setTimeFormat}>
                   <SelectTrigger>
                     <SelectValue />
@@ -140,10 +140,10 @@ const Personalization = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-sm">
-                Sélectionnez la langue de l'interface.
+                Sélectionnez la langue de l&apos;interface.
               </p>
               <div className="space-y-2">
-                <Label htmlFor="language-select">Langue de l'interface</Label>
+                <Label htmlFor="language-select">Langue de l&apos;interface</Label>
                 <Select value={language} onValueChange={setLanguage}>
                   <SelectTrigger>
                     <SelectValue />
@@ -174,12 +174,12 @@ const Personalization = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <p className="text-gray-600 text-sm">
-                Personnalisez l'apparence de l'application. Ces paramètres
+                Personnalisez l&apos;apparence de l&apos;application. Ces paramètres
                 contrôlent le comportement expérimental et doivent être utilisés
                 avec précaution.
               </p>
               <p className="text-amber-600 text-xs bg-amber-50 p-2 rounded">
-                Note : Le mode sombre n'est actuellement pas disponible pour les
+                Note : Le mode sombre n&apos;est actuellement pas disponible pour les
                 graphiques.
               </p>
             </div>

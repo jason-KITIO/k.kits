@@ -19,7 +19,7 @@ export function OnboardingForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter();
 
-  function handleSubmit(event: React.FormEvent) {
+  function handleSubmit() {
     router.push("/onboarding/telephone");
   }
   return (

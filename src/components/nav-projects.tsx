@@ -24,7 +24,6 @@ export function NavProjects({
     icon: LucideIcon;
   }[];
 }) {
-  const { isMobile } = useSidebar();
   const [isInviteOpen, setInviteOpen] = useState(false);
   const organizationId = useOrganizationIdFromUrl();
 

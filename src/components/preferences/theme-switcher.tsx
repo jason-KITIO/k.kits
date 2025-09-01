@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 const ThemeSwitcher = () => {
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const [activeTheme, setActiveTheme] = useState<"light" | "dark" | "auto">(
     "light"
   );
