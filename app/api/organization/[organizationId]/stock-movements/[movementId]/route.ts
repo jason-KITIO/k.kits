@@ -17,9 +17,10 @@ export async function GET(
       );
     }
     checkOrganization(organizationId);
+    const { movementId } = await params;
 
     const movement = await prisma.stockMovement.findUnique({
-      where: { id: params.movementId },
+      where: { id: movementId },
       include: {
         product: true,
         warehouse: true,

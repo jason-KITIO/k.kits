@@ -4,19 +4,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CreateProductData, UpdateProductData, Product } from "@/types/product";
 
-interface ProductFormProps {
+interface CreateProductFormProps {
   product?: Product;
-  onSubmit: (data: UpdateProductData) => void;
+  onSubmit: (data: CreateProductData) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
 
-export function ProductForm({
+export function CreateProductForm({
   product,
   onSubmit,
   onCancel,
   isLoading,
-}: ProductFormProps) {
+}: CreateProductFormProps) {
   const [formData, setFormData] = useState({
     name: product?.name || "",
     description: product?.description || "",

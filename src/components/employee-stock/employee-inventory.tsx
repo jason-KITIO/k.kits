@@ -15,6 +15,7 @@ import {
   useEmployeeStock,
   useAdjustEmployeeStock,
 } from "@/hooks/use-employee-stock";
+import { toast } from "sonner";
 import { Package, AlertTriangle, CheckCircle, Settings } from "lucide-react";
 
 interface EmployeeInventoryProps {
@@ -23,7 +24,12 @@ interface EmployeeInventoryProps {
 
 export function EmployeeInventory({ organizationId }: EmployeeInventoryProps) {
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
-  const [selectedStock, setSelectedStock] = useState<any>(null);
+  const [selectedStock, setSelectedStock] = useState<{
+    id: string;
+    quantity: number;
+    productId: string;
+    product?: { name: string; sku: string; unit: string; minStock?: number };
+  } | null>(null);
   const [adjustmentData, setAdjustmentData] = useState({
     newQuantity: 0,
     reason: "",
@@ -33,10 +39,15 @@ export function EmployeeInventory({ organizationId }: EmployeeInventoryProps) {
   const { data: stock = [], isLoading } = useEmployeeStock(organizationId);
   const adjustMutation = useAdjustEmployeeStock(organizationId);
 
-  const handleAdjust = (stockItem: unknown) => {
+  const handleAdjust = (stockItem: {
+    id: string;
+    quantity: number;
+    productId: string;
+    product?: { name: string; sku: string; unit: string; minStock?: number };
+  }) => {
     setSelectedStock(stockItem);
     setAdjustmentData({
-      newQuantity: stockItem.quantity,
+      newQuantity: stockItem?.quantity || 0,
       reason: "",
       notes: "",
     });

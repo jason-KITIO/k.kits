@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: "SMS envoyé : ", code, userId });
   } catch {
-    console.error("Erreur envoi SMS :", error);
+    console.error("Erreur envoi SMS");
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

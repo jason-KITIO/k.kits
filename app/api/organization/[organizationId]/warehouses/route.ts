@@ -47,7 +47,7 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{$1}> }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
     const { organizationId } = await params;
@@ -61,7 +61,9 @@ export async function GET(
     return NextResponse.json(warehouses);
   } catch {
     return NextResponse.json(
-      { message: "Accès refusé : organisation non valide ou non sélectionnée." },
+      {
+        message: "Accès refusé : organisation non valide ou non sélectionnée.",
+      },
       { status: 403 }
     );
   }
@@ -111,7 +113,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{$1}> }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
     const { organizationId } = await params;
@@ -130,7 +132,10 @@ export async function POST(
         name: data.name,
         description: data.description ?? null,
         address: data.address ?? null,
-        managerId: data.managerId && data.managerId.trim() !== '' ? data.managerId : null,
+        managerId:
+          data.managerId && data.managerId.trim() !== ""
+            ? data.managerId
+            : null,
         organizationId,
         active: true,
       },
@@ -138,7 +143,7 @@ export async function POST(
 
     return NextResponse.json(warehouse, { status: 201 });
   } catch {
-    console.error('Warehouse creation error:', error);
+    console.error("Warehouse creation error:");
     return NextResponse.json(
       { message: "Erreur serveur lors de la création de l’entrepôt." },
       { status: 500 }

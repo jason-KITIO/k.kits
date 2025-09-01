@@ -61,10 +61,10 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    const { organizationId } = params;
+    const { organizationId } = await params;
 
     const organizationCheck = await checkOrganization(organizationId);
     if (!organizationCheck.success) {
@@ -141,10 +141,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    const { organizationId } = params;
+    const { organizationId } = await params;
     const creatorId = request.cookies.get("user-id")?.value;
 
     const organizationCheck = await checkOrganization(organizationId);

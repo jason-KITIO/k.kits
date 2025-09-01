@@ -145,8 +145,8 @@ export default function OrganizationsPage() {
                 <div className="flex items-center justify-between">
                   <Badge variant="secondary" className="text-xs">
                     <Users className="h-3 w-3 mr-1" />
-                    {org._count?.members || 0} membre
-                    {(org._count?.members || 0) > 1 ? "s" : ""}
+                    {/* {org._count?.members || 0} membre
+                    {(org._count?.members || 0) > 1 ? "s" : ""} */}
                   </Badge>
                   {org.domain && (
                     <span className="text-xs text-muted-foreground truncate ml-2">

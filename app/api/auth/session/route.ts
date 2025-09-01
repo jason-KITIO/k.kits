@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch {
-    console.error("Erreur gestion session :", error);
+    console.error("Erreur gestion session");
     return NextResponse.json(
       { message: "Erreur serveur, veuillez réessayer plus tard." },
       { status: 500 }

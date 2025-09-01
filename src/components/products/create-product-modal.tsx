@@ -6,22 +6,23 @@ import {
 } from "@/components/ui/dialog";
 import { ProductForm } from "./product-form";
 import { CreateProductData, Product, UpdateProductData } from "@/types/product";
+import { CreateProductForm } from "./create-product-form";
 
-interface ProductModalProps {
+interface CreateProductModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product;
-  onSubmit: (data: UpdateProductData) => void;
+  onSubmit: (data: CreateProductData) => void;
   isLoading?: boolean;
 }
 
-export function ProductModal({
+export function CreateProductModal({
   open,
   onOpenChange,
   product,
   onSubmit,
   isLoading,
-}: ProductModalProps) {
+}: CreateProductModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -30,7 +31,7 @@ export function ProductModal({
             {product ? "Modifier le produit" : "Créer un produit"}
           </DialogTitle>
         </DialogHeader>
-        <ProductForm
+        <CreateProductForm
           product={product}
           onSubmit={(data) => onSubmit(data)}
           onCancel={() => onOpenChange(false)}

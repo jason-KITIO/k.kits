@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: "Code OTP envoyé par email" });
   } catch {
-    console.error("Erreur envoi OTP:", error);
+    console.error("Erreur envoi OTP");
     return NextResponse.json(
       { message: "Erreur serveur, veuillez réessayer plus tard" },
       { status: 500 }

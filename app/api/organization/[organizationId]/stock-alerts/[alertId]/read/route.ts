@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ alertId: string }> }
+  { params }: { params: Promise<{ alertId: string }> } // 'alertId' correspond à nom du paramètre dynamique dans le chemin
 ) {
   try {
     const organizationId = request.cookies.get("selected-org-id")?.value;

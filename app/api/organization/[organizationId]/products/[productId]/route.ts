@@ -40,7 +40,7 @@ const prisma = new PrismaClient();
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{$1}> }
+  { params }: { params: Promise<{ organizationId: string; productId: string }> }
 ) {
   try {
     const { organizationId, productId } = await params;
@@ -142,7 +142,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{$1}> }
+  { params }: { params: Promise<{ organizationId: string; productId: string }> }
 ) {
   try {
     const { organizationId, productId } = await params;
@@ -240,7 +240,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{$1}> }
+  { params }: { params: Promise<{ organizationId: string; productId: string }> }
 ) {
   try {
     const { organizationId, productId } = await params;

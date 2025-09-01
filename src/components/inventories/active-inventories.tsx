@@ -25,6 +25,8 @@ import {
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
+import { StockInventory } from "@prisma/client";
+import { toast } from "sonner";
 
 interface ActiveInventoriesProps {
   organizationId: string;
@@ -32,7 +34,7 @@ interface ActiveInventoriesProps {
 
 export function ActiveInventories({ organizationId }: ActiveInventoriesProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [selectedInventory, setSelectedInventory] = useState<any>(null);
+  const [selectedInventory, setSelectedInventory] = useState<StockInventory | null>(null);
   const [updateData, setUpdateData] = useState({
     actualQty: 0,
     notes: "",
@@ -47,11 +49,11 @@ export function ActiveInventories({ organizationId }: ActiveInventoriesProps) {
   );
 
   const handleUpdate = (inventory: unknown) => {
-    setSelectedInventory(inventory);
-    setUpdateData({
-      actualQty: inventory.expectedQty,
-      notes: inventory.notes || "",
-    });
+    setSelectedInventory(inventory as StockInventory);
+    // setUpdateData({
+    //   actualQty: inventory.expectedQty,
+    //   notes: inventory.notes || "",
+    // });
     setIsUpdateModalOpen(true);
   };
 
@@ -208,7 +210,7 @@ export function ActiveInventories({ organizationId }: ActiveInventoriesProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Compter - {selectedInventory?.product?.name}
+              Compter - {selectedInventory?.productId}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmitUpdate} className="space-y-4">

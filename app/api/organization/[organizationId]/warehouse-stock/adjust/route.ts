@@ -4,9 +4,18 @@ import { checkOrganization } from "@/helper/check-organization";
 
 const prisma = new PrismaClient();
 
-export async function POST(request: NextRequest) {
+//   request: NextRequest,
+//   { params }: { params: Promise<{ organizationId: string; warehouseId: string }> }
+// ) {
+//   try {
+//     const { organizationId, warehouseId } = await params;
+//     checkOrganization(organizationId);
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ organizationId: string }> }
+) {
   try {
-    const organizationId = request.cookies.get("selected-org-id")?.value;
+    const { organizationId } = await params;
     if (!organizationId) {
       return NextResponse.json(
         { message: "Organisation non sélectionnée." },
@@ -88,8 +97,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     return NextResponse.json(
       {
-        message:
-          error.message || "Erreur serveur lors de l’ajustement du stock.",
+        message: "Erreur serveur lors de l’ajustement du stock.",
       },
       { status: 500 }
     );

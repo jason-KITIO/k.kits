@@ -15,6 +15,7 @@ import { ProductModal } from "@/components/products/product-modal";
 import { DeleteProductModal } from "@/components/products/delete-product-modal";
 import { Product, CreateProductData, UpdateProductData } from "@/types/product";
 import Link from "next/link";
+import { CreateProductModal } from "@/components/products/create-product-modal";
 
 export default function ProductsPage() {
   const params = useParams();
@@ -136,7 +137,7 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <ProductModal
+      <CreateProductModal
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
         onSubmit={handleCreate}

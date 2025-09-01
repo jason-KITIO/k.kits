@@ -54,10 +54,21 @@ export function CategoriesManager({ organizationId }: CategoriesManagerProps) {
   ) => {
     try {
       if (selectedCategory) {
-        await updateMutation.mutateAsync({ id: selectedCategory.id, data });
+        if ("id" in data) {
+          // Cast ou autre logique si besoin
+          await updateMutation.mutateAsync({
+            id: selectedCategory.id,
+            data: data as UpdateCategoryData,
+          });
+        } else {
+          await updateMutation.mutateAsync({
+            id: selectedCategory.id,
+            data: data,
+          });
+        }
         toast.success("Catégorie modifiée avec succès");
       } else {
-        await createMutation.mutateAsync(data);
+        await createMutation.mutateAsync(data as CreateCategoryData);
         toast.success("Catégorie créée avec succès");
       }
       setIsModalOpen(false);

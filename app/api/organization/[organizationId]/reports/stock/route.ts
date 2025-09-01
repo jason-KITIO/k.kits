@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         { message: "Organisation non sélectionnée." },
         { status: 403 }
       );
-    checkOrganization(request, orgId);
+    checkOrganization(orgId);
 
     const stocks = await prisma.warehouseStock.findMany({
       where: { product: { organizationId: orgId } },
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(stocks);
   } catch (e: unknown) {
     return NextResponse.json(
-      { message: e.message ?? "Erreur serveur." },
+      { message: e instanceof Error ? e.message : "Erreur serveur." },
       { status: 500 }
     );
   }

@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ organizations });
   } catch {
-    console.error("Erreur récupération organisations :", error);
+    console.error("Erreur récupération organisations");
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }
@@ -362,7 +362,7 @@ export async function POST(request: NextRequest) {
       organization,
     });
   } catch {
-    console.error("Erreur création organisation:", error);
+    console.error("Erreur création organisation:",);
     return NextResponse.json(
       { message: "Erreur serveur lors de la création d'organisation" },
       { status: 500 }

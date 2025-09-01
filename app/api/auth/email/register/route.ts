@@ -138,7 +138,6 @@ export async function POST(request: Request) {
       message: "Utilisateur créé, mail de vérification envoyé",
     });
   } catch {
-    console.error(error);
     return NextResponse.json({ message: "Erreur interne" }, { status: 500 });
   }
 }

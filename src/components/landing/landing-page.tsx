@@ -34,7 +34,7 @@ export function LandingPage() {
       icon: BarChart3,
       title: "Rapports & Analytics",
       description:
-        "Tableaux de bord détaillés et rapports d'export pour analyser vos performances",
+        "Tableaux de bord détaillés et rapports d&apos;export pour analyser vos performances",
     },
     {
       icon: Users,
@@ -186,7 +186,7 @@ export function LandingPage() {
               Tout ce dont vous avez besoin
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Une suite complète d'outils pour gérer efficacement votre
+              Une suite complète d&apos;outils pour gérer efficacement votre
               inventaire et optimiser vos opérations.
             </p>
           </AnimatedSection>
@@ -262,7 +262,7 @@ export function LandingPage() {
                 price: "Gratuit",
                 description: "Parfait pour débuter",
                 features: [
-                  "Jusqu'à 100 produits",
+                  "Jusqu&apos;à 100 produits",
                   "1 entrepôt",
                   "Rapports de base",
                   "Support email",
@@ -354,7 +354,7 @@ export function LandingPage() {
                 name: "Pierre Martin",
                 role: "Gérant PME",
                 content:
-                  "Interface intuitive et fonctionnalités complètes. Exactement ce qu'il nous fallait.",
+                  "Interface intuitive et fonctionnalités complètes. Exactement ce qu&apos;il nous fallait.",
               },
               {
                 name: "Sophie Laurent",
@@ -375,7 +375,7 @@ export function LandingPage() {
                       ))}
                     </div>
                     <p className="text-muted-foreground mb-4">
-                      "{testimonial.content}"
+                      &quot;{testimonial.content}&quot;
                     </p>
                     <div>
                       <div className="font-semibold">{testimonial.name}</div>
@@ -398,7 +398,7 @@ export function LandingPage() {
             Prêt à optimiser votre inventaire ?
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
-            Rejoignez des centaines d'organisations qui font confiance à K.Kits
+            Rejoignez des centaines d&apos;organisations qui font confiance à K.Kits
             pour gérer leur stock.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-400">
@@ -417,7 +417,7 @@ export function LandingPage() {
                 size="lg"
                 className="transition-all duration-300 hover:scale-105 hover:shadow-lg"
               >
-                Contacter l'équipe
+                Contacter l&apos;équipe
               </Button>
             </Link>
           </div>

@@ -10,18 +10,20 @@ export async function GET(
   {
     params,
   }: {
-    params: { organizationId: string; warehouseId: string; locationId: string };
+    params: Promise<{
+      organizationId: string;
+      warehouseId: string;
+      locationId: string;
+    }>;
   }
 ) {
   try {
+    const { organizationId, warehouseId, locationId } = await params;
     // Vérification organisation via cookie et param URL
     checkOrganization(organizationId);
 
     // Vérifier que le location appartient bien à cette organisation
-    const location = await verifyLocationOwnership(
-      params.locationId,
-      organizationId
-    );
+    const location = await verifyLocationOwnership(locationId, organizationId);
     if (!location) {
       return NextResponse.json(
         { message: "Emplacement non trouvé ou accès refusé." },
@@ -33,9 +35,7 @@ export async function GET(
   } catch (error: unknown) {
     return NextResponse.json(
       {
-        message:
-          error.message ||
-          "Erreur serveur lors de la récupération de l'emplacement.",
+        message: "Erreur serveur lors de la récupération de l'emplacement.",
       },
       { status: 500 }
     );
@@ -47,17 +47,19 @@ export async function PUT(
   {
     params,
   }: {
-    params: { organizationId: string; warehouseId: string; locationId: string };
+    params: Promise<{
+      organizationId: string;
+      warehouseId: string;
+      locationId: string;
+    }>;
   }
 ) {
   try {
+    const { organizationId, warehouseId, locationId } = await params;
     checkOrganization(organizationId);
 
     // Vérifier que l'emplacement existe et appartient à l'organisation
-    const existing = await verifyLocationOwnership(
-      params.locationId,
-      organizationId
-    );
+    const existing = await verifyLocationOwnership(locationId, organizationId);
     if (!existing) {
       return NextResponse.json(
         { message: "Emplacement non trouvé ou accès refusé." },
@@ -68,7 +70,7 @@ export async function PUT(
     const data = await request.json();
 
     const updated = await prisma.stockLocation.update({
-      where: { id: params.locationId },
+      where: { id: locationId },
       data: {
         name: data.name ?? existing.name,
         description: data.description ?? existing.description,
@@ -84,9 +86,7 @@ export async function PUT(
   } catch (error: unknown) {
     return NextResponse.json(
       {
-        message:
-          error.message ||
-          "Erreur serveur lors de la mise à jour de l'emplacement.",
+        message: "Erreur serveur lors de la mise à jour de l'emplacement.",
       },
       { status: 500 }
     );
@@ -98,14 +98,15 @@ export async function DELETE(
   {
     params,
   }: {
-    params: { organizationId: string; warehouseId: string; locationId: string };
+    params: Promise<{ organizationId: string; warehouseId: string; locationId: string }>;
   }
 ) {
   try {
+    const { organizationId, warehouseId, locationId } = await params;
     checkOrganization(organizationId);
 
     const existing = await verifyLocationOwnership(
-      params.locationId,
+      locationId,
       organizationId
     );
     if (!existing) {
@@ -115,14 +116,13 @@ export async function DELETE(
       );
     }
 
-    await prisma.stockLocation.delete({ where: { id: params.locationId } });
+    await prisma.stockLocation.delete({ where: { id: locationId } });
 
     return NextResponse.json({ message: "Emplacement supprimé avec succès." });
   } catch (error: unknown) {
     return NextResponse.json(
       {
         message:
-          error.message ||
           "Erreur serveur lors de la suppression de l'emplacement.",
       },
       { status: 500 }

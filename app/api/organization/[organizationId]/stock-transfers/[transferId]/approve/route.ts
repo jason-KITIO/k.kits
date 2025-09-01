@@ -18,9 +18,10 @@ export async function PUT(
       );
     }
     checkOrganization(organizationId);
+    const { transferId } = await params;
 
     const transfer = await prisma.stockTransfer.findUnique({
-      where: { id: params.transferId },
+      where: { id: transferId },
       include: { product: true },
     });
 
@@ -39,7 +40,7 @@ export async function PUT(
     }
 
     const updated = await prisma.stockTransfer.update({
-      where: { id: params.transferId },
+      where: { id: transferId },
       data: {
         status: "APPROVED",
         approvedBy: approverId,

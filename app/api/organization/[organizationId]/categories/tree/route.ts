@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 function buildTree(
   categories: Category[],
   parentId: string | null = null
-): (Category & { children: any[] })[] {
+): (Category & { children: (Category & { children: unknown[] })[] })[] {
   return categories
     .filter((cat) => cat.parentId === parentId)
     .map((cat) => ({

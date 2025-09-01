@@ -17,9 +17,9 @@ export async function GET(
       );
     }
     checkOrganization(organizationId);
-
+    const { transferId } = await params;
     const transfer = await prisma.stockTransfer.findUnique({
-      where: { id: params.transferId },
+      where: { id: transferId },
       include: {
         product: true,
         sourceWarehouse: true,

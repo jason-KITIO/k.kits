@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ email: invitation.email });
   } catch {
-    console.error("Erreur serveur API invitation details:", error);
+    console.error("Erreur serveur API invitation details");
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

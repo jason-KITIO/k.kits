@@ -2,6 +2,7 @@
 
 import { VerificationResultPage } from "@/components/auth/register/verification/verification-result";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function RegisterVerificationPage() {
   const searchParams = useSearchParams();

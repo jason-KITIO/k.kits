@@ -11,11 +11,15 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/router";
 
 export function OnboardingForm({
   className,
   ...props
-}: React.ComponentProps<"div">) {function handleSubmit(event: React.FormEvent) {
+}: React.ComponentProps<"div">) {
+  const router = useRouter();
+ 
+  function handleSubmit(event: React.FormEvent) {
     router.push("/onboarding/telephone");
   }
   return (

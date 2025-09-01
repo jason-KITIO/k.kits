@@ -7,11 +7,11 @@ import prisma from "@/lib/prisma";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
-  const { id } = await params;
+  const { organizationId } = await params;
 
-  if (!id) {
+  if (!organizationId) {
     return NextResponse.json(
       { message: "ID d'organisation requis" },
       { status: 400 }
@@ -20,7 +20,7 @@ export async function GET(
 
   try {
     const organization = await prisma.organization.findUnique({
-      where: { id },
+      where: { id: organizationId },
       include: {
         members: {
           where: { active: true },
@@ -62,7 +62,7 @@ export async function GET(
 
     return NextResponse.json({ organization });
   } catch {
-    console.error("Erreur récupération organisation:", error);
+    console.error("Erreur récupération organisation:");
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

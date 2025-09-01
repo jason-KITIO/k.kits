@@ -84,10 +84,11 @@ model Role {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  userRoles        UserRole[]
-  rolePermissions  RolePermission[]
-  OrganizationRole OrganizationRole[]
-  Invitation       Invitation[]
+  userRoles          UserRole[]
+  rolePermissions    RolePermission[]
+  OrganizationRole   OrganizationRole[]
+  Invitation         Invitation[]
+  OrganizationMember OrganizationMember[]
 }
 
 model Permission {
@@ -165,7 +166,10 @@ model OrganizationMember {
   leftAt         DateTime?
   active         Boolean   @default(true)
   invitedBy      String?
+  roleId         String
+  createdAt      DateTime  @default(now())
 
+  role         Role         @relation(fields: [roleId], references: [id])
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }

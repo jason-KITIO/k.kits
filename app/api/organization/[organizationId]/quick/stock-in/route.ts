@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         { message: "Organisation ou utilisateur non authentifié." },
         { status: 403 }
       );
-    checkOrganization(request, orgId);
+    checkOrganization(orgId);
 
     const data = await request.json();
 

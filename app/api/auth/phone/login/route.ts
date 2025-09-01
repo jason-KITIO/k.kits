@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
       phone,
     });
   } catch {
-    console.error("Erreur lors de la demande d'OTP :", error);
+    console.error("Erreur lors de la demande d'OTP");
     return NextResponse.json(
       { message: "Erreur serveur, veuillez réessayer plus tard" },
       { status: 500 }

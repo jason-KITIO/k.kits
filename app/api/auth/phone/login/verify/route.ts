@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch {
-    console.error("Erreur vérification OTP SMS :", error);
+    console.error("Erreur vérification OTP SMS");
     return NextResponse.json(
       { message: "Erreur serveur, veuillez réessayer plus tard" },
       { status: 500 }

@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Code invalide" }, { status: 400 });
     }
   } catch {
-    console.error("Erreur vérification code :", error);
+    console.error("Erreur vérification code");
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

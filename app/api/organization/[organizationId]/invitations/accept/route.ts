@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       message: "Compte créé et invitation acceptée avec succès",
     });
   } catch {
-    console.error("Erreur acceptation invitation:", error);
+    console.error("Erreur acceptation invitation",);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

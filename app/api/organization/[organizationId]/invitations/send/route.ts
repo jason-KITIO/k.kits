@@ -79,10 +79,11 @@ const prisma = new PrismaClient();
  *         description: Erreur serveur
  */
 export async function POST(
-  request: NextRequest
+  request: NextRequest,
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    const { organizationId } = await context.params;
+    const { organizationId } = await params;
 
     // Extraire le cookie session_token pour identifier l'utilisateur connecté
     const cookie = request.headers.get("cookie") || "";
@@ -167,7 +168,7 @@ export async function POST(
 
     return NextResponse.json({ message: "Invitation envoyée", invitation });
   } catch {
-    console.error("Erreur envoi invitation :", error);
+    console.error("Erreur envoi invitation");
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

@@ -60,7 +60,11 @@ export function InvitationModal({
           onOpenChange(false);
         },
         onError: (error: unknown) => {
-          alert(error.message || "Erreur lors de l'envoi de l'invitation");
+          alert(
+            error instanceof Error
+              ? error.message
+              : "Erreur lors de l'envoi de l'invitation"
+          );
         },
       }
     );

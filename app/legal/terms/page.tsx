@@ -11,13 +11,13 @@ export default function TermsPage() {
           className="inline-flex items-center text-primary hover:underline mb-8"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour à l'accueil
+          Retour à l&apos;accueil
         </Link>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-3xl">
-              Conditions Générales d'Utilisation
+              Conditions Générales d&apos;Utilisation
             </CardTitle>
             <p className="text-muted-foreground">
               Dernière mise à jour : 15 janvier 2024
@@ -26,7 +26,7 @@ export default function TermsPage() {
           <CardContent className="prose prose-slate dark:prose-invert max-w-none">
             <h2>1. Acceptation des conditions</h2>
             <p>
-              En utilisant K.Kits, vous acceptez d'être lié par ces conditions
+              En utilisant K.Kits, vous acceptez d&apos;être lié par ces conditions
               d&apos;utilisation. Si vous n&apos;acceptez pas ces conditions, veuillez ne
               pas utiliser notre service.
             </p>

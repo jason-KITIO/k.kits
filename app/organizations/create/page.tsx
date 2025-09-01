@@ -147,7 +147,7 @@ export default function OrganizationCreatePage() {
 
       router.push("/organizations");
     } catch (err: unknown) {
-      setError(err.message || "Erreur inconnue");
+      setError(err instanceof Error ? err.message || "Erreur inconnue" : "Erreur inconnue");
       setIsSubmitting(false);
     }
   }

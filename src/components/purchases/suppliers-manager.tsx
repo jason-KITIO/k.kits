@@ -19,6 +19,7 @@ import {
 } from "@/hooks/use-purchases";
 import { toast } from "sonner";
 import { Truck, Mail, Phone, MapPin, User } from "lucide-react";
+import { Supplier } from "@prisma/client";
 
 interface SuppliersManagerProps {
   organizationId: string;

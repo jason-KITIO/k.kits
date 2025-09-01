@@ -80,7 +80,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const baseUrl = orgId ? `/organizations/${orgId}` : null;
 
   // Données menus avec URLs dynamiques préfixées par organisation
-  const rawNavMain = [
+  const navMain = [
     {
       title: "Tableau de bord",
       url: prefixUrl(baseUrl, "/dashboard"),
@@ -275,8 +275,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-  const navMain = markActive(rawNavMain, pathname || "");
-
   const navSecondary = [
     {
       title: "Support",
@@ -290,7 +288,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-  const rawQuickActions = [
+  const quickActions = [
     {
       name: "Recherche rapide",
       url: prefixUrl(baseUrl, "/search"),
@@ -313,10 +311,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-  const quickActions = markActive(
-    rawQuickActions.map((a) => ({ ...a, title: a.name })),
-    pathname || ""
-  );
+  // const quickActions = markActive(
+  //   rawQuickActions.map((a) => ({ ...a, title: a.name })),
+  //   pathname || ""
+  // );
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>

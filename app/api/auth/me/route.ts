@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ user: userSafe });
   } catch {
-    console.error("Erreur /api/auth/me :", error);
+    console.error("Erreur /api/auth/me");
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

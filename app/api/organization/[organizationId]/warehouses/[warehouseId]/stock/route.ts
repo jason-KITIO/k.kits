@@ -6,10 +6,12 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{$1}> }
+  {
+    params,
+  }: { params: Promise<{ organizationId: string; warehouseId: string }> }
 ) {
   try {
-    const { organizationId } = await params;
+    const { organizationId, warehouseId } = await params;
     checkOrganization(organizationId);
 
     const warehouse = await prisma.warehouse.findUnique({

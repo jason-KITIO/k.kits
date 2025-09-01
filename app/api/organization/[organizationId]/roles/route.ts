@@ -13,8 +13,8 @@ export async function GET(
     checkOrganization(organizationId);
 
     const roles = await prisma.role.findMany({
-      where: { organizationId },
-      include: { permissions: true },
+      // where: { organizationId },
+      // include: { permissions: true },
     });
 
     return NextResponse.json(roles);
