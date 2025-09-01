@@ -18,7 +18,6 @@ import {
   ArrowRightLeft,
 } from "lucide-react";
 import { AnimatedSection } from "@/components/ui/animated-section";
-import { FloatingParticles } from "@/components/ui/floating-particles";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import "../../styles/animations.css";
 
@@ -70,7 +69,6 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen relative">
-      <FloatingParticles />
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-fade-in-down">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -398,8 +396,8 @@ export function LandingPage() {
             Prêt à optimiser votre inventaire ?
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
-            Rejoignez des centaines d&apos;organisations qui font confiance à K.Kits
-            pour gérer leur stock.
+            Rejoignez des centaines d&apos;organisations qui font confiance à
+            K.Kits pour gérer leur stock.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-400">
             <Link href="/register">
@@ -451,7 +449,8 @@ export function LandingPage() {
                 <span className="text-lg font-bold text-primary">K.Kits</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                La solution complète pour la gestion d&apos;inventaire et de stock.
+                La solution complète pour la gestion d&apos;inventaire et de
+                stock.
               </p>
             </div>
             <div className="animate-fade-in-up animation-delay-200">
@@ -527,7 +526,7 @@ export function LandingPage() {
             </div>
           </div>
           <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground animate-fade-in-up animation-delay-800">
-            © 2024 K.Kits. Tous droits réservés.
+            © 2025 K.Kits. Tous droits réservés.
           </div>
         </div>
       </footer>
