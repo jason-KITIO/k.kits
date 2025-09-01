@@ -7,8 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ========== MODÈLES EXISTANTS ==========
+// ========================================
+// 🔐 AUTHENTIFICATION & SÉCURITÉ
+// ========================================
 
+/// Utilisateur du système avec authentification complète
+/// Peut appartenir à plusieurs organisations (multi-tenant)
 model User {
   id                      String    @id @default(cuid())
   email                   String    @unique
@@ -30,15 +34,28 @@ model User {
   verificationToken       String?
   verificationTokenExpiry DateTime?
 
-  // Relations existantes
-  sessions            UserSession[]
-  roles               UserRole[]
-  twoFactorAuth       TwoFactorAuth?
-  loginAttempts       LoginAttempt[]
-  auditLogs           AuditLog[]
-  organizationMembers OrganizationMember[]
+  // 🔒 Relations authentification & sécurité
+  sessions      UserSession[]
+  twoFactorAuth TwoFactorAuth?
+  loginAttempts LoginAttempt[]
+  auditLogs     AuditLog[]
+
+  // 🏢 Relations organisationnelles (Multi-tenant)
+  roles               UserRole[] /// Rôles dans différentes organisations
+  organizationMembers OrganizationMember[] /// Appartenance aux organisations
+
+  // 📦 Relations métier - Gestion de stock
+  stockMovements    StockMovement[] /// Mouvements de stock créés
+  sales             Sale[] /// Ventes effectuées
+  managedWarehouses Warehouse[] /// Entrepôts sous gestion
+  managedStores     Store[] /// Boutiques sous gestion
+  purchaseOrders    PurchaseOrder[] /// Commandes d'achat créées
+  notifications     Notification[] /// Notifications reçues
+
+  @@map("users")
 }
 
+/// Sessions utilisateur pour la gestion des connexions
 model UserSession {
   id           String    @id @default(cuid())
   userId       String
@@ -54,154 +71,11 @@ model UserSession {
   location     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("user_sessions")
 }
 
-model Role {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?
-  color       String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userRoles          UserRole[]
-  rolePermissions    RolePermission[]
-  OrganizationRole   OrganizationRole[]
-  Invitation         Invitation[]
-  OrganizationMember OrganizationMember[]
-}
-
-model Permission {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  resource    String
-  action      String
-  description String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-
-  rolePermissions RolePermission[]
-}
-
-model UserRole {
-  id             String    @id @default(cuid())
-  userId         String
-  roleId         String
-  assignedAt     DateTime  @default(now())
-  expiresAt      DateTime?
-  assignedBy     String?
-  active         Boolean   @default(true)
-  organizationId String
-
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-}
-
-model RolePermission {
-  id           String   @id @default(cuid())
-  roleId       String
-  permissionId String
-  assignedAt   DateTime @default(now())
-  assignedBy   String?
-  active       Boolean  @default(true)
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-}
-
-model Organization {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  domain      String?
-  logo        String?
-  address     String?
-  phone       String?
-  email       String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String?
-
-  // Relations existantes
-  members          OrganizationMember[]
-  invitations      Invitation[]
-  UserRole         UserRole[]
-  OrganizationRole OrganizationRole[]
-}
-
-model OrganizationMember {
-  id             String    @id @default(cuid())
-  userId         String
-  organizationId String
-  joinedAt       DateTime  @default(now())
-  leftAt         DateTime?
-  active         Boolean   @default(true)
-  invitedBy      String?
-  roleId         String
-  createdAt      DateTime  @default(now())
-
-  role         Role         @relation(fields: [roleId], references: [id])
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-}
-
-model OrganizationRole {
-  id             String @id @default(cuid())
-  roleId         String
-  organizationId String
-
-  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-}
-
-model Invitation {
-  id             String   @id @default(cuid())
-  organizationId String
-  email          String
-  roleId         String
-  invitedBy      String?
-  createdAt      DateTime @default(now())
-  expiresAt      DateTime
-  status         String
-  token          String   @unique
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-}
-
-model AuditLog {
-  id          String   @id @default(cuid())
-  userId      String?
-  action      String
-  resource    String
-  resourceId  String
-  oldValues   String?
-  newValues   String?
-  ipAddress   String?
-  userAgent   String?
-  timestamp   DateTime @default(now())
-  result      String?
-  description String?
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-}
-
-model LoginAttempt {
-  id            String   @id @default(cuid())
-  email         String
-  ipAddress     String?
-  userAgent     String?
-  successful    Boolean
-  failureReason String?
-  attemptedAt   DateTime @default(now())
-  location      String?
-
-  user User? @relation(fields: [email], references: [email], onDelete: Cascade, onUpdate: Cascade)
-}
-
+/// Authentification à deux facteurs
 model TwoFactorAuth {
   id          String    @id @default(cuid())
   userId      String    @unique
@@ -213,4 +87,558 @@ model TwoFactorAuth {
   method      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("two_factor_auth")
+}
+
+/// Tentatives de connexion pour sécurité
+model LoginAttempt {
+  id            String   @id @default(cuid())
+  email         String
+  ipAddress     String?
+  userAgent     String?
+  successful    Boolean
+  failureReason String?
+  attemptedAt   DateTime @default(now())
+  location      String?
+
+  user User? @relation(fields: [email], references: [email], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("login_attempts")
+}
+
+// ========================================
+// 🏢 GESTION ORGANISATIONNELLE (MULTI-TENANT)
+// ========================================
+
+/// 🏢 ORGANISATION (TENANT) - Entreprise cliente du SaaS
+/// Une organisation représente une entreprise complète avec ses boutiques, entrepôts, utilisateurs et données
+/// Architecture: Organization > Stores > Products/Sales/Stocks
+model Organization {
+  id          String   @id @default(cuid())
+  name        String /// Nom de l'entreprise (ex: "Boulangerie Martin")
+  description String? /// Description de l'activité
+  domain      String? /// Sous-domaine personnalisé (ex: martin.stockpro.com)
+  logo        String? /// URL du logo de l'entreprise
+  address     String? /// Adresse principale
+  phone       String? /// Téléphone principal
+  email       String? /// Email de contact
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String? /// ID de l'utilisateur "Auteur" (celui qui a créé l'org)
+
+  // 👥 Relations utilisateurs & sécurité
+  members          OrganizationMember[] /// Tous les membres de l'organisation
+  invitations      Invitation[] /// Invitations en cours
+  UserRole         UserRole[] /// Attribution des rôles
+  OrganizationRole OrganizationRole[] /// Rôles disponibles dans cette org
+
+  // 🏪 Relations infrastructure (Multi-points de vente & Multi-entrepôts)
+  warehouses Warehouse[] /// Entrepôts de stockage
+  stores     Store[] /// Boutiques/points de vente
+
+  // 📦 Relations catalogue & inventaire (Partagés entre toutes les boutiques)
+  products   Product[] /// Catalogue produits global
+  categories Category[] /// Catégories de produits
+  suppliers  Supplier[] /// Fournisseurs
+  customers  Customer[] /// Base clients (peut être globale ou par boutique)
+
+  // 💰 Relations transactions (Agrégées pour dashboard global)
+  sales          Sale[] /// Toutes les ventes de l'organisation
+  purchaseOrders PurchaseOrder[] /// Commandes d'achat
+  stockMovements StockMovement[] /// Mouvements de stock
+  stocks         Stock[] /// État des stocks
+  notifications  Notification[] /// Notifications système
+
+  @@map("organizations")
+}
+
+/// 👤 MEMBRE D'ORGANISATION - Liaison User ↔ Organization avec rôle
+/// Un utilisateur peut être membre de plusieurs organisations avec des rôles différents
+model OrganizationMember {
+  id             String    @id @default(cuid())
+  userId         String
+  organizationId String
+  joinedAt       DateTime  @default(now())
+  leftAt         DateTime? /// Date de sortie si applicable
+  active         Boolean   @default(true)
+  invitedBy      String? /// Qui a invité cet utilisateur
+  roleId         String /// Rôle principal dans cette organisation
+  createdAt      DateTime  @default(now())
+
+  role         Role         @relation(fields: [roleId], references: [id])
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, organizationId]) /// Un utilisateur = un seul membership par organisation
+  @@map("organization_members")
+}
+
+/// 📧 INVITATIONS - Inviter de nouveaux utilisateurs dans l'organisation
+model Invitation {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String /// Email de la personne invitée
+  roleId         String /// Rôle qui sera assigné
+  invitedBy      String? /// Qui a envoyé l'invitation
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime /// Date d'expiration
+  status         String /// PENDING, ACCEPTED, DECLINED, EXPIRED
+  token          String   @unique /// Token sécurisé pour accepter l'invitation
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("invitations")
+}
+
+// ========================================
+// 🔑 SYSTÈME DE RÔLES & PERMISSIONS (GRANULAIRE)
+// ========================================
+
+/// 🎭 RÔLES - Définissent les responsabilités et accès
+/// Exemples: "Auteur", "Admin Général", "Gérant Boutique", "Vendeur", "Magasinier"
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique /// Ex: "Gestionnaire Entrepôt", "Vendeur Boutique"
+  description String? /// Description détaillée du rôle
+  color       String? /// Couleur pour l'UI (ex: #FF5733)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations vers les utilisateurs
+  userRoles          UserRole[] /// Attribution aux utilisateurs
+  OrganizationMember OrganizationMember[] /// Membres avec ce rôle
+
+  // Relations permissions
+  rolePermissions  RolePermission[] /// Permissions accordées à ce rôle
+  OrganizationRole OrganizationRole[] /// Disponibilité dans les organisations
+
+  // Autres relations
+  Invitation Invitation[] /// Invitations avec ce rôle
+
+  @@map("roles")
+}
+
+/// 🔐 PERMISSIONS - Actions autorisées dans le système
+/// Format: "resource.action.scope" (ex: "stock.read.all", "sale.create.specific")
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique /// Ex: "stock.create", "sale.read.all", "product.manage"
+  resource    String /// Ex: "stock", "product", "sale", "user"
+  action      String /// Ex: "create", "read", "update", "delete", "manage"
+  description String? /// Description de ce que permet cette permission
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[] /// Attribution aux rôles
+
+  @@map("permissions")
+}
+
+/// 🔗 ATTRIBUTION RÔLE ↔ UTILISATEUR ↔ ORGANISATION
+/// Définit quel utilisateur a quel rôle dans quelle organisation (+ scope optionnel)
+model UserRole {
+  id             String    @id @default(cuid())
+  userId         String
+  roleId         String
+  organizationId String /// Dans quelle organisation ce rôle s'applique
+  storeId        String? /// NOUVEAU: Si rôle limité à une boutique spécifique
+  assignedAt     DateTime  @default(now())
+  expiresAt      DateTime? /// Rôle temporaire possible
+  assignedBy     String? /// Qui a assigné ce rôle
+  active         Boolean   @default(true)
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  store        Store?       @relation(fields: [storeId], references: [id]) /// NOUVEAU: Limitation à une boutique
+
+  @@unique([userId, roleId, organizationId, storeId]) /// Un utilisateur ne peut avoir le même rôle qu'une fois par org/store
+  @@map("user_roles")
+}
+
+/// 🔑 PERMISSIONS PAR RÔLE - Quelles permissions a chaque rôle
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+  assignedAt   DateTime @default(now())
+  assignedBy   String? /// Qui a accordé cette permission
+  active       Boolean  @default(true)
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([roleId, permissionId]) /// Une permission par rôle maximum
+  @@map("role_permissions")
+}
+
+/// 🏢 RÔLES DISPONIBLES PAR ORGANISATION - Customisation par tenant
+/// Permet à chaque organisation de choisir quels rôles sont disponibles
+model OrganizationRole {
+  id             String @id @default(cuid())
+  roleId         String
+  organizationId String
+
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([roleId, organizationId]) /// Un rôle ne peut être ajouté qu'une fois par organisation
+  @@map("organization_roles")
+}
+
+// ========================================
+// 📦 CATALOGUE & GESTION PRODUITS
+// ========================================
+
+/// 📂 CATÉGORIES - Hiérarchie des produits (arbre)
+/// Permet d'organiser le catalogue (ex: Alimentaire > Boissons > Sodas)
+model Category {
+  id             String   @id @default(cuid())
+  name           String /// Nom de la catégorie
+  description    String? /// Description optionnelle
+  parentId       String? /// Catégorie parent (pour hiérarchie)
+  organizationId String /// Appartient à quelle organisation
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent        Category?    @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  subCategories Category[]   @relation("CategoryHierarchy") /// Sous-catégories
+  products      Product[] /// Produits dans cette catégorie
+
+  @@map("categories")
+}
+
+/// 🏭 FOURNISSEURS - Partenaires commerciaux
+model Supplier {
+  id             String   @id @default(cuid())
+  name           String /// Nom du fournisseur
+  email          String? /// Contact email
+  phone          String? /// Téléphone
+  address        String? /// Adresse complète
+  contactPerson  String? /// Nom du contact principal
+  taxNumber      String? /// Numéro fiscal
+  paymentTerms   String? /// Conditions de paiement (ex: "30 jours net")
+  notes          String? /// Notes additionnelles
+  organizationId String /// Appartient à quelle organisation
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  products       Product[] /// Produits fournis par ce fournisseur
+  purchaseOrders PurchaseOrder[] /// Commandes passées à ce fournisseur
+
+  @@map("suppliers")
+}
+
+/// 📦 PRODUIT - Article du catalogue
+/// Chaque produit appartient à une organisation et peut être vendu dans toutes ses boutiques
+model Product {
+  id             String   @id @default(cuid())
+  sku            String /// Code produit unique dans l'organisation
+  name           String /// Nom du produit
+  description    String? /// Description détaillée
+  categoryId     String? /// Catégorie du produit
+  supplierId     String? /// Fournisseur principal
+  unitPrice      Decimal  @db.Decimal(10, 2) /// Prix de vente HT
+  costPrice      Decimal  @db.Decimal(10, 2) /// Prix d'achat/coût de revient
+  weight         Decimal? @db.Decimal(8, 3) /// Poids en kg
+  dimensions     String? /// Format: "L x l x H" en cm
+  minStock       Int      @default(0) /// Seuil d'alerte stock minimum
+  maxStock       Int? /// Stock maximum conseillé
+  organizationId String /// Appartient à quelle organisation
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?    @relation(fields: [categoryId], references: [id])
+  supplier     Supplier?    @relation(fields: [supplierId], references: [id])
+
+  // Relations stock et mouvements
+  stocks             Stock[] /// Stocks par localisation (boutiques/entrepôts)
+  stockMovements     StockMovement[] /// Historique des mouvements
+  saleItems          SaleItem[] /// Lignes de vente
+  purchaseOrderItems PurchaseOrderItem[] /// Lignes de commande fournisseur
+
+  @@unique([sku, organizationId]) /// SKU unique par organisation
+  @@map("products")
+}
+
+// ========================================
+// 🏪 INFRASTRUCTURE PHYSIQUE & LOGIQUE
+// ========================================
+
+/// 🏪 BOUTIQUE/POINT DE VENTE - Sous-entité d'une Organisation
+/// Une organisation peut avoir plusieurs boutiques (physiques ou en ligne)
+/// Chaque boutique a son dashboard détaillé et ses propres stocks/ventes
+model Store {
+  id             String   @id @default(cuid())
+  name           String /// Nom de la boutique (ex: "Boutique Centre-Ville")
+  address        String? /// Adresse physique de la boutique
+  phone          String? /// Téléphone de la boutique
+  managerId      String? /// Responsable/Gérant de cette boutique
+  type           String   @default("PHYSICAL") /// PHYSICAL, ONLINE, HYBRID
+  organizationId String /// Appartient à quelle organisation
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  manager      User?        @relation(fields: [managerId], references: [id])
+
+  // Relations métier spécifiques à cette boutique
+  stocks             Stock[] /// Stocks spécifiques à cette boutique
+  sales              Sale[] /// Ventes réalisées dans cette boutique
+  userRoles          UserRole[] /// NOUVEAU: Utilisateurs limités à cette boutique
+  stockMovementsFrom StockMovement[] @relation("FromStore") /// Mouvements depuis cette boutique
+  stockMovementsTo   StockMovement[] @relation("ToStore") /// Mouvements vers cette boutique
+
+  @@map("stores")
+}
+
+/// 🏭 ENTREPÔT - Centre de stockage et distribution
+/// Les entrepôts alimentent les boutiques et gèrent les stocks centralisés
+model Warehouse {
+  id             String   @id @default(cuid())
+  name           String /// Nom de l'entrepôt (ex: "Entrepôt Principal")
+  address        String? /// Adresse de l'entrepôt
+  phone          String? /// Contact entrepôt
+  managerId      String? /// Gestionnaire de l'entrepôt
+  capacity       Int? /// Capacité en m3 ou nombre d'emplacements
+  type           String   @default("MAIN") /// MAIN, SECONDARY, TRANSIT, RETURNS
+  organizationId String /// Appartient à quelle organisation
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  manager      User?        @relation(fields: [managerId], references: [id])
+
+  // Relations métier
+  stocks             Stock[] /// Stocks dans cet entrepôt
+  stockMovementsFrom StockMovement[] @relation("FromWarehouse") /// Mouvements depuis cet entrepôt
+  stockMovementsTo   StockMovement[] @relation("ToWarehouse") /// Mouvements vers cet entrepôt
+  purchaseOrders     PurchaseOrder[] /// Commandes reçues dans cet entrepôt
+
+  @@map("warehouses")
+}
+
+// ========================================
+// 📊 GESTION DES STOCKS (MULTI-LOCALISATION)
+// ========================================
+
+/// 📦 STOCK - État actuel des quantités par produit et localisation
+/// Un même produit peut avoir des stocks différents dans chaque boutique/entrepôt
+/// Permet le suivi en temps réel et les alertes de stock bas
+model Stock {
+  id               String   @id @default(cuid())
+  productId        String /// Quel produit
+  warehouseId      String? /// Dans quel entrepôt (si applicable)
+  storeId          String? /// Dans quelle boutique (si applicable)
+  quantity         Int      @default(0) /// Quantité réelle disponible
+  reservedQuantity Int      @default(0) /// Stock réservé (commandes non livrées)
+  organizationId   String /// Isolation multi-tenant
+  lastUpdated      DateTime @default(now()) /// Dernière mise à jour
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product      Product      @relation(fields: [productId], references: [id])
+  warehouse    Warehouse?   @relation(fields: [warehouseId], references: [id])
+  store        Store?       @relation(fields: [storeId], references: [id])
+
+  @@unique([productId, warehouseId, storeId, organizationId]) /// Un stock unique par produit/localisation
+  @@map("stocks")
+}
+
+/// 📈 MOUVEMENT DE STOCK - Historique de tous les mouvements
+/// Traçabilité complète : entrées, sorties, transferts, ajustements
+model StockMovement {
+  id              String   @id @default(cuid())
+  productId       String /// Quel produit concerné
+  fromWarehouseId String? /// Entrepôt source (pour transferts)
+  toWarehouseId   String? /// Entrepôt destination
+  fromStoreId     String? /// Boutique source
+  toStoreId       String? /// Boutique destination
+  quantity        Int /// Quantité déplacée (+ ou -)
+  type            String /// IN (entrée), OUT (sortie), TRANSFER, ADJUSTMENT, SALE, PURCHASE
+  reference       String? /// N° commande, facture, bon de transfert
+  reason          String? /// Motif détaillé du mouvement
+  userId          String /// Qui a effectué ce mouvement
+  organizationId  String /// Isolation multi-tenant
+  createdAt       DateTime @default(now())
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product       Product      @relation(fields: [productId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
+  fromWarehouse Warehouse?   @relation("FromWarehouse", fields: [fromWarehouseId], references: [id])
+  toWarehouse   Warehouse?   @relation("ToWarehouse", fields: [toWarehouseId], references: [id])
+  fromStore     Store?       @relation("FromStore", fields: [fromStoreId], references: [id])
+  toStore       Store?       @relation("ToStore", fields: [toStoreId], references: [id])
+
+  @@map("stock_movements")
+}
+
+// ========================================
+// 👥 GESTION DE LA CLIENTÈLE
+// ========================================
+
+/// 👤 CLIENT - Base clients de l'organisation
+/// Les clients peuvent être globaux (toutes boutiques) ou spécifiques selon la stratégie
+model Customer {
+  id             String   @id @default(cuid())
+  name           String /// Nom/Raison sociale du client
+  email          String? /// Email de contact
+  phone          String? /// Téléphone
+  address        String? /// Adresse de facturation/livraison
+  type           String   @default("INDIVIDUAL") /// INDIVIDUAL, COMPANY, VIP
+  organizationId String /// Appartient à quelle organisation
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sales        Sale[] /// Historique des achats
+
+  @@map("customers")
+}
+
+// ========================================
+// 💰 GESTION DES VENTES (MULTI-BOUTIQUES)
+// ========================================
+
+/// 🛒 VENTE - Transaction de vente dans une boutique
+/// Chaque vente est liée à une boutique spécifique pour le reporting par point de vente
+model Sale {
+  id             String    @id @default(cuid())
+  customerId     String? /// Client (peut être null pour vente comptoir)
+  storeId        String /// Dans quelle boutique cette vente a eu lieu
+  totalAmount    Decimal   @db.Decimal(10, 2) /// Montant total TTC
+  paidAmount     Decimal   @default(0) @db.Decimal(10, 2) /// Montant déjà payé
+  status         String    @default("PENDING") /// PENDING, PAID, PARTIAL, CANCELLED, REFUNDED
+  saleDate       DateTime  @default(now()) /// Date de la vente
+  dueDate        DateTime? /// Date d'échéance (pour crédit)
+  userId         String /// Vendeur qui a effectué la vente
+  organizationId String /// Isolation multi-tenant
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer?    @relation(fields: [customerId], references: [id])
+  store        Store        @relation(fields: [storeId], references: [id]) /// Boutique de vente
+  user         User         @relation(fields: [userId], references: [id]) /// Vendeur
+  items        SaleItem[] /// Lignes de détail de la vente
+
+  @@map("sales")
+}
+
+/// 🛒 LIGNE DE VENTE - Détail produit vendu
+model SaleItem {
+  id          String  @id @default(cuid())
+  saleId      String /// À quelle vente appartient cette ligne
+  productId   String /// Quel produit vendu
+  quantity    Int /// Quantité vendue
+  unitPrice   Decimal @db.Decimal(10, 2) /// Prix unitaire au moment de la vente
+  discount    Decimal @default(0) @db.Decimal(5, 2) /// Remise appliquée (en %)
+  totalAmount Decimal @db.Decimal(10, 2) /// Montant total de cette ligne
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("sale_items")
+}
+
+// ========================================
+// 🛒 GESTION DES ACHATS & APPROVISIONNEMENTS
+// ========================================
+
+/// 📋 COMMANDE D'ACHAT - Commandes passées aux fournisseurs
+/// Permet de gérer les approvisionnements et réceptions d'entrepôt
+model PurchaseOrder {
+  id             String    @id @default(cuid())
+  supplierId     String /// Fournisseur concerné
+  warehouseId    String /// Entrepôt de destination
+  orderDate      DateTime  @default(now()) /// Date de commande
+  expectedDate   DateTime? /// Date de livraison prévue
+  status         String    @default("PENDING") /// PENDING, CONFIRMED, SHIPPED, RECEIVED, CANCELLED
+  totalAmount    Decimal   @db.Decimal(10, 2) /// Montant total de la commande
+  userId         String /// Qui a créé cette commande
+  organizationId String /// Isolation multi-tenant
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  supplier     Supplier            @relation(fields: [supplierId], references: [id])
+  warehouse    Warehouse           @relation(fields: [warehouseId], references: [id])
+  user         User                @relation(fields: [userId], references: [id])
+  items        PurchaseOrderItem[] /// Lignes de la commande
+
+  @@map("purchase_orders")
+}
+
+/// 📦 LIGNE DE COMMANDE D'ACHAT - Détail par produit
+model PurchaseOrderItem {
+  id               String  @id @default(cuid())
+  purchaseOrderId  String /// À quelle commande appartient cette ligne
+  productId        String /// Quel produit commandé
+  quantity         Int /// Quantité commandée
+  unitPrice        Decimal @db.Decimal(10, 2) /// Prix unitaire négocié
+  receivedQuantity Int     @default(0) /// Quantité déjà reçue
+  totalAmount      Decimal @db.Decimal(10, 2) /// Montant total ligne
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_items")
+}
+
+// ========================================
+// 🔔 NOTIFICATIONS & ALERTES SYSTÈME
+// ========================================
+
+/// 🔔 NOTIFICATION - Alertes et informations utilisateur
+/// Système de notification pour stocks bas, ventes importantes, etc.
+model Notification {
+  id             String   @id @default(cuid())
+  userId         String /// Destinataire de la notification
+  organizationId String /// Contexte organisationnel
+  type           String /// STOCK_LOW, SALE_COMPLETED, ORDER_RECEIVED, SYSTEM_UPDATE
+  title          String /// Titre court de la notification
+  message        String /// Message détaillé
+  read           Boolean  @default(false) /// Lu ou non lu
+  priority       String   @default("MEDIUM") /// LOW, MEDIUM, HIGH, URGENT
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ========================================
+// 🔍 AUDIT & TRAÇABILITÉ COMPLÈTE
+// ========================================
+
+/// 📋 JOURNAL D'AUDIT - Traçabilité de toutes les actions
+/// Enregistre qui a fait quoi, quand, avec quels résultats
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String? /// Utilisateur qui a effectué l'action (null si système)
+  action      String /// CREATE, UPDATE, DELETE, LOGIN, LOGOUT, STOCK_MOVEMENT
+  resource    String /// Table/Entité concernée (users, products, sales, etc.)
+  resourceId  String /// ID de l'enregistrement modifié
+  oldValues   String? /// JSON des valeurs avant modification
+  newValues   String? /// JSON des nouvelles valeurs
+  ipAddress   String? /// Adresse IP de l'utilisateur
+  userAgent   String? /// Navigateur/appareil utilisé
+  timestamp   DateTime @default(now())
+  result      String? /// SUCCESS, FAILED, PARTIAL
+  description String? /// Description détaillée de l'action
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@map("audit_logs")
 }

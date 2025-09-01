@@ -13,7 +13,7 @@ import {
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { useOrganizationIdFromUrl } from "@/helper/get-orgnisation-id";
-import { InvitationModal } from "./invitation/invitation-modal";
+// import { InvitationModal } from "./invitation/invitation-modal";:
 
 export function NavProjects({
   projects,
@@ -52,13 +52,14 @@ export function NavProjects({
         </SidebarMenu>
       </SidebarGroup>
 
-      {organizationId && (
-        <InvitationModal
-          open={isInviteOpen}
-          onOpenChange={setInviteOpen}
-          organizationId={organizationId}
-        />
-      )}
+      {organizationId &&
+        "invitation"
+        // <InvitationModal
+        //   open={isInviteOpen}
+        //   onOpenChange={setInviteOpen}
+        //   organizationId={organizationId}
+        // />
+      }
     </>
   );
 }
