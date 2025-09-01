@@ -15,6 +15,7 @@ export default function Layout({
       <AppSidebar />
       <SidebarInset>
         <Header />
+        
         {children}
       </SidebarInset>
     </SidebarProvider>
