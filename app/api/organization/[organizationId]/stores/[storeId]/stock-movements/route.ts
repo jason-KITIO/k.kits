@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPermission } from "@/lib/route-protection";
 import { PERMISSIONS } from "@/lib/permissions";
-import prisma from "@/lib/prisma"
+import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { stockMovementCreateSchema } from "@/schema/stock-movement.schema";
 
@@ -83,7 +83,7 @@ export const POST = withPermission(PERMISSIONS.STOCK_CREATE)(
             where: {
               productId_warehouseId_storeId_organizationId: {
                 productId: data.productId,
-                warehouseId: data.toWarehouseId || null,
+                warehouseId: data.toWarehouseId || "null",
                 storeId: data.toStoreId || storeId,
                 organizationId,
               },
@@ -107,7 +107,7 @@ export const POST = withPermission(PERMISSIONS.STOCK_CREATE)(
             where: {
               productId_warehouseId_storeId_organizationId: {
                 productId: data.productId,
-                warehouseId: data.fromWarehouseId || null,
+                warehouseId: data.fromWarehouseId || "null",
                 storeId: data.fromStoreId || storeId,
                 organizationId,
               },

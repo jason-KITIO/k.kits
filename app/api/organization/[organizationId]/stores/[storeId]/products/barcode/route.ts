@@ -8,9 +8,9 @@ const prisma = new PrismaClient();
 export const GET = withPermission(PERMISSIONS.PRODUCT_READ)(
   async (
     req: NextRequest,
-    { params }: { params: { organizationId: string; storeId: string } }
+    { params }: { params: Promise<{ organizationId: string; storeId: string }> }
   ) => {
-    const { organizationId, storeId } = params;
+    const { organizationId, storeId } = await params;
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
 

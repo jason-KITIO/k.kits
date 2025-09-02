@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { withPermission } from "@/lib/route-protection";
 import { PERMISSIONS } from "@/lib/permissions";
 import { warehouseCreateSchema } from "@/schema/warehouse.schema";
-import prisma from "@/lib/prisma"
+import prisma from "@/lib/prisma";
 
 export const GET = withPermission(PERMISSIONS.ORG_SETTINGS)(
   async (
     req: NextRequest,
-    { params }: { params: { organizationId: string } }
+    { params }: { params: Promise<{ organizationId: string }> }
   ) => {
     const { organizationId } = await params;
 

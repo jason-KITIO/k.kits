@@ -1,5 +1,5 @@
 import { stockUpdateSchema } from "@/schema/stock.schema";
-import prisma from "@/lib/prisma"
+import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -44,10 +44,16 @@ export async function PUT(
   req: NextRequest,
   {
     params,
-  }: { params: { organizationId: string; storeId: string; stockId: string } }
+  }: {
+    params: Promise<{
+      organizationId: string;
+      storeId: string;
+      stockId: string;
+    }>;
+  }
 ) {
   try {
-    const { organizationId, storeId, stockId } = params;
+    const { organizationId, storeId, stockId } = await params;
 
     const store = await prisma.store.findFirst({
       where: { id: storeId, organizationId, active: true },

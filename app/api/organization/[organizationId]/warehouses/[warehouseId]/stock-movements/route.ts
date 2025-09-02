@@ -18,10 +18,12 @@ const stockMovementSchema = z.object({
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { organizationId: string; warehouseId: string } }
+  {
+    params,
+  }: { params: Promise<{ organizationId: string; warehouseId: string }> }
 ) {
   try {
-    const { organizationId, warehouseId } = params;
+    const { organizationId, warehouseId } = await params;
     const movements = await prisma.stockMovement.findMany({
       where: {
         organizationId,
@@ -45,10 +47,12 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { organizationId: string; warehouseId: string } }
+  {
+    params,
+  }: { params: Promise<{ organizationId: string; warehouseId: string }> }
 ) {
   try {
-    const { organizationId, warehouseId } = params;
+    const { organizationId, warehouseId } = await params;
     const json = await req.json();
     const data = stockMovementSchema.parse(json);
 
@@ -99,7 +103,7 @@ export async function POST(
             productId_warehouseId_storeId_organizationId: {
               productId: data.productId,
               warehouseId: data.toWarehouseId,
-              storeId: null,
+              storeId: "null",
               organizationId,
             },
           },

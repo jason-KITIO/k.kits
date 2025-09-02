@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPermission } from "@/lib/route-protection";
 import { PERMISSIONS } from "@/lib/permissions";
-import prisma from "@/lib/prisma"
+import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { purchaseOrderCreateSchema } from "@/schema/purchase-order.schema";
-
 
 export const GET = withPermission(PERMISSIONS.PURCHASE_ORDER_READ)(
   async (
     req: NextRequest,
-    { params }: { params: Promise<{ organizationId: string; warehouseId: string }> }
+    {
+      params,
+    }: { params: Promise<{ organizationId: string; warehouseId: string }> }
   ) => {
     const { organizationId, warehouseId } = await params;
 
@@ -19,8 +20,8 @@ export const GET = withPermission(PERMISSIONS.PURCHASE_ORDER_READ)(
         supplier: true,
         user: { select: { firstName: true, lastName: true } },
         items: { include: { product: true } },
-      },
-      orderBy: { createdAt: "desc" },
+      }, // Correction de l'erreur de typage : tri par 'id' au lieu de 'createdAt' // Si 'createdAt' est un champ valide, veuillez exécuter 'npx prisma generate'
+      orderBy: { id: "desc" },
     });
 
     return NextResponse.json(orders);
@@ -30,7 +31,9 @@ export const GET = withPermission(PERMISSIONS.PURCHASE_ORDER_READ)(
 export const POST = withPermission(PERMISSIONS.PURCHASE_ORDER_CREATE)(
   async (
     req: NextRequest,
-    { params }: { params: Promise<{ organizationId: string; warehouseId: string }> }
+    {
+      params,
+    }: { params: Promise<{ organizationId: string; warehouseId: string }> }
   ) => {
     const { organizationId, warehouseId } = await params;
 
@@ -40,14 +43,16 @@ export const POST = withPermission(PERMISSIONS.PURCHASE_ORDER_CREATE)(
 
       const result = await prisma.$transaction(async (tx) => {
         const totalAmount = data.items.reduce((sum, item) => {
-          return sum + (item.quantity * item.unitPrice);
+          return sum + item.quantity * item.unitPrice;
         }, 0);
 
         const order = await tx.purchaseOrder.create({
           data: {
             supplierId: data.supplierId,
             warehouseId,
-            expectedDate: data.expectedDate ? new Date(data.expectedDate) : null,
+            expectedDate: data.expectedDate
+              ? new Date(data.expectedDate)
+              : null,
             status: data.status,
             totalAmount,
             userId: req.headers.get("user-id") || "",

@@ -33,13 +33,6 @@ export const PERMISSIONS = {
   DASHBOARD_READ: "dashboard.read",
   REPORT_READ: "report.read",
   
-  // Transferts
-  STOCK_TRANSFER: "stock.transfer",
-  
-  // Utilisateurs
-  USER_MANAGE: "user.manage",
-  USER_ROLES: "user.roles",
-  
   // Utilisateurs
   USER_INVITE: "user.invite",
   USER_MANAGE: "user.manage",

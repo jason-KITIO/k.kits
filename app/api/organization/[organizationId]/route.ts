@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma"
+import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { organizationUpdateSchema } from "@/schema/organization-schema";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
-  const { organizationId } = params;
+  const { organizationId } = await params;
 
   try {
     const organization = await prisma.organization.findUnique({
@@ -30,9 +30,9 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
-  const { organizationId } = params;
+  const { organizationId } = await params;
 
   try {
     const body = await req.json();

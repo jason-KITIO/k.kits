@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma"
+import prisma from "@/lib/prisma";
 import { withPermission } from "@/lib/route-protection";
 import { PERMISSIONS } from "@/lib/permissions";
 import { invitationCreateSchema } from "@/schema/invitation-schema";
@@ -13,9 +13,9 @@ export const GET = withPermission(PERMISSIONS.USER_INVITE)(
     try {
       const invitations = await prisma.invitation.findMany({
         where: { organizationId },
-        include: { 
+        include: {
           role: true,
-          organization: { select: { name: true } }
+          organization: { select: { name: true } },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -31,13 +31,16 @@ export const GET = withPermission(PERMISSIONS.USER_INVITE)(
 export const POST = withPermission(PERMISSIONS.USER_INVITE)(
   async (req: NextRequest, { params, user }: any) => {
     const { organizationId } = await params;
-    
+
     try {
       const body = await req.json();
       const parsed = invitationCreateSchema.safeParse(body);
 
       if (!parsed.success) {
-        return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
+        return NextResponse.json(
+          { error: parsed.error.issues },
+          { status: 400 }
+        );
       }
 
       // Vérifier que l'email n'est pas déjà membre
@@ -45,12 +48,12 @@ export const POST = withPermission(PERMISSIONS.USER_INVITE)(
         where: { email: parsed.data.email },
         include: {
           organizationMembers: {
-            where: { organizationId }
-          }
-        }
+            where: { organizationId },
+          },
+        },
       });
 
-      if (existingUser?.organizationMembers.length > 0) {
+      if (existingUser && existingUser?.organizationMembers.length > 0) {
         return NextResponse.json(
           { error: "Cet utilisateur est déjà membre de l'organisation" },
           { status: 400 }
@@ -62,9 +65,9 @@ export const POST = withPermission(PERMISSIONS.USER_INVITE)(
         where: {
           id: parsed.data.roleId,
           OrganizationRole: {
-            some: { organizationId }
-          }
-        }
+            some: { organizationId },
+          },
+        },
       });
 
       if (!roleExists) {
@@ -75,7 +78,7 @@ export const POST = withPermission(PERMISSIONS.USER_INVITE)(
       }
 
       const token = crypto.randomUUID();
-      
+
       const newInvitation = await prisma.invitation.create({
         data: {
           email: parsed.data.email,
@@ -86,9 +89,9 @@ export const POST = withPermission(PERMISSIONS.USER_INVITE)(
           status: "PENDING",
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
-        include: { 
+        include: {
           role: true,
-          organization: { select: { name: true } }
+          organization: { select: { name: true } },
         },
       });
 
@@ -97,7 +100,7 @@ export const POST = withPermission(PERMISSIONS.USER_INVITE)(
       if (parsed.data.storeId) {
         const store = await prisma.store.findUnique({
           where: { id: parsed.data.storeId },
-          select: { name: true }
+          select: { name: true },
         });
         storeName = store?.name;
       }
@@ -109,7 +112,9 @@ export const POST = withPermission(PERMISSIONS.USER_INVITE)(
         roleName: newInvitation.role.name,
         storeName,
         token,
-        inviterName: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email
+        inviterName: user.firstName
+          ? `${user.firstName} ${user.lastName || ""}`.trim()
+          : user.email,
       });
 
       return NextResponse.json(newInvitation, { status: 201 });

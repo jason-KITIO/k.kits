@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPermission } from "@/lib/route-protection";
 import { PERMISSIONS } from "@/lib/permissions";
-import prisma from "@/lib/prisma"
-
+import prisma from "@/lib/prisma";
 
 export const GET = withPermission(PERMISSIONS.DASHBOARD_READ)(
   async (
@@ -15,7 +14,7 @@ export const GET = withPermission(PERMISSIONS.DASHBOARD_READ)(
       const [
         todaySales,
         totalProducts,
-        lowStockCount,
+        allStocks, // Changement : On récupère toutes les données de stock
         totalStockValue,
         recentSales,
         topProducts,
@@ -31,31 +30,24 @@ export const GET = withPermission(PERMISSIONS.DASHBOARD_READ)(
           },
           _sum: { totalAmount: true },
           _count: true,
-        }),
+        }), // Total produits en stock
 
-        // Total produits en stock
         prisma.stock.count({
           where: { storeId, organizationId, quantity: { gt: 0 } },
-        }),
+        }), // Changement : On récupère tous les stocks avec la valeur minStock du produit
 
-        // Produits en stock bas
-        prisma.stock.count({
-          where: {
-            storeId,
-            organizationId,
-            quantity: { lte: prisma.product.fields.minStock },
-          },
-        }),
+        prisma.stock.findMany({
+          where: { storeId, organizationId },
+          include: { product: { select: { minStock: true } } },
+        }), // Valeur totale du stock
 
-        // Valeur totale du stock
         prisma.$queryRaw`
-          SELECT SUM(s.quantity * p."costPrice") as total_value
-          FROM stocks s
-          JOIN products p ON s."productId" = p.id
-          WHERE s."storeId" = ${storeId} AND s."organizationId" = ${organizationId}
-        `,
+          SELECT SUM(s.quantity * p."costPrice") as total_value
+          FROM stocks s
+          JOIN products p ON s."productId" = p.id
+          WHERE s."storeId" = ${storeId} AND s."organizationId" = ${organizationId}
+        `, // Ventes récentes
 
-        // Ventes récentes
         prisma.sale.findMany({
           where: { storeId, organizationId },
           include: {
@@ -64,20 +56,24 @@ export const GET = withPermission(PERMISSIONS.DASHBOARD_READ)(
           },
           orderBy: { createdAt: "desc" },
           take: 5,
-        }),
+        }), // Produits les plus vendus
 
-        // Produits les plus vendus
         prisma.$queryRaw`
-          SELECT p.name, SUM(si.quantity) as total_sold
-          FROM sale_items si
-          JOIN products p ON si."productId" = p.id
-          JOIN sales s ON si."saleId" = s.id
-          WHERE s."storeId" = ${storeId} AND s."organizationId" = ${organizationId}
-          GROUP BY p.id, p.name
-          ORDER BY total_sold DESC
-          LIMIT 5
-        `,
+          SELECT p.name, SUM(si.quantity) as total_sold
+          FROM sale_items si
+          JOIN products p ON si."productId" = p.id
+          JOIN sales s ON si."saleId" = s.id
+          WHERE s."storeId" = ${storeId} AND s."organizationId" = ${organizationId}
+          GROUP BY p.id, p.name
+          ORDER BY total_sold DESC
+          LIMIT 5
+        `,
       ]);
+
+      // Nouvelle étape : Calculer le nombre de produits en stock bas
+      const lowStockCount = allStocks.filter(
+        (stock) => stock.quantity <= stock.product.minStock
+      ).length;
 
       const dashboard = {
         sales: {
@@ -87,7 +83,9 @@ export const GET = withPermission(PERMISSIONS.DASHBOARD_READ)(
         inventory: {
           totalProducts,
           lowStockCount,
-          totalValue: Array.isArray(totalStockValue) ? totalStockValue[0]?.total_value || 0 : 0,
+          totalValue: Array.isArray(totalStockValue)
+            ? totalStockValue[0]?.total_value || 0
+            : 0,
         },
         recentActivity: {
           recentSales,

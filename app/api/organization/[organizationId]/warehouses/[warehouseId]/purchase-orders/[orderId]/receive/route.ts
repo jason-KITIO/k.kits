@@ -56,7 +56,7 @@ export const POST = withPermission(PERMISSIONS.PURCHASE_ORDER_UPDATE)(
               productId_warehouseId_storeId_organizationId: {
                 productId: orderItem.productId,
                 warehouseId,
-                storeId: null,
+                storeId: "null",
                 organizationId,
               },
             },

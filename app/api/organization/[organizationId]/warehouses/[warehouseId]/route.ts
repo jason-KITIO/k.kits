@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPermission } from "@/lib/route-protection";
 import { PERMISSIONS } from "@/lib/permissions";
-import prisma from "@/lib/prisma"
+import prisma from "@/lib/prisma";
 import { warehouseUpdateSchema } from "@/schema/warehouse.schema";
 
 export const PUT = withPermission(PERMISSIONS.ORG_SETTINGS)(
@@ -42,9 +42,11 @@ export const PUT = withPermission(PERMISSIONS.ORG_SETTINGS)(
 export const DELETE = withPermission(PERMISSIONS.ORG_SETTINGS)(
   async (
     _req: NextRequest,
-    { params }: { params: { organizationId: string; warehouseId: string } }
+    {
+      params,
+    }: { params: Promise<{ organizationId: string; warehouseId: string }> }
   ) => {
-    const { organizationId, warehouseId } = params;
+    const { organizationId, warehouseId } = await params;
 
     const deleteResult = await prisma.warehouse.deleteMany({
       where: { id: warehouseId, organizationId },

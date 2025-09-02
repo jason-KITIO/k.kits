@@ -27,9 +27,8 @@ export class NotificationService {
       select: { name: true, sku: true },
     });
 
-    if (!product) return;
+    if (!product) return; // Créer notifications pour chaque gestionnaire
 
-    // Créer notifications pour chaque gestionnaire
     for (const manager of managers) {
       await prisma.notification.create({
         data: {
@@ -67,7 +66,9 @@ export class NotificationService {
           organizationId,
           type: "SALE_COMPLETED",
           title: "Nouvelle vente",
-          message: `Vente de ${amount}€ ${customerName ? `pour ${customerName}` : ""}`,
+          message: `Vente de ${amount}€ ${
+            customerName ? `pour ${customerName}` : ""
+          }`,
           priority: amount > 1000 ? "HIGH" : "MEDIUM",
         },
       });
@@ -104,13 +105,10 @@ export class NotificationService {
   }
 
   static async checkAndCreateStockAlerts(organizationId: string) {
-    const lowStockProducts = await prisma.stock.findMany({
-      where: {
-        organizationId,
-        quantity: {
-          lte: prisma.product.fields.minStock,
-        },
-      },
+    // Correction de l'erreur : on récupère d'abord toutes les données,
+    // puis on filtre en mémoire.
+    const allStocks = await prisma.stock.findMany({
+      where: { organizationId },
       include: {
         product: { select: { name: true, sku: true, minStock: true } },
         store: { select: { name: true } },
@@ -118,9 +116,13 @@ export class NotificationService {
       },
     });
 
+    const lowStockProducts = allStocks.filter(
+      (stock) => stock.quantity <= stock.product.minStock
+    );
+
     for (const stock of lowStockProducts) {
-      const locationName = stock.store?.name || stock.warehouse?.name || "Localisation inconnue";
-      
+      const locationName =
+        stock.store?.name || stock.warehouse?.name || "Localisation inconnue";
       await this.createStockLowAlert(
         organizationId,
         stock.productId,
