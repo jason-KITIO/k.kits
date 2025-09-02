@@ -8,7 +8,8 @@ export async function fetchUserOrganizations(): Promise<Organization[]> {
   }
 
   const data = await res.json();
-  return data.organizations;
+  return data || [];
+  // return data || []; // jamais undefined
 }
 
 export async function getOrganizationById(id: string): Promise<Organization> {

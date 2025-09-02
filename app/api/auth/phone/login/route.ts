@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma"
 import bcrypt from "bcrypt";
 
 import redis from "@/lib/redis"; // votre instance redis Upstash
 import { sendOtpSms } from "@/lib/sms";
 
-const prisma = new PrismaClient();
 const OTP_VALIDITY_MINUTES = 10;
 const OTP_REDIS_PREFIX = "otp_phone_";
 

@@ -90,7 +90,7 @@ import { emailMagicLinkTemplate } from "@/template/email-magic-link";
  */
 export async function POST(request: Request) {
   try {
-    const { email, username, password, firstName, lastName } =
+    const { email, username, password, firstName, lastName, invitationToken } =
       await request.json();
 
     if (!email || !password || !username) {
@@ -126,6 +126,32 @@ export async function POST(request: Request) {
       },
     });
 
+    // Si inscription via invitation, accepter l'invitation
+    if (invitationToken) {
+      try {
+        const acceptResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/invitations/accept`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            token: invitationToken, 
+            userId: user.id 
+          })
+        });
+
+        if (acceptResponse.ok) {
+          const acceptData = await acceptResponse.json();
+          return NextResponse.json({
+            message: "Compte créé et invitation acceptée",
+            organizationId: acceptData.organizationId,
+            hasInvitation: true
+          });
+        }
+      } catch (error) {
+        console.error("Erreur acceptation invitation:", error);
+        // Continuer avec l'inscription normale si erreur
+      }
+    }
+
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
       expiresIn: "1h",
     });
@@ -136,6 +162,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       message: "Utilisateur créé, mail de vérification envoyé",
+      hasInvitation: false
     });
   } catch {
     return NextResponse.json({ message: "Erreur interne" }, { status: 500 });

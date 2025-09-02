@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma"
 import crypto from "crypto";
 import redis from "@/lib/redis";
 
-const prisma = new PrismaClient();
 const SESSION_EXPIRES_IN = 60 * 60 * 24 * 30; // 30 jours en secondes
 const OTP_REDIS_PREFIX = "otp_phone_";
 

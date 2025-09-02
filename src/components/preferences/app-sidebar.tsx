@@ -64,33 +64,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navMain = [
     {
       title: "Authentification 2FA",
-      url: "/legacy-2FA",
+      url: "/preferences/legacy-2FA",
       icon: User,
-      isActive: pathname === "/legacy-2FA",
+      isActive: pathname === "/preferences/legacy-2FA",
     },
     {
       title: "Personnalisation",
-      url: "/personalisation",
+      url: "/preferences/personalisation",
       icon: Edit,
-      isActive: pathname === "/personalisation",
-    },
-    {
-      title: "Invitations",
-      url: "/invitation",
-      icon: Mail,
-      isActive: pathname === "/invitation",
+      isActive: pathname === "/preferences/personalisation",
     },
     {
       title: "Organisations",
-      url: "/organizations",
+      url: "/preferences/organizations",
       icon: Store,
-      isActive: pathname === "/organizations",
-    },
-    {
-      title: "Entrepôts",
-      url: "/warehouses",
-      icon: Warehouse,
-      isActive: pathname === "/warehouses",
+      isActive: pathname === "/preferences/organizations",
     },
   ];
 

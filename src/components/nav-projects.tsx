@@ -1,19 +1,18 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
-
+import { Search, TrendingUp, type LucideIcon } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useOrganizationIdFromUrl } from "@/helper/get-orgnisation-id";
-// import { InvitationModal } from "./invitation/invitation-modal";:
+import { Dialog, DialogContent, DialogTitle } from "./ui/dialog"; // N'oubliez pas d'importer DialogContent
+import { Input } from "./ui/input";
 
 export function NavProjects({
   projects,
@@ -27,15 +26,40 @@ export function NavProjects({
   const [isInviteOpen, setInviteOpen] = useState(false);
   const organizationId = useOrganizationIdFromUrl();
 
+  const [isSearchModalOpen, setSearchModalOpen] = useState(false);
+
+  // Ajout de l'écouteur d'événement pour le raccourci clavier
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      // Détecte Ctrl+K ou Cmd+K
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchModalOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
   function openInvitationModal() {
     setInviteOpen(true);
   }
 
+  // Le reste de votre composant...
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarGroupLabel>Action Rapide</SidebarGroupLabel>
         <SidebarMenu>
+          <Button
+            // Ce bouton peut maintenant ouvrir le modal de recherche
+            onClick={() => setSearchModalOpen(true)}
+            variant={"ghost"}
+            className="flex flex-row justify-start items-center"
+          >
+            <Search />
+            Recherche rapide
+          </Button>
           {projects.map((item) => (
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton asChild>
@@ -52,14 +76,15 @@ export function NavProjects({
         </SidebarMenu>
       </SidebarGroup>
 
-      {organizationId &&
-        "invitation"
-        // <InvitationModal
-        //   open={isInviteOpen}
-        //   onOpenChange={setInviteOpen}
-        //   organizationId={organizationId}
-        // />
-      }
+      {organizationId && "invitation"}
+
+      <Dialog open={isSearchModalOpen} onOpenChange={setSearchModalOpen}>
+        {/* <DialogTitle>Recherche</DialogTitle> */}
+        <DialogContent>
+          <Input placeholder="Tapez votre recherche..." autoFocus />
+          {/* Ajouter ici la logique de recherche */}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

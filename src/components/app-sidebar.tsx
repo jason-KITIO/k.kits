@@ -20,6 +20,8 @@ import {
   TrendingUp,
   Bell,
   Search,
+  Warehouse,
+  Mail,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -50,7 +52,6 @@ interface NavItem {
   items?: NavItem[];
 }
 
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
@@ -62,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [pathname]);
 
   // Construire base url /organizations/{id} ou null
-  const baseUrl = orgId ? `/organizations/${orgId}` : null;
+  const baseUrl = orgId ? `/preferences/organizations/${orgId}` : null;
 
   // Données menus avec URLs dynamiques préfixées par organisation
   const navMain = [
@@ -71,24 +72,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: prefixUrl(baseUrl, "/dashboard"),
       icon: BarChart3,
       isActive: true,
-      // items: [
-      //   {
-      //     title: "Vue d'ensemble",
-      //     url: prefixUrl(baseUrl, "/dashboard/overview"),
-      //   },
-      //   {
-      //     title: "Stock bas",
-      //     url: prefixUrl(baseUrl, "/dashboard/low-stock"),
-      //   },
-      //   {
-      //     title: "Mouvements récents",
-      //     url: prefixUrl(baseUrl, "/dashboard/recent-movements"),
-      //   },
-      //   {
-      //     title: "Valeur du stock",
-      //     url: prefixUrl(baseUrl, "/dashboard/stock-value"),
-      //   },
-      // ],
     },
     {
       title: "Produits",
@@ -108,23 +91,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: "Entrepôts",
-      url: prefixUrl(baseUrl, "/warehouses"),
-      icon: Building2,
-      items: [
-        { title: "Mes entrepôts", url: prefixUrl(baseUrl, "/warehouses") },
-        {
-          title: "Stock entrepôts",
-          url: prefixUrl(baseUrl, "/warehouses/stock"),
-        },
-        {
-          title: "Emplacements",
-          url: prefixUrl(baseUrl, "/warehouses/locations"),
-        },
-        {
-          title: "Gestionnaires",
-          url: prefixUrl(baseUrl, "/warehouses/managers"),
-        },
-      ],
+      url: "/preferences/warehouses",
+      icon: Warehouse,
+    },
+
+    {
+      title: "Invitations",
+      url: prefixUrl(baseUrl, "/invitation"),
+      icon: Mail,
+    },
+    {
+      title: "Role",
+      url: prefixUrl(baseUrl, "/role"),
+      icon: Mail,
     },
     {
       title: "Mon Stock",
@@ -274,11 +253,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ];
 
   const quickActions = [
-    {
-      name: "Recherche rapide",
-      url: prefixUrl(baseUrl, "/search"),
-      icon: Search,
-    },
     {
       name: "Entrée de stock",
       url: prefixUrl(baseUrl, "/quick/stock-in"),

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma"
 import crypto from "crypto";
-
-const prisma = new PrismaClient();
 
 const SESSION_EXPIRES_IN = 60 * 60 * 24 * 30; // 30 jours en secondes
 const SESSION_RENEWAL_THRESHOLD = 60 * 60 * 24 * 7; // Renouveler si expire dans moins de 7 jours

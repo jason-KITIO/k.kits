@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma"
 
-const prisma = new PrismaClient();
 
 /**
  * Met à jour le téléphone vérifié d'un utilisateur dans la base

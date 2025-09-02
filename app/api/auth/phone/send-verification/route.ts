@@ -2,9 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import client from "@/lib/twilio";
 import redis from "@/lib/redis";
 import { generateVerificationSMS } from "@/template/sms-template";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma"
 
 /**
  * @swagger

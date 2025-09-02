@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma"
 import { sendOtpVerificationEmail } from "@/lib/email";
 
-
-const prisma = new PrismaClient();
 const OTP_VALIDITY_MINUTES = 10;
 
 /**

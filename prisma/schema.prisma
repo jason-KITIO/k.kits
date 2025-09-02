@@ -346,6 +346,7 @@ model Product {
   description    String? /// Description détaillée
   categoryId     String? /// Catégorie du produit
   supplierId     String? /// Fournisseur principal
+  color          String /// Pour la couleur 
   unitPrice      Decimal  @db.Decimal(10, 2) /// Prix de vente HT
   costPrice      Decimal  @db.Decimal(10, 2) /// Prix d'achat/coût de revient
   weight         Decimal? @db.Decimal(8, 3) /// Poids en kg

@@ -1,68 +1,74 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma"
+import { z } from "zod";
+import { organizationUpdateSchema } from "@/schema/organization-schema";
 
-/**
- * GET /api/organization/[id]
- * Récupère les infos détaillées d'une organisation par son ID
- */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ organizationId: string }> }
+  req: NextRequest,
+  { params }: { params: { organizationId: string } }
 ) {
-  const { organizationId } = await params;
-
-  if (!organizationId) {
-    return NextResponse.json(
-      { message: "ID d'organisation requis" },
-      { status: 400 }
-    );
-  }
+  const { organizationId } = params;
 
   try {
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
-      include: {
-        members: {
-          where: { active: true },
-          select: {
-            id: true,
-            joinedAt: true,
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                profileImageUrl: true,
-              },
-            },
-          },
-        },
-        warehouses: true,
-        suppliers: true,
-        categories: true,
-        products: true,
-        purchaseOrders: true,
-        UserRole: {
-          where: { active: true },
-          include: { role: true },
-        },
-        OrganizationRole: {
-          include: { role: true },
-        },
-      },
     });
 
     if (!organization) {
       return NextResponse.json(
-        { message: "Organisation non trouvée" },
+        { error: "Organisation non trouvée" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ organization });
-  } catch {
-    console.error("Erreur récupération organisation:");
-    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json(organization);
+  } catch (error) {
+    console.error("Erreur GET /organizations/[organizationId]", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { organizationId: string } }
+) {
+  const { organizationId } = params;
+
+  try {
+    const body = await req.json();
+    const parsed = organizationUpdateSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
+    }
+
+    const updatedOrg = await prisma.organization.update({
+      where: { id: organizationId },
+      data: parsed.data,
+    });
+
+    return NextResponse.json(updatedOrg);
+  } catch (error) {
+    console.error("Erreur PUT /organizations/[organizationId]", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ organizationId: string }> }
+) {
+  const { organizationId } = await params;
+
+  try {
+    // Suppression organisation + cascade automatique des relations
+    await prisma.organization.delete({
+      where: { id: organizationId },
+    });
+
+    return new Response(null, { status: 204 }); // No Content
+  } catch (error) {
+    console.error("Erreur DELETE /organizations/[organizationId]", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

@@ -1,75 +1,55 @@
-import type {
-  InvitationWithRelations,
-  SendInvitationPayload,
-  AcceptInvitationPayload,
-} from "@/types/invitation";
+import { Invitation, CreateInvitationData, UpdateInvitationData, InvitationValidation } from "@/types/invitation";
 
-export async function sendInvitation(
-  payload: SendInvitationPayload
-): Promise<{ message: string; invitation: InvitationWithRelations }> {
-  const res = await fetch(
-    `/api/organization/${payload.organizationId}/invitations/send`,
-    {
+const API_BASE = "/api";
+
+export const invitationService = {
+  // Lister les invitations d'une organisation
+  async getInvitations(organizationId: string): Promise<Invitation[]> {
+    const response = await fetch(`${API_BASE}/organization/${organizationId}/invitations`);
+    if (!response.ok) throw new Error("Erreur lors du chargement des invitations");
+    return response.json();
+  },
+
+  // Créer une nouvelle invitation
+  async createInvitation(organizationId: string, data: CreateInvitationData): Promise<Invitation> {
+    const response = await fetch(`${API_BASE}/organization/${organizationId}/invitations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: payload.email, role: payload.roleId }),
-    }
-  );
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Erreur lors de la création de l'invitation");
+    return response.json();
+  },
 
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(
-      errorData.message || "Erreur lors de l'envoi de l'invitation"
-    );
-  }
+  // Récupérer une invitation spécifique
+  async getInvitation(organizationId: string, invitationId: string): Promise<Invitation> {
+    const response = await fetch(`${API_BASE}/organization/${organizationId}/invitations/${invitationId}`);
+    if (!response.ok) throw new Error("Erreur lors du chargement de l'invitation");
+    return response.json();
+  },
 
-  return res.json();
-}
-
-export async function acceptInvitation(
-  payload: AcceptInvitationPayload
-): Promise<{ message: string }> {
-  const res = await fetch(
-    `/api/organization/${payload.organizationId}/invitations/accept?token=${payload.token}`,
-    {
-      method: "POST",
+  // Modifier une invitation
+  async updateInvitation(organizationId: string, invitationId: string, data: UpdateInvitationData): Promise<Invitation> {
+    const response = await fetch(`${API_BASE}/organization/${organizationId}/invitations/${invitationId}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: payload.username,
-        password: payload.password,
-      }),
-    }
-  );
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Erreur lors de la modification de l'invitation");
+    return response.json();
+  },
 
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(
-      errorData.message || "Erreur lors de l'acceptation de l'invitation"
-    );
-  }
+  // Annuler une invitation
+  async cancelInvitation(organizationId: string, invitationId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/organization/${organizationId}/invitations/${invitationId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) throw new Error("Erreur lors de l'annulation de l'invitation");
+  },
 
-  return res.json();
-}
-
-export async function fetchInvitationByToken(
-  token: string,
-  organizationId: string
-): Promise<{ email: string }> {
-  const res = await fetch(
-    `/api/organization/${organizationId}/invitations/accept/details?token=${token}`,
-    {
-      method: "GET",
-    }
-  );
-
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(
-      error.message || "Erreur lors de la récupération de l'invitation"
-    );
-  }
-
-  const data = await res.json();
-  console.log(data);
-  return data;
-}
+  // Valider un token d'invitation (route publique)
+  async validateInvitation(token: string): Promise<InvitationValidation> {
+    const response = await fetch(`${API_BASE}/invitations/validate?token=${token}`);
+    return response.json(); // Retourne toujours un objet avec valid: boolean
+  },
+};
