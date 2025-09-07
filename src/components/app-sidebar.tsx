@@ -5,22 +5,15 @@ import { usePathname } from "next/navigation";
 
 import {
   BarChart3,
-  Box,
   Building2,
   AlertTriangle,
   ArrowRightLeft,
-  ClipboardList,
-  Package,
   ShoppingCart,
-  Truck,
   Settings2,
   LifeBuoy,
   Send,
   FileText,
-  TrendingUp,
   Bell,
-  Search,
-  Warehouse,
   Mail,
 } from "lucide-react";
 
@@ -35,6 +28,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { NavOrganisation } from "./nav-organisation";
+import { User } from "@solar-icons/react";
 
 function prefixUrl(base: string | null, path: string) {
   // Préfixe l'url avec base si disponible, gère les slashs
@@ -55,10 +49,10 @@ interface NavItem {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
-  // Extraire l'id organisation dans l'URL type /organizations/{id}/...
+  // Extraire l'id organisation dans l'URL type /preferences/organizations/{id}/...
   const orgId = React.useMemo(() => {
     if (!pathname) return null;
-    const match = pathname.match(/\/organizations\/([^\/]+)/);
+    const match = pathname.match(/\/preferences\/organizations\/([^\/]+)/);
     return match ? match[1] : null;
   }, [pathname]);
 
@@ -74,168 +68,60 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: true,
     },
     {
-      title: "Produits",
-      url: prefixUrl(baseUrl, "/products"),
-      icon: Package,
+      title: "Boutiques",
+      url: prefixUrl(baseUrl, "/stores"),
+      icon: Building2,
       items: [
-        { title: "Mes Produits", url: prefixUrl(baseUrl, "/products") },
-        {
-          title: "Catégories",
-          url: prefixUrl(baseUrl, "/products/categories"),
-        },
-        {
-          title: "Codes-barres",
-          url: prefixUrl(baseUrl, "/products/barcodes"),
-        },
+        { title: "Mes boutiques", url: prefixUrl(baseUrl, "/stores") },
+        { title: "Nouvelle boutique", url: prefixUrl(baseUrl, "/stores/new") },
       ],
     },
     {
-      title: "Entrepôts",
-      url: "/preferences/warehouses",
-      icon: Warehouse,
+      title: "Ventes",
+      url: prefixUrl(baseUrl, "/sales"),
+      icon: ShoppingCart,
     },
-
+    {
+      title: "Notifications",
+      url: prefixUrl(baseUrl, "/notifications"),
+      icon: Bell,
+    },
+    {
+      title: "Equipes",
+      url: prefixUrl(baseUrl, "/users"),
+      icon: User,
+    },
     {
       title: "Invitations",
       url: prefixUrl(baseUrl, "/invitation"),
       icon: Mail,
     },
     {
-      title: "Role",
+      title: "Rôles",
       url: prefixUrl(baseUrl, "/role"),
-      icon: Mail,
+      icon: Settings2,
     },
+
     {
-      title: "Mon Stock",
-      url: prefixUrl(baseUrl, "/employee-stock"),
-      icon: Box,
-      items: [
-        { title: "Mon inventaire", url: prefixUrl(baseUrl, "/employee-stock") },
-        {
-          title: "Mes demandes",
-          url: prefixUrl(baseUrl, "/employee-stock/requests"),
-        },
-        {
-          title: "Ajustements",
-          url: prefixUrl(baseUrl, "/employee-stock/adjustments"),
-        },
-      ],
-    },
-    {
-      title: "Transferts",
-      url: prefixUrl(baseUrl, "/transfers"),
-      icon: ArrowRightLeft,
-      items: [
-        {
-          title: "Nouveaux transferts",
-          url: prefixUrl(baseUrl, "/transfers/create"),
-        },
-        { title: "En attente", url: prefixUrl(baseUrl, "/transfers/pending") },
-        {
-          title: "Mes demandes",
-          url: prefixUrl(baseUrl, "/transfers/my-requests"),
-        },
-        { title: "Historique", url: prefixUrl(baseUrl, "/transfers/history") },
-      ],
-    },
-    {
-      title: "Inventaires",
-      url: prefixUrl(baseUrl, "/inventories"),
-      icon: ClipboardList,
-      items: [
-        {
-          title: "Inventaires actifs",
-          url: prefixUrl(baseUrl, "/inventories"),
-        },
-        {
-          title: "Planifier",
-          url: prefixUrl(baseUrl, "/inventories/schedule"),
-        },
-        {
-          title: "Historique",
-          url: prefixUrl(baseUrl, "/inventories/history"),
-        },
-        { title: "Rapports", url: prefixUrl(baseUrl, "/inventories/reports") },
-      ],
-    },
-    {
-      title: "Achats",
-      url: prefixUrl(baseUrl, "/purchases"),
-      icon: ShoppingCart,
-      items: [
-        { title: "Commandes", url: prefixUrl(baseUrl, "/purchases/orders") },
-        {
-          title: "Créer commande",
-          url: prefixUrl(baseUrl, "/purchases/create"),
-        },
-        { title: "Réceptions", url: prefixUrl(baseUrl, "/purchases/receipts") },
-        {
-          title: "Fournisseurs",
-          url: prefixUrl(baseUrl, "/purchases/suppliers"),
-        },
-      ],
-    },
-    {
-      title: "Fournisseurs",
-      url: prefixUrl(baseUrl, "/suppliers"),
-      icon: Truck,
-      items: [
-        { title: "Liste fournisseurs", url: prefixUrl(baseUrl, "/suppliers") },
-        {
-          title: "Ajouter fournisseur",
-          url: prefixUrl(baseUrl, "/suppliers/create"),
-        },
-        { title: "Contacts", url: prefixUrl(baseUrl, "/suppliers/contacts") },
-        {
-          title: "Performance",
-          url: prefixUrl(baseUrl, "/suppliers/performance"),
-        },
-      ],
-    },
-    {
-      title: "Alertes",
-      url: prefixUrl(baseUrl, "/alerts"),
+      title: "Alertes Stock",
+      url: prefixUrl(baseUrl, "/stock-alerts"),
       icon: AlertTriangle,
-      items: [
-        { title: "Stock bas", url: prefixUrl(baseUrl, "/alerts/low-stock") },
-        { title: "Ruptures", url: prefixUrl(baseUrl, "/alerts/out-of-stock") },
-        { title: "Surstock", url: prefixUrl(baseUrl, "/alerts/overstock") },
-        {
-          title: "Notifications",
-          url: prefixUrl(baseUrl, "/alerts/notifications"),
-        },
-      ],
+    },
+    {
+      title: "Transferts Stock",
+      url: prefixUrl(baseUrl, "/stock-transfers"),
+      icon: ArrowRightLeft,
     },
     {
       title: "Rapports",
       url: prefixUrl(baseUrl, "/reports"),
       icon: FileText,
-      items: [
-        { title: "Stock général", url: prefixUrl(baseUrl, "/reports/stock") },
-        { title: "Mouvements", url: prefixUrl(baseUrl, "/reports/movements") },
-        {
-          title: "Performance",
-          url: prefixUrl(baseUrl, "/reports/performance"),
-        },
-        { title: "Export données", url: prefixUrl(baseUrl, "/reports/export") },
-      ],
     },
+
     {
       title: "Paramètres",
       url: prefixUrl(baseUrl, "/settings"),
       icon: Settings2,
-      items: [
-        { title: "Général", url: prefixUrl(baseUrl, "/settings/general") },
-        { title: "Utilisateurs", url: prefixUrl(baseUrl, "/settings/users") },
-        {
-          title: "Permissions",
-          url: prefixUrl(baseUrl, "/settings/permissions"),
-        },
-        {
-          title: "Organisation",
-          url: prefixUrl(baseUrl, "/settings/organization"),
-        },
-      ],
     },
   ];
 
@@ -254,19 +140,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const quickActions = [
     {
-      name: "Entrée de stock",
-      url: prefixUrl(baseUrl, "/quick/stock-in"),
-      icon: TrendingUp,
+      name: "Nouvelle vente",
+      url: prefixUrl(baseUrl, "/stores"),
+      icon: ShoppingCart,
     },
     {
-      name: "Transfert rapide",
-      url: prefixUrl(baseUrl, "/quick/transfer"),
+      name: "Transfert stock",
+      url: prefixUrl(baseUrl, "/stock-transfers"),
       icon: ArrowRightLeft,
     },
     {
-      name: "Alerte stock",
-      url: prefixUrl(baseUrl, "/quick/alert"),
-      icon: Bell,
+      name: "Voir alertes",
+      url: prefixUrl(baseUrl, "/stock-alerts"),
+      icon: AlertTriangle,
     },
   ];
 

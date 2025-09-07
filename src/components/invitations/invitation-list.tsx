@@ -99,11 +99,15 @@ export function InvitationList({ organizationId }: InvitationListProps) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Rôle</label>
-              <Select>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Selectionner le role" />
+              <Select
+                value={formData.roleId}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, roleId: value })
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionner le rôle" />
                 </SelectTrigger>
-
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Sélectionner un rôle</SelectLabel>

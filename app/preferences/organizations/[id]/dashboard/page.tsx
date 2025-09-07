@@ -1,11 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import {
-  useLowStock,
-  useStockOverview,
-  useStockValue,
-} from "@/hooks/use-dashboard";
+import { useOrganizationDashboard, useStockAlerts } from "@/hooks/useOrganization";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -27,14 +23,10 @@ export default function DashboardPage() {
   const params = useParams();
   const organizationId = params.id as string;
 
-  const { data: lowStock, isLoading: lowStockLoading } =
-    useLowStock(organizationId);
-  const { data: stockOverview, isLoading: overviewLoading } =
-    useStockOverview(organizationId);
-  const { data: stockValue, isLoading: valueLoading } =
-    useStockValue(organizationId);
+  const { data: dashboard, isLoading: dashboardLoading } = useOrganizationDashboard(organizationId);
+  const { data: stockAlerts, isLoading: alertsLoading } = useStockAlerts(organizationId);
 
-  if (lowStockLoading || overviewLoading || valueLoading) {
+  if (dashboardLoading || alertsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex items-center gap-2">
@@ -45,13 +37,14 @@ export default function DashboardPage() {
     );
   }
 
-  const totalProducts = stockOverview?.length || 0;
-  const lowStockCount = lowStock?.length || 0;
-  const totalQuantity =
-    stockOverview?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-  const totalValue = stockValue?.totalValue || 0;
-  const lowStockPercentage =
-    totalProducts > 0 ? (lowStockCount / totalProducts) * 100 : 0;
+  const totalProducts = dashboard?.overview.totalProducts || 0;
+  const totalStores = dashboard?.overview.totalStores || 0;
+  const totalWarehouses = dashboard?.overview.totalWarehouses || 0;
+  const lowStockCount = dashboard?.overview.lowStockProducts || 0;
+  const todaySales = dashboard?.sales.todayAmount || 0;
+  const todayCount = dashboard?.sales.todayCount || 0;
+  const totalValue = dashboard?.stock.totalValue || 0;
+  const lowStockPercentage = totalProducts > 0 ? (lowStockCount / totalProducts) * 100 : 0;
 
   return (
     <div className="space-y-8 p-6">
@@ -108,7 +101,7 @@ export default function DashboardPage() {
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total produits
+              Boutiques
             </CardTitle>
             <div className="p-2 bg-blue-500/10 rounded-full">
               <Package className="h-4 w-4 text-blue-500" />
@@ -116,10 +109,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {totalProducts}
+              {totalStores}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Références actives
+              Points de vente
             </p>
           </CardContent>
         </Card>
@@ -127,7 +120,7 @@ export default function DashboardPage() {
         <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Quantité totale
+              Ventes aujourd'hui
             </CardTitle>
             <div className="p-2 bg-green-500/10 rounded-full">
               <TrendingUp className="h-4 w-4 text-green-500" />
@@ -135,10 +128,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {totalQuantity.toLocaleString()}
+              {todayCount}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Unités en stock
+              {todaySales.toLocaleString()} FCFA
             </p>
           </CardContent>
         </Card>
@@ -177,16 +170,16 @@ export default function DashboardPage() {
               </p>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/organizations/${organizationId}/alerts/low-stock`}>
+              <Link href={`/preferences/organizations/${organizationId}/stock-alerts`}>
                 <Eye className="h-4 w-4 mr-2" />
                 Voir tout
               </Link>
             </Button>
           </CardHeader>
           <CardContent>
-            {lowStock && lowStock.length > 0 ? (
+            {stockAlerts && stockAlerts.length > 0 ? (
               <div className="space-y-4">
-                {lowStock.slice(0, 5).map((item) => {
+                {stockAlerts.slice(0, 5).map((item) => {
                   const stockPercentage =
                     item.product.minStock > 0
                       ? (item.quantity / item.product.minStock) * 100
@@ -215,13 +208,13 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-                {lowStock.length > 5 && (
+                {stockAlerts.length > 5 && (
                   <div className="text-center pt-2">
                     <Button variant="ghost" size="sm" asChild>
                       <Link
                         href={`/organizations/${organizationId}/alerts/low-stock`}
                       >
-                        Voir {lowStock.length - 5} autres produits
+                        Voir {stockAlerts.length - 5} autres produits
                         <ArrowUpRight className="h-4 w-4 ml-1" />
                       </Link>
                     </Button>
@@ -247,28 +240,27 @@ export default function DashboardPage() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-blue-500" />
-                Aperçu du stock
+                Activité récente
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Produits avec les plus grandes quantités
+                Derniers mouvements de stock
               </p>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/organizations/${organizationId}/products`}>
+              <Link href={`/preferences/organizations/${organizationId}/stores`}>
                 <Eye className="h-4 w-4 mr-2" />
                 Voir tout
               </Link>
             </Button>
           </CardHeader>
           <CardContent>
-            {stockOverview && stockOverview.length > 0 ? (
+            {dashboard?.recentActivity && dashboard.recentActivity.length > 0 ? (
               <div className="space-y-4">
-                {stockOverview
-                  .sort((a, b) => b.quantity - a.quantity)
+                {dashboard.recentActivity
                   .slice(0, 5)
                   .map((item) => (
                     <div
-                      key={item.productId}
+                      key={item.id}
                       className="flex justify-between items-center p-3 rounded-lg bg-muted/50"
                     >
                       <div className="flex-1 min-w-0">
@@ -276,28 +268,24 @@ export default function DashboardPage() {
                           {item.product.name}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {item.product.sku}
+                          {item.type} - {item.quantity > 0 ? '+' : ''}{item.quantity}
                         </p>
                       </div>
                       <div className="text-right ml-4">
-                        <p className="font-semibold text-lg">
-                          {item.quantity.toLocaleString()}
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(item.createdAt).toLocaleDateString()}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {item.product.unitPrice
-                            ? `${(
-                                item.product.unitPrice * item.quantity
-                              ).toLocaleString()} FCFA`
-                            : "Prix non défini"}
+                          {item.user.firstName} {item.user.lastName}
                         </p>
                       </div>
                     </div>
                   ))}
-                {stockOverview.length > 5 && (
+                {dashboard.recentActivity.length > 5 && (
                   <div className="text-center pt-2">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/organizations/${organizationId}/products`}>
-                        Voir {stockOverview.length - 5} autres produits
+                      <Link href={`/organizations/${organizationId}/stock-movements`}>
+                        Voir {dashboard.recentActivity.length - 5} autres mouvements
                         <ArrowUpRight className="h-4 w-4 ml-1" />
                       </Link>
                     </Button>
@@ -307,7 +295,7 @@ export default function DashboardPage() {
             ) : (
               <div className="text-center py-8">
                 <Package className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground">Aucun produit en stock</p>
+                <p className="text-muted-foreground">Aucune activité récente</p>
                 <Button size="sm" asChild className="mt-2">
                   <Link href={`/organizations/${organizationId}/products`}>
                     <Plus className="h-4 w-4 mr-2" />

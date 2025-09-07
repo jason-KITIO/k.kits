@@ -4,13 +4,13 @@ import { z } from "zod";
 export const productCreateSchema = z.object({
   sku: z.string().min(1),
   name: z.string().min(1),
-  color: z.string().min(1, "La couleur est requise"), // ajouté ici
+  color: z.string().optional(),
   description: z.string().optional(),
   categoryId: z.string().optional(),
   supplierId: z.string().optional(),
   unitPrice: z.number().positive(),
   costPrice: z.number().positive(),
-  weight: z.number().positive().optional(),
+  weight: z.number().nonnegative().optional(),
   dimensions: z.string().optional(),
   minStock: z.number().int().nonnegative().optional(),
   maxStock: z.number().int().optional(),

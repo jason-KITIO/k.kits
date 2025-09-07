@@ -66,7 +66,7 @@ export function VerificationForm({
         {
           onSuccess: () => {
             localStorage.removeItem("otpEmail");
-            router.push("/organizations");
+            router.push("/preferences/organizations");
           },
         }
       );

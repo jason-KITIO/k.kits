@@ -103,7 +103,7 @@ export default function OrganizationsPage() {
                 </p>
               </div>
               <Button asChild>
-                <Link href="/organizations/create">
+                <Link href="/preferences/organizations/create">
                   <Plus className="h-4 w-4 mr-2" />
                   Créer une organisation
                 </Link>
@@ -257,7 +257,7 @@ export default function OrganizationsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/organizations/${org.id}`}>
+                          <Link href={`/preferences/organizations/${org.id}`}>
                             Accéder
                             <ArrowRight className="h-4 w-4 ml-1" />
                           </Link>

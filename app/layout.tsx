@@ -7,8 +7,9 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { ReactQueryProvider } from "@/providers/react-query";
+import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { ReactQueryProvider } from "@/providers/react-query";
 
 const bricolageGrotesque = Bricolage_Grotesque({
   variable: "--font-bricolage-grotesque",

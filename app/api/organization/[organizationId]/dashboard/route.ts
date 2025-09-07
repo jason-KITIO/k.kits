@@ -39,8 +39,8 @@ export const GET = withPermission(PERMISSIONS.DASHBOARD_READ)(
         // Produits en stock bas (requête SQL brute pour plus de performance)
         prisma.$queryRaw`
           SELECT COUNT(DISTINCT "T1".id) AS count
-          FROM "Product" AS "T1"
-          JOIN "Stock" AS "T2" ON "T1".id = "T2"."productId"
+          FROM "products" AS "T1"
+          JOIN "stocks" AS "T2" ON "T1".id = "T2"."productId"
           WHERE "T1"."organizationId" = ${organizationId}
           GROUP BY "T1".id, "T1"."minStock"
           HAVING SUM("T2".quantity) <= "T1"."minStock";
@@ -69,8 +69,8 @@ export const GET = withPermission(PERMISSIONS.DASHBOARD_READ)(
         // Valeur totale du stock
         prisma.$queryRaw`
           SELECT SUM(s.quantity * p."costPrice") as total_value
-          FROM "Stock" s
-          JOIN "Product" p ON s."productId" = p.id
+          FROM "stocks" s
+          JOIN "products" p ON s."productId" = p.id
           WHERE s."organizationId" = ${organizationId}
         `,
 
