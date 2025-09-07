@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchCurrentUser } from "@/services/current-user-service";
 
-export function useCurrentUser() {
+export const useCurrentUser = () => {
   return useQuery({
     queryKey: ["me"],
-    queryFn: fetchCurrentUser,
-    retry: false,
-    refetchOnWindowFocus: false,
+    queryFn: async () => await fetchCurrentUser(),
+    staleTime: 5 * 60 * 1000,
   });
-}
+};

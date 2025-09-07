@@ -2,63 +2,65 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { invitationService } from "@/services/invitation-service";
 import { CreateInvitationData, UpdateInvitationData } from "@/types/invitation";
 
-export function useInvitations(organizationId: string) {
+export const useInvitations = (organizationId: string) => {
   return useQuery({
     queryKey: ["invitations", organizationId],
-    queryFn: () => invitationService.getInvitations(organizationId),
+    queryFn: async () => await invitationService.getInvitations(organizationId),
     enabled: !!organizationId,
+    staleTime: 2 * 60 * 1000,
   });
-}
+};
 
-export function useInvitation(organizationId: string, invitationId: string) {
+export const useInvitation = (organizationId: string, invitationId: string) => {
   return useQuery({
     queryKey: ["invitation", organizationId, invitationId],
-    queryFn: () => invitationService.getInvitation(organizationId, invitationId),
+    queryFn: async () => await invitationService.getInvitation(organizationId, invitationId),
     enabled: !!organizationId && !!invitationId,
+    staleTime: 5 * 60 * 1000,
   });
-}
+};
 
-export function useCreateInvitation(organizationId: string) {
+export const useCreateInvitation = (organizationId: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: CreateInvitationData) => 
-      invitationService.createInvitation(organizationId, data),
+    mutationFn: async (data: CreateInvitationData) => 
+      await invitationService.createInvitation(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invitations", organizationId] });
     },
   });
-}
+};
 
-export function useUpdateInvitation(organizationId: string) {
+export const useUpdateInvitation = (organizationId: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ invitationId, data }: { invitationId: string; data: UpdateInvitationData }) =>
-      invitationService.updateInvitation(organizationId, invitationId, data),
+    mutationFn: async ({ invitationId, data }: { invitationId: string; data: UpdateInvitationData }) =>
+      await invitationService.updateInvitation(organizationId, invitationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invitations", organizationId] });
     },
   });
-}
+};
 
-export function useCancelInvitation(organizationId: string) {
+export const useCancelInvitation = (organizationId: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (invitationId: string) =>
-      invitationService.cancelInvitation(organizationId, invitationId),
+    mutationFn: async (invitationId: string) =>
+      await invitationService.cancelInvitation(organizationId, invitationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invitations", organizationId] });
     },
   });
-}
+};
 
-export function useValidateInvitation(token: string) {
+export const useValidateInvitation = (token: string) => {
   return useQuery({
     queryKey: ["validate-invitation", token],
-    queryFn: () => invitationService.validateInvitation(token),
+    queryFn: async () => await invitationService.validateInvitation(token),
     enabled: !!token,
-    retry: false,
+    staleTime: 0,
   });
-}
+};

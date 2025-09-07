@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { organizationService, type DashboardData, type Sale, type Notification, type StockAlert, type OrganizationMember } from '@/services/organizationService';
+import { organizationService } from '@/services/organizationService';
 import type { NotificationCreateInput, StockTransferCreateInput } from '@/schema';
 
 export const useOrganizationDashboard = (organizationId: string) => {
-  return useQuery<DashboardData>({
+  return useQuery({
     queryKey: ['organization', organizationId, 'dashboard'],
-    queryFn: () => organizationService.getDashboard(organizationId),
+    queryFn: async () => await organizationService.getDashboard(organizationId),
     enabled: !!organizationId,
+    staleTime: 2 * 60 * 1000,
   });
 };
 
@@ -14,84 +15,47 @@ export const useOrganizationSales = (
   organizationId: string, 
   params?: { storeId?: string; startDate?: string; endDate?: string }
 ) => {
-  return useQuery<Sale[]>({
+  return useQuery({
     queryKey: ['organization', organizationId, 'sales', params],
-    queryFn: () => organizationService.getSales(organizationId, params),
+    queryFn: async () => await organizationService.getSales(organizationId, params),
     enabled: !!organizationId,
+    staleTime: 30 * 1000,
   });
 };
 
 export const useNotifications = (organizationId: string) => {
-  return useQuery<Notification[]>({
+  return useQuery({
     queryKey: ['organization', organizationId, 'notifications'],
-    queryFn: () => organizationService.getNotifications(organizationId),
+    queryFn: async () => await organizationService.getNotifications(organizationId),
     enabled: !!organizationId,
-  });
-};
-
-export const useCreateNotification = (organizationId: string) => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: NotificationCreateInput) => 
-      organizationService.createNotification(organizationId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['organization', organizationId, 'notifications'] 
-      });
-    },
-  });
-};
-
-export const useMarkNotificationsRead = (organizationId: string) => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: { notificationIds?: string[]; markAllAsRead?: boolean }) =>
-      organizationService.markNotificationsRead(organizationId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['organization', organizationId, 'notifications'] 
-      });
-    },
+    staleTime: 10 * 1000,
   });
 };
 
 export const useStockAlerts = (organizationId: string) => {
-  return useQuery<StockAlert[]>({
+  return useQuery({
     queryKey: ['organization', organizationId, 'stock-alerts'],
-    queryFn: () => organizationService.getStockAlerts(organizationId),
+    queryFn: async () => await organizationService.getStockAlerts(organizationId),
     enabled: !!organizationId,
+    staleTime: 30 * 1000,
   });
 };
 
 export const useStockTransfers = (organizationId: string) => {
   return useQuery({
     queryKey: ['organization', organizationId, 'stock-transfers'],
-    queryFn: () => organizationService.getStockTransfers(organizationId),
+    queryFn: async () => await organizationService.getStockTransfers(organizationId),
     enabled: !!organizationId,
-  });
-};
-
-export const useCreateStockTransfer = (organizationId: string) => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: StockTransferCreateInput) =>
-      organizationService.createStockTransfer(organizationId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['organization', organizationId, 'stock-transfers'] 
-      });
-    },
+    staleTime: 1 * 60 * 1000,
   });
 };
 
 export const useOrganizationUsers = (organizationId: string) => {
-  return useQuery<OrganizationMember[]>({
+  return useQuery({
     queryKey: ['organization', organizationId, 'users'],
-    queryFn: () => organizationService.getUsers(organizationId),
+    queryFn: async () => await organizationService.getUsers(organizationId),
     enabled: !!organizationId,
+    staleTime: 10 * 60 * 1000,
   });
 };
 
@@ -102,8 +66,9 @@ export const useOrganizationSearch = (
 ) => {
   return useQuery({
     queryKey: ['organization', organizationId, 'search', query, type],
-    queryFn: () => organizationService.search(organizationId, query, type),
+    queryFn: async () => await organizationService.search(organizationId, query, type),
     enabled: !!organizationId && !!query && query.length > 2,
+    staleTime: 30 * 1000,
   });
 };
 
@@ -114,16 +79,54 @@ export const useOrganizationReports = (
 ) => {
   return useQuery({
     queryKey: ['organization', organizationId, 'reports', type, params],
-    queryFn: () => organizationService.getReports(organizationId, type, params),
+    queryFn: async () => await organizationService.getReports(organizationId, type, params),
     enabled: !!organizationId,
+    staleTime: 5 * 60 * 1000,
   });
 };
 
 export const useOrganizationSettings = (organizationId: string) => {
   return useQuery({
     queryKey: ['organization', organizationId, 'settings'],
-    queryFn: () => organizationService.getSettings(organizationId),
+    queryFn: async () => await organizationService.getSettings(organizationId),
     enabled: !!organizationId,
+    staleTime: 15 * 60 * 1000,
+  });
+};
+
+export const useCreateNotification = (organizationId: string) => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: NotificationCreateInput) => 
+      await organizationService.createNotification(organizationId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organization', organizationId, 'notifications'] });
+    },
+  });
+};
+
+export const useMarkNotificationsRead = (organizationId: string) => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: { notificationIds?: string[]; markAllAsRead?: boolean }) =>
+      await organizationService.markNotificationsRead(organizationId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organization', organizationId, 'notifications'] });
+    },
+  });
+};
+
+export const useCreateStockTransfer = (organizationId: string) => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: StockTransferCreateInput) =>
+      await organizationService.createStockTransfer(organizationId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organization', organizationId, 'stock-transfers'] });
+    },
   });
 };
 
@@ -131,11 +134,9 @@ export const useUpdateOrganizationSettings = (organizationId: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: any) => organizationService.updateSettings(organizationId, data),
+    mutationFn: async (data: any) => await organizationService.updateSettings(organizationId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['organization', organizationId, 'settings'] 
-      });
+      queryClient.invalidateQueries({ queryKey: ['organization', organizationId, 'settings'] });
     },
   });
 };

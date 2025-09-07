@@ -1,37 +1,27 @@
 import { useMutation } from "@tanstack/react-query";
-import {
-  sendPhoneVerification,
-  verifyPhone,
-  phoneLogin,
-  phoneVerify,
-} from "@/services/phone-auth-service";
-import type {
-  SendPhoneVerificationPayload,
-  VerifyPhonePayload,
-  PhoneAuthResponse,
-  PhoneLoginPayload,
-  PhoneVerifyPayload,
-} from "@/types/phone-auth";
+import { sendPhoneVerification, verifyPhone, phoneLogin, phoneVerify } from "@/services/phone-auth-service";
+import type { SendPhoneVerificationPayload, VerifyPhonePayload, PhoneLoginPayload, PhoneVerifyPayload } from "@/types/phone-auth";
 
-export function useSendPhoneVerification() {
-  return useMutation<PhoneAuthResponse, Error, SendPhoneVerificationPayload>({
-    mutationFn: (data) => sendPhoneVerification(data),
+export const useSendPhoneVerification = () => {
+  return useMutation({
+    mutationFn: async (data: SendPhoneVerificationPayload) => await sendPhoneVerification(data),
   });
-}
+};
 
-export function useVerifyPhone() {
-  return useMutation<PhoneAuthResponse, Error, VerifyPhonePayload>({
-    mutationFn: (data) => verifyPhone(data),
+export const useVerifyPhone = () => {
+  return useMutation({
+    mutationFn: async (data: VerifyPhonePayload) => await verifyPhone(data),
   });
-}
-export function usePhoneLogin() {
-  return useMutation<PhoneAuthResponse, Error, PhoneLoginPayload>({
-    mutationFn: (data) => phoneLogin(data),
-  });
-}
+};
 
-export function usePhoneVerify() {
-  return useMutation<PhoneAuthResponse, Error, PhoneVerifyPayload>({
-    mutationFn: (data) => phoneVerify(data),
+export const usePhoneLogin = () => {
+  return useMutation({
+    mutationFn: async (data: PhoneLoginPayload) => await phoneLogin(data),
   });
-}
+};
+
+export const usePhoneVerify = () => {
+  return useMutation({
+    mutationFn: async (data: PhoneVerifyPayload) => await phoneVerify(data),
+  });
+};

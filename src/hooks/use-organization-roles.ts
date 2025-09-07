@@ -5,27 +5,23 @@ import {
 } from "@/services/organization-role-service";
 import type { RoleCreatePayload } from "@/types/organization-role";
 
-export function useOrganizationRoles(organizationId: string) {
+export const useOrganizationRoles = (organizationId: string) => {
   return useQuery({
     queryKey: ["organizationRoles", organizationId],
-    queryFn: () => fetchOrganizationRoles(organizationId),
+    queryFn: async () => await fetchOrganizationRoles(organizationId),
     enabled: Boolean(organizationId),
-    retry: false,
-    refetchOnWindowFocus: false,
+    staleTime: 15 * 60 * 1000,
   });
-}
+};
 
-export function useCreateOrganizationRole(organizationId: string) {
+export const useCreateOrganizationRole = (organizationId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: RoleCreatePayload) =>
-      createOrganizationRole(organizationId, data),
+    mutationFn: async (data: RoleCreatePayload) =>
+      await createOrganizationRole(organizationId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["organizationRoles", organizationId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["organizationRoles", organizationId] });
     },
-    retry: false,
   });
-}
+};
