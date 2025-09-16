@@ -11,8 +11,9 @@ import {
 import { Button } from "./ui/button";
 import { useState, useEffect } from "react";
 import { useOrganizationIdFromUrl } from "@/helper/get-orgnisation-id";
-import { Dialog, DialogContent, DialogTitle } from "./ui/dialog"; // N'oubliez pas d'importer DialogContent
+import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
+import { InvitationModal } from "./invitation/invitation-modal";
 
 export function NavProjects({
   projects,
@@ -23,9 +24,7 @@ export function NavProjects({
     icon: LucideIcon;
   }[];
 }) {
-  const [isInviteOpen, setInviteOpen] = useState(false);
   const organizationId = useOrganizationIdFromUrl();
-
   const [isSearchModalOpen, setSearchModalOpen] = useState(false);
 
   // Ajout de l'écouteur d'événement pour le raccourci clavier
@@ -40,10 +39,6 @@ export function NavProjects({
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
-
-  function openInvitationModal() {
-    setInviteOpen(true);
-  }
 
   // Le reste de votre composant...
   return (
@@ -70,13 +65,20 @@ export function NavProjects({
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-          <Button onClick={openInvitationModal} variant={"outline"}>
-            Inviter un utilisateur
-          </Button>
+          {organizationId && (
+            <InvitationModal 
+              organizationId={organizationId}
+              trigger={
+                <Button variant={"outline"} className="w-full justify-start">
+                  Inviter un utilisateur
+                </Button>
+              }
+            />
+          )}
         </SidebarMenu>
       </SidebarGroup>
 
-      {organizationId && "invitation"}
+
 
       <Dialog open={isSearchModalOpen} onOpenChange={setSearchModalOpen}>
         {/* <DialogTitle>Recherche</DialogTitle> */}

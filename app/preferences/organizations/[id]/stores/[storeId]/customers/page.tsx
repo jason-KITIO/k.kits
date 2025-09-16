@@ -54,22 +54,30 @@ export default function CustomersPage() {
   const organizationId = params.id as string;
   const storeId = params.storeId as string;
 
-  const { data: customers, isLoading, error } = useStoreCustomers(organizationId, storeId);
+  const {
+    data: customers,
+    isLoading,
+    error,
+  } = useStoreCustomers(organizationId, storeId);
 
   if (isLoading) return <PageLoader text="Chargement des clients..." />;
   if (error) return <div>Erreur: {error.message}</div>;
 
   const totalCustomers = customers?.length || 0;
-  const individualCustomers = customers?.filter(c => c.type === 'INDIVIDUAL').length || 0;
-  const companyCustomers = customers?.filter(c => c.type === 'COMPANY').length || 0;
-  const vipCustomers = customers?.filter(c => c.type === 'VIP').length || 0;
+  const individualCustomers =
+    customers?.filter((c) => c.type === "INDIVIDUAL").length || 0;
+  const companyCustomers =
+    customers?.filter((c) => c.type === "COMPANY").length || 0;
+  const vipCustomers = customers?.filter((c) => c.type === "VIP").length || 0;
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}`}>
+            <Link
+              href={`/preferences/organizations/${organizationId}/stores/${storeId}`}
+            >
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -81,7 +89,9 @@ export default function CustomersPage() {
           </div>
         </div>
         <Button asChild>
-          <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/customers/new`}>
+          <Link
+            href={`/preferences/organizations/${organizationId}/stores/${storeId}/customers/new`}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Nouveau client
           </Link>
@@ -104,7 +114,9 @@ export default function CustomersPage() {
             <CardTitle className="text-sm font-medium">Particuliers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{individualCustomers}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {individualCustomers}
+            </div>
             <p className="text-xs text-muted-foreground">Clients individuels</p>
           </CardContent>
         </Card>
@@ -114,8 +126,12 @@ export default function CustomersPage() {
             <CardTitle className="text-sm font-medium">Entreprises</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{companyCustomers}</div>
-            <p className="text-xs text-muted-foreground">Clients professionnels</p>
+            <div className="text-2xl font-bold text-green-600">
+              {companyCustomers}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Clients professionnels
+            </p>
           </CardContent>
         </Card>
 
@@ -124,7 +140,9 @@ export default function CustomersPage() {
             <CardTitle className="text-sm font-medium">VIP</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{vipCustomers}</div>
+            <div className="text-2xl font-bold text-purple-600">
+              {vipCustomers}
+            </div>
             <p className="text-xs text-muted-foreground">Clients privilégiés</p>
           </CardContent>
         </Card>

@@ -2,7 +2,7 @@
 export * from "./use-auth";
 export * from "./use-current-user";
 export * from "./use-organization";
-export * from "./use-organizations";
+// export * from "./use-organizations";
 export * from "./use-invitation";
 export * from "./use-invitations";
 export * from "./use-dashboard";
@@ -12,6 +12,9 @@ export * from "./use-phone-auth";
 export * from "./useOrganization";
 export * from "./useStore";
 export * from "./use-mobile";
+export * from "./use-auth-with-roles";
+export * from "./use-logout";
+export * from "./use-permissions";
 
 // Hooks d'optimisation
 export * from "./use-cache-config";

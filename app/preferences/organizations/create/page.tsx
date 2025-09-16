@@ -132,7 +132,7 @@ export default function OrganizationCreatePage() {
       active: formData.active ?? true,
     };
 
-    console.log("les data : ", payload);
+    // console.log("les data : ", payload);
 
     try {
       const res = await fetch("/api/organization", {

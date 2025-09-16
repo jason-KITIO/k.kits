@@ -1,10 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchCurrentUser } from "@/services/current-user-service";
+import { useAuth } from "@/providers/auth-provider";
 
+// Hook dépréciéé - utilise maintenant AuthProvider pour éviter les appels API multiples
 export const useCurrentUser = () => {
-  return useQuery({
-    queryKey: ["me"],
-    queryFn: async () => await fetchCurrentUser(),
-    staleTime: 5 * 60 * 1000,
-  });
+  const { user, isLoading, refetch } = useAuth();
+  
+  return {
+    data: user ? { user } : null,
+    error: null,
+    isLoading,
+    refetch
+  };
+};
+
+// Hook recommandé pour les nouveaux composants
+export const useUser = () => {
+  console.warn("useCurrentUser is deprecated. Use useAuth from @/providers/auth-provider instead.");
+  return useAuth();
 };

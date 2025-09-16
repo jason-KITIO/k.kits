@@ -1,6 +1,5 @@
 import { api } from './api';
 import type { SaleCreateInput, StockAdjustmentInput } from '@/schema';
-import { organizationService } from './organizationService';
 
 export interface Store {
   id: string;

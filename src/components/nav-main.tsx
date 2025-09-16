@@ -37,6 +37,9 @@ export function NavMain({
 }) {
   const pathname = usePathname();
 
+  // console.log("🧭 NavMain: Received items:", items);
+  // console.log("🧭 NavMain: Current pathname:", pathname);
+
   const isItemActive = (url: string) =>
     pathname === url || pathname.startsWith(url + "/");
   const hasActiveSubItem = (subItems?: { url: string }[]) =>

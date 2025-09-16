@@ -50,7 +50,7 @@ export async function sendWelcomeEmail(email: string, firstName: string) {
       subject: "Bienvenue chez Nous !",
       html,
     });
-    console.log(`Email de bienvenue envoyé à ${email}`);
+    // console.log(`Email de bienvenue envoyé à ${email}`);
   } catch (error) {
     console.error("Erreur envoi email de bienvenue :", error);
     throw error;
@@ -113,7 +113,7 @@ export async function sendInvitationEmail(
       html,
     });
 
-    console.log(`Email d'invitation envoyé à ${email}`);
+    // console.log(`Email d'invitation envoyé à ${email}`);
   } catch (error) {
     console.error("Erreur envoi email invitation:", error);
     throw error;

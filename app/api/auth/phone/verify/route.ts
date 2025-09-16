@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.userId;
-    console.log("ID utilisateur :", userId);
+    // console.log("ID utilisateur :", userId);
 
     const storedCodeRaw = await redis.get(`${userId}:phoneVerification`);
     if (!storedCodeRaw) {
@@ -121,8 +121,8 @@ export async function POST(request: NextRequest) {
     const storedCode = storedCodeRaw ? storedCodeRaw.toString().trim() : null;
     const userCode = code.toString().trim();
 
-    console.log("Code stocké :", storedCode);
-    console.log("Code utilisateur :", userCode);
+    // console.log("Code stocké :", storedCode);
+    // console.log("Code utilisateur :", userCode);
 
     if (storedCode && storedCode === userCode) {
       await redis.del(`${userId}:phoneVerification`);

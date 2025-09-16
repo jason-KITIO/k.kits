@@ -11,7 +11,7 @@ interface InvitationEmailData {
 
 export async function sendInvitationEmail(data: InvitationEmailData) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const inviteLink = `${baseUrl}/register?token=${data.token}`;
+  const inviteLink = `${baseUrl}/invitation/accept?token=${data.token}`;
   
   await sendInvitationEmailBase(data.email, {
     role: data.roleName,

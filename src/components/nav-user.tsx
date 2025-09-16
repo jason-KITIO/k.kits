@@ -26,12 +26,18 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useLogout } from "@/hooks/use-logout";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
   const { data, isLoading, isError } = useCurrentUser();
+  const logout = useLogout();
 
   const user = data?.user;
+
+  const handleLogout = () => {
+    logout.mutate();
+  };
 
   if (isLoading) {
     return (
@@ -128,9 +134,13 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={handleLogout}
+              disabled={logout.isPending}
+              className="text-destructive focus:text-destructive"
+            >
               <LogOut />
-              Log out
+              {logout.isPending ? "Déconnexion..." : "Déconnexion"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

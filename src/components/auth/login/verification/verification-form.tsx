@@ -84,7 +84,7 @@ export function VerificationForm({
   }
 
   function handleOtpChange(value: string) {
-    console.log(value);
+    // console.log(value);
 
     setOtp(value);
   }

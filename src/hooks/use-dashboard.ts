@@ -17,7 +17,10 @@ export const useLowStock = (organizationId: string, threshold = 10) => {
       return response.json();
     },
     enabled: !!organizationId,
-    staleTime: 30 * 1000,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -33,7 +36,10 @@ export const useStockOverview = (organizationId: string) => {
       return response.json();
     },
     enabled: !!organizationId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -49,6 +55,9 @@ export const useStockValue = (organizationId: string) => {
       return response.json();
     },
     enabled: !!organizationId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 };

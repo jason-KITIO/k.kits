@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
 
     const redisKey = OTP_REDIS_PREFIX + phone;
     const storedOtp = await redis.get(redisKey);
-    console.log("Stored OTP:", typeof storedOtp, storedOtp);
-    console.log("Received OTP:", typeof otp, otp);
+    // console.log("Stored OTP:", typeof storedOtp, storedOtp);
+    // console.log("Received OTP:", typeof otp, otp);
 
     // Convertir storedOtp en string (dans le cas où ce serait un nombre)
     const storedOtpString =

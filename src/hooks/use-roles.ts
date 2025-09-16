@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { roleService } from "@/services/role-service";
+import { toast } from "sonner";
 import { CreateRoleData, UpdateRoleData } from "@/types/role";
 
 export const useRoles = (organizationId: string) => {
@@ -7,7 +8,10 @@ export const useRoles = (organizationId: string) => {
     queryKey: ["roles", organizationId],
     queryFn: async () => await roleService.getRoles(organizationId),
     enabled: !!organizationId,
-    staleTime: 15 * 60 * 1000,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -16,7 +20,10 @@ export const useRole = (organizationId: string, roleId: string) => {
     queryKey: ["role", organizationId, roleId],
     queryFn: async () => await roleService.getRole(organizationId, roleId),
     enabled: !!organizationId && !!roleId,
-    staleTime: 15 * 60 * 1000,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -28,6 +35,16 @@ export const useCreateRole = (organizationId: string) => {
       await roleService.createRole(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles", organizationId] });
+      toast.success("Succès", {
+        description: "Rôle créé avec succès",
+        duration: 5000,
+      });
+    },
+    onError: (error: Error) => {
+      toast.error("Erreur", {
+        description: error.message,
+        duration: 5000,
+      });
     },
   });
 };
@@ -38,8 +55,19 @@ export const useUpdateRole = (organizationId: string) => {
   return useMutation({
     mutationFn: async ({ roleId, data }: { roleId: string; data: UpdateRoleData }) =>
       await roleService.updateRole(organizationId, roleId, data),
-    onSuccess: () => {
+    onSuccess: (_, { roleId }) => {
       queryClient.invalidateQueries({ queryKey: ["roles", organizationId] });
+      queryClient.invalidateQueries({ queryKey: ["role", organizationId, roleId] });
+      toast.success("Succès", {
+        description: "Rôle modifié avec succès",
+        duration: 5000,
+      });
+    },
+    onError: (error: Error) => {
+      toast.error("Erreur", {
+        description: error.message,
+        duration: 5000,
+      });
     },
   });
 };
@@ -52,6 +80,16 @@ export const useDeleteRole = (organizationId: string) => {
       await roleService.deleteRole(organizationId, roleId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles", organizationId] });
+      toast.success("Succès", {
+        description: "Rôle supprimé avec succès",
+        duration: 5000,
+      });
+    },
+    onError: (error: Error) => {
+      toast.error("Erreur", {
+        description: error.message,
+        duration: 5000,
+      });
     },
   });
 };

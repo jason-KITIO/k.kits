@@ -1,7 +1,7 @@
 "use client";
 
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { StoreSidebar } from "@/components/store-sidebar";
+import { ProtectedStoreSidebar } from "@/components/protected-store-sidebar";
 
 export default function StoreLayout({
   children,
@@ -10,7 +10,7 @@ export default function StoreLayout({
 }) {
   return (
     <SidebarProvider>
-      <StoreSidebar />
+      <ProtectedStoreSidebar />
       <SidebarInset>
         {children}
       </SidebarInset>

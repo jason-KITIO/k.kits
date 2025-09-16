@@ -53,7 +53,7 @@ export const PERMISSIONS = {
 export const DEFAULT_ROLES = {
   OWNER: {
     name: "Propriétaire",
-    permissions: Object.values(PERMISSIONS), // Toutes les permissions
+    permissions: ["*"], // Wildcard pour toutes les permissions
     color: "#FF0000"
   },
   
@@ -102,5 +102,6 @@ export const DEFAULT_ROLES = {
 
 // Helper pour vérifier les permissions
 export function hasPermission(userPermissions: string[], requiredPermission: string): boolean {
-  return userPermissions.includes(requiredPermission) || userPermissions.includes("*");
+  // Le propriétaire a toutes les permissions
+  return userPermissions.includes("*") || userPermissions.includes(requiredPermission);
 }

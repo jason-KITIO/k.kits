@@ -1,42 +1,30 @@
 import type { Metadata } from "next";
-import {
-  Bricolage_Grotesque,
-  Manjari,
-  IBM_Plex_Sans,
-  IBM_Plex_Mono,
-} from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { ReactQueryProvider } from "@/providers/react-query";
+import { AuthProvider } from "@/providers/auth-provider";
 
-const bricolageGrotesque = Bricolage_Grotesque({
+const bricolageGrotesque = localFont({
+  src: "../public/fonts/Bricolage_Grotesque/BricolageGrotesque-VariableFont_opsz,wdth,wght.ttf",
   variable: "--font-bricolage-grotesque",
-  subsets: ["latin"],
-  weight: "400",
-  style: "normal",
 });
 
-const manjari = Manjari({
+const manjari = localFont({
+  src: "../public/fonts/Manjari/Manjari-Regular.ttf",
   variable: "--font-manjari",
-  subsets: ["latin"],
-  weight: "400",
-  style: "normal",
 });
 
-const ibmPlexSans = IBM_Plex_Sans({
+const ibmPlexSans = localFont({
+  src: "../public/fonts/IBM_Plex_Sans/static/IBMPlexSans-Regular.ttf",
   variable: "--font-ibm-plex-sans",
-  subsets: ["latin"],
-  weight: "400",
-  style: "normal",
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
+const ibmPlexMono = localFont({
+  src: "../public/fonts/IBM_Plex_Mono/IBMPlexMono-Regular.ttf",
   variable: "--font-ibm-plex-mono",
-  subsets: ["latin"],
-  weight: "400",
-  style: "normal",
 });
 
 export const metadata: Metadata = {
@@ -58,15 +46,17 @@ export default function RootLayout({
     >
       <body className="antialiased">
         <ReactQueryProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster richColors position="bottom-right" />
-          </ThemeProvider>
+          <AuthProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster richColors position="bottom-right" />
+            </ThemeProvider>
+          </AuthProvider>
         </ReactQueryProvider>
       </body>
     </html>

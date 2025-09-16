@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma"
+import prisma from "@/lib/prisma";
 
 /**
  * @swagger
@@ -106,7 +106,38 @@ export async function GET(request: NextRequest) {
         },
       },
       include: {
-        user: true,
+        user: {
+          include: {
+            organizationMembers: {
+              where: { active: true },
+              include: {
+                organization: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+                role: {
+                  select: {
+                    id: true,
+                    name: true,
+                    rolePermissions: {
+                      where: { active: true },
+                      select: {
+                        permission: {
+                          select: {
+                            id: true,
+                            name: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -118,6 +149,8 @@ export async function GET(request: NextRequest) {
     }
 
     const user = session.user;
+    // console.log("🔍 API /auth/me - User from session:", JSON.stringify(user, null, 2));
+    // console.log("🔍 API /auth/me - Organization members:", JSON.stringify(user.organizationMembers, null, 2));
 
     // Ne pas retourner le mot de passe ou tokens sensibles
     const userSafe = {
@@ -135,6 +168,18 @@ export async function GET(request: NextRequest) {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       lastSignInAt: user.lastSignInAt,
+      organizationMembers: user.organizationMembers?.map(member => ({
+        id: member.id,
+        organizationId: member.organizationId,
+        roleId: member.roleId,
+        active: member.active,
+        organization: member.organization,
+        role: {
+          id: member.role.id,
+          name: member.role.name,
+          permissions: member.role.rolePermissions?.map(rp => rp.permission.name) || []
+        }
+      })) || [],
     };
 
     return NextResponse.json({ user: userSafe });

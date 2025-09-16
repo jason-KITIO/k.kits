@@ -1,5 +1,5 @@
-// import { ValidationInvitationForm } from "@/components/auth/invitation/validation-invitation";
+import { InvitationAccept } from "@/components/invitation/invitation-accept";
 
-export default function LoginPage() {
-  return "acceptation de l'invitation";
+export default function InvitationAcceptPage() {
+  return <InvitationAccept />;
 }

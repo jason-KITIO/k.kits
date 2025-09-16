@@ -78,12 +78,12 @@ export async function POST(req: NextRequest) {
     const userId = session.userId;
 
     const body = await req.json();
-    console.log("Body reçu:", body);
+    // console.log("Body reçu:", body);
     
     const parsed = organizationCreateSchema.safeParse(body);
 
     if (!parsed.success) {
-      console.log("Erreurs validation:", parsed.error.issues);
+      // console.log("Erreurs validation:", parsed.error.issues);
       return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
     }
 
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
     // 4. Assigner le rôle OWNER au créateur
     await assignOwnerRole(userId, newOrg.id);
 
-    console.log("Organisation créée avec succès:", newOrg.id);
+    // console.log("Organisation créée avec succès:", newOrg.id);
     return NextResponse.json(newOrg, { status: 201 });
   } catch (error) {
     console.error("Erreur POST /organizations", error);

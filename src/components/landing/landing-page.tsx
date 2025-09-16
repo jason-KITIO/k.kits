@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,12 +17,23 @@ import {
   Star,
   AlertTriangle,
   ArrowRightLeft,
+  LogOut,
 } from "lucide-react";
 import { AnimatedSection } from "@/components/ui/animated-section";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { useAuth } from "@/providers/auth-provider";
+import { useLogout } from "@/hooks/use-logout";
 import "../../styles/animations.css";
 
 export function LandingPage() {
+  const { user, isLoading } = useAuth();
+  const logout = useLogout();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const features = [
     {
       icon: Package,
@@ -72,7 +84,7 @@ export function LandingPage() {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-fade-in-down">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2 animate-fade-in-left">
+          <div className="flex flex-row items-center space-x-2 animate-fade-in-left">
             <Image
               src="/logo.svg"
               alt="K.Kits Logo"
@@ -80,7 +92,7 @@ export function LandingPage() {
               height={32}
               className="h-8 w-8"
             />
-            <span className="text-2xl font-bold text-primary">K.Kits</span>
+            <span className="text-2xl font-bold text-primary h-6">K.Kits</span>
           </div>
           <nav className="hidden md:flex items-center space-x-6 animate-fade-in">
             <Link
@@ -98,19 +110,47 @@ export function LandingPage() {
           </nav>
           <div className="flex items-center space-x-4 animate-fade-in-right">
             <ThemeSwitcher />
-            <Link href="/login">
-              <Button
-                variant="ghost"
-                className="transition-all duration-300 hover:scale-105"
-              >
-                Connexion
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button className="transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                Commencer
-              </Button>
-            </Link>
+            {mounted &&
+              !isLoading &&
+              (user ? (
+                // Utilisateur connecté
+                <>
+                  <Link href="/preferences">
+                    <Button
+                      variant="ghost"
+                      className="transition-all duration-300 hover:scale-105"
+                    >
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    onClick={() => logout.mutate()}
+                    disabled={logout.isPending}
+                    className="transition-all duration-300 hover:scale-105"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {logout.isPending ? "..." : "Déconnexion"}
+                  </Button>
+                </>
+              ) : (
+                // Utilisateur non connecté
+                <>
+                  <Link href="/login">
+                    <Button
+                      variant="ghost"
+                      className="transition-all duration-300 hover:scale-105"
+                    >
+                      Connexion
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button className="transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                      Commencer
+                    </Button>
+                  </Link>
+                </>
+              ))}
           </div>
         </div>
       </header>
@@ -134,24 +174,38 @@ export function LandingPage() {
             grandes organisations.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-600">
-            <Link href="/register">
-              <Button
-                size="lg"
-                className="w-full sm:w-auto transition-all duration-300 hover:scale-105 hover:shadow-xl glow group"
-              >
-                Essai gratuit 14 jours
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
-            <Link href="/api-docs">
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto transition-all duration-300 hover:scale-105 hover:shadow-lg animate-shine"
-              >
-                Voir la démo
-              </Button>
-            </Link>
+            {mounted && user ? (
+              <Link href="/preferences">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto transition-all duration-300 hover:scale-105 hover:shadow-xl glow group"
+                >
+                  Accéder au Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/register">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto transition-all duration-300 hover:scale-105 hover:shadow-xl glow group"
+                  >
+                    Essai gratuit 14 jours
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </Link>
+                <Link href="/api-docs">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto transition-all duration-300 hover:scale-105 hover:shadow-lg animate-shine"
+                  >
+                    Voir la démo
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -400,15 +454,27 @@ export function LandingPage() {
             K.Kits pour gérer leur stock.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-400">
-            <Link href="/register">
-              <Button
-                size="lg"
-                className="transition-all duration-300 hover:scale-105 hover:shadow-xl glow group"
-              >
-                Commencer maintenant
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
+            {mounted && user ? (
+              <Link href="/preferences">
+                <Button
+                  size="lg"
+                  className="transition-all duration-300 hover:scale-105 hover:shadow-xl glow group"
+                >
+                  Accéder au Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/register">
+                <Button
+                  size="lg"
+                  className="transition-all duration-300 hover:scale-105 hover:shadow-xl glow group"
+                >
+                  Commencer maintenant
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            )}
             <Link href="/support">
               <Button
                 variant="outline"
