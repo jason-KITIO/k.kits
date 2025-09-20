@@ -20,7 +20,7 @@ export default function NewSalePage() {
   
   const [saleData, setSaleData] = useState({
     customerId: "",
-    items: [{ productId: "", quantity: 1, unitPrice: 0 }],
+    items: [{ productId: "", quantity: 1, unitPrice: 0, discount: 0 }],
   });
 
   const createSale = useCreateSale(organizationId, storeId);
@@ -30,7 +30,7 @@ export default function NewSalePage() {
   const addItem = () => {
     setSaleData(prev => ({
       ...prev,
-      items: [...prev.items, { productId: "", quantity: 1, unitPrice: 0 }]
+      items: [...prev.items, { productId: "", quantity: 1, unitPrice: 0, discount: 0 }]
     }));
   };
 
@@ -41,7 +41,7 @@ export default function NewSalePage() {
     }));
   };
 
-  const updateItem = (index: number, field: string, value: any) => {
+  const updateItem = (index: number, field: string, value: string | number) => {
     setSaleData(prev => ({
       ...prev,
       items: prev.items.map((item, i) => 
@@ -57,16 +57,35 @@ export default function NewSalePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validation des articles
+    const validItems = saleData.items.filter(item => 
+      item.productId && item.quantity > 0 && item.unitPrice > 0
+    );
+    
+    if (validItems.length === 0) {
+      toast.error("Veuillez ajouter au moins un article valide");
+      return;
+    }
+    
     try {
       const submitData = {
-        ...saleData,
-        customerId: saleData.customerId === "__no_customer__" ? "" : saleData.customerId
+        customerId: saleData.customerId === "__no_customer__" ? undefined : saleData.customerId,
+        storeId,
+        totalAmount,
+        paidAmount: totalAmount, // Vente payée par défaut
+        status: "PAID" as const,
+        items: validItems.map(item => ({
+          ...item,
+          discount: item.discount || 0
+        }))
       };
+      
       await createSale.mutateAsync(submitData);
-      toast.success("Vente créée avec succès");
+      toast.success("Vente enregistrée avec succès !");
       router.push(`/preferences/organizations/${organizationId}/stores/${storeId}/sales`);
-    } catch (error) {
-      toast.error("Erreur lors de la création de la vente");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'enregistrement de la vente";
+      toast.error(errorMessage);
     }
   };
 
@@ -79,9 +98,9 @@ export default function NewSalePage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Nouvelle vente</h1>
+          <h1 className="text-3xl font-bold">Encaisser une Vente</h1>
           <p className="text-muted-foreground">
-            Enregistrer une nouvelle transaction de vente
+            Enregistrer les articles vendus et encaisser le paiement
           </p>
         </div>
       </div>
@@ -91,13 +110,13 @@ export default function NewSalePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
-              Informations de la vente
+              Détails de la transaction
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Client (optionnel)</Label>
+                <Label>Qui achète ? (optionnel)</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -118,7 +137,7 @@ export default function NewSalePage() {
                   <SelectValue placeholder="Sélectionner un client ou laisser vide" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__no_customer__">Vente comptoir (sans client)</SelectItem>
+                  <SelectItem value="__no_customer__">Client de passage (anonyme)</SelectItem>
                   {customers?.map((customer) => (
                     <SelectItem key={customer.id} value={customer.id}>
                       {customer.name} {customer.email && `(${customer.email})`}
@@ -133,10 +152,10 @@ export default function NewSalePage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Articles</CardTitle>
+              <CardTitle>Que vend-on ?</CardTitle>
               <Button type="button" onClick={addItem} size="sm">
                 <Plus className="h-4 w-4 mr-2" />
-                Ajouter un article
+                Ajouter un produit
               </Button>
             </div>
           </CardHeader>
@@ -144,7 +163,7 @@ export default function NewSalePage() {
             {saleData.items.map((item, index) => (
               <div key={index} className="grid grid-cols-12 gap-4 items-end">
                 <div className="col-span-5">
-                  <Label>Produit</Label>
+                  <Label>Article</Label>
                   <Select
                     value={item.productId}
                     onValueChange={(value) => {
@@ -156,19 +175,19 @@ export default function NewSalePage() {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un produit" />
+                      <SelectValue placeholder="Choisir l'article vendu..." />
                     </SelectTrigger>
                     <SelectContent>
                       {products?.map((product) => (
                         <SelectItem key={product.id} value={product.id}>
-                          {product.name} - {product.unitPrice} FCFA
+                          {product.name} - {product.unitPrice?.toLocaleString()} FCFA
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="col-span-2">
-                  <Label>Quantité</Label>
+                  <Label>Combien ?</Label>
                   <Input
                     type="number"
                     min="1"
@@ -178,7 +197,7 @@ export default function NewSalePage() {
                   />
                 </div>
                 <div className="col-span-3">
-                  <Label>Prix unitaire</Label>
+                  <Label>Prix à l'unité</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -189,9 +208,9 @@ export default function NewSalePage() {
                   />
                 </div>
                 <div className="col-span-1">
-                  <Label>Total</Label>
+                  <Label>Sous-total</Label>
                   <div className="text-sm font-medium p-2">
-                    {(item.quantity * item.unitPrice).toFixed(2)} FCFA
+                    {(item.quantity * item.unitPrice).toLocaleString()} FCFA
                   </div>
                 </div>
                 <div className="col-span-1">
@@ -209,25 +228,41 @@ export default function NewSalePage() {
               </div>
             ))}
             
-            <div className="border-t pt-4">
-              <div className="flex justify-between items-center text-lg font-semibold">
-                <span>Total de la vente:</span>
-                <span>{totalAmount.toFixed(2)} FCFA</span>
+            <div className="border-t pt-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span>Prix des articles :</span>
+                <span>{totalAmount.toLocaleString()} FCFA</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Taxes (19.25%) :</span>
+                <span>{Math.round(totalAmount * 0.1925).toLocaleString()} FCFA</span>
+              </div>
+              <div className="flex justify-between items-center text-xl font-bold border-t pt-2 bg-green-50 p-3 rounded">
+                <span>Le client paie :</span>
+                <span className="text-green-700">{Math.round(totalAmount * 1.1925).toLocaleString()} FCFA</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex gap-2">
-          <Button type="submit" disabled={createSale.isPending}>
-            {createSale.isPending ? "Création..." : "Créer la vente"}
-          </Button>
-          <Button type="button" variant="outline" asChild>
-            <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}`}>
-              Annuler
-            </Link>
-          </Button>
-        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex gap-2">
+              <Button 
+                type="submit" 
+                disabled={createSale.isPending || saleData.items.every(item => !item.productId)}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                {createSale.isPending ? "Enregistrement..." : "💰 Encaisser la vente"}
+              </Button>
+              <Button type="button" variant="outline" asChild>
+                <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/sales`}>
+                  Annuler
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </form>
     </div>
   );

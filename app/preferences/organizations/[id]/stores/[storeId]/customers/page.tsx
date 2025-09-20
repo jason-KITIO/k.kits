@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Plus, ArrowLeft } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Customer } from "@/services/storeService";
+import { Customer } from "@/types/customer";
 import Link from "next/link";
 
 const customerTypeConfig = {

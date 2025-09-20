@@ -14,7 +14,7 @@ export default function Layout({
         href="/"
         className="flex items-center gap-2 self-center font-medium"
       >
-        <div className="bg-primary text-primary-foreground flex size-10 items-center justify-center rounded-md">
+        <div className="text-primary-foreground flex size-10 items-center justify-center rounded-md">
           <Image
             src="/logo.svg"
             alt="K.kits"

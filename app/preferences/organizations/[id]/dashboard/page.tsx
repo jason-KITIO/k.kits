@@ -179,7 +179,7 @@ export default function DashboardPage() {
           <CardContent>
             {stockAlerts && stockAlerts.length > 0 ? (
               <div className="space-y-4">
-                {stockAlerts.slice(0, 5).map((item) => {
+                {stockAlerts.slice(0, 5).map((item: any) => {
                   const stockPercentage =
                     item.product.minStock > 0
                       ? (item.quantity / item.product.minStock) * 100
@@ -258,7 +258,7 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 {dashboard.recentActivity
                   .slice(0, 5)
-                  .map((item) => (
+                  .map((item: any) => (
                     <div
                       key={item.id}
                       className="flex justify-between items-center p-3 rounded-lg bg-muted/50"

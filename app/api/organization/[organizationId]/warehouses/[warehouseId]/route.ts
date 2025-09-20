@@ -4,6 +4,38 @@ import { PERMISSIONS } from "@/lib/permissions";
 import prisma from "@/lib/prisma";
 import { warehouseUpdateSchema } from "@/schema/warehouse.schema";
 
+export const GET = withPermission(PERMISSIONS.STOCK_READ)(
+  async (
+    _req: NextRequest,
+    {
+      params,
+    }: { params: Promise<{ organizationId: string; warehouseId: string }> }
+  ) => {
+    const { organizationId, warehouseId } = await params;
+
+    const warehouse = await prisma.warehouse.findFirst({
+      where: { id: warehouseId, organizationId },
+      include: {
+        manager: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!warehouse) {
+      return NextResponse.json(
+        { error: "Entrepôt introuvable" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(warehouse);
+  }
+);
+
 export const PUT = withPermission(PERMISSIONS.ORG_SETTINGS)(
   async (
     req: NextRequest,

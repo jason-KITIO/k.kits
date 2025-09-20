@@ -1,51 +1,86 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useNotifications, useMarkNotificationsRead } from "@/hooks/useOrganization";
+import {
+  useNotifications,
+  useMarkNotificationsRead,
+} from "@/hooks/useOrganization";
 import { PageLoader } from "@/components/ui/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, BellOff, CheckCheck, AlertTriangle, Info, AlertCircle } from "lucide-react";
-import { Notification } from "@/services/organizationService";
+import {
+  Bell,
+  BellOff,
+  CheckCheck,
+  AlertTriangle,
+  Info,
+  AlertCircle,
+} from "lucide-react";
+
 import { cn } from "@/lib/utils";
+import { NotificationType } from "@/types/notification";
 
 const priorityConfig = {
-  LOW: { icon: Info, color: "text-blue-500", bg: "bg-blue-50", variant: "secondary" as const },
-  MEDIUM: { icon: Bell, color: "text-yellow-500", bg: "bg-yellow-50", variant: "outline" as const },
-  HIGH: { icon: AlertCircle, color: "text-orange-500", bg: "bg-orange-50", variant: "default" as const },
-  URGENT: { icon: AlertTriangle, color: "text-red-500", bg: "bg-red-50", variant: "destructive" as const },
+  LOW: {
+    icon: Info,
+    color: "text-blue-500",
+    bg: "bg-blue-50",
+    variant: "secondary" as const,
+  },
+  MEDIUM: {
+    icon: Bell,
+    color: "text-yellow-500",
+    bg: "bg-yellow-50",
+    variant: "outline" as const,
+  },
+  HIGH: {
+    icon: AlertCircle,
+    color: "text-orange-500",
+    bg: "bg-orange-50",
+    variant: "default" as const,
+  },
+  CRITICAL: {
+    icon: AlertTriangle,
+    color: "text-red-500",
+    bg: "bg-red-50",
+    variant: "destructive" as const,
+  },
 };
 
 const typeConfig = {
-  STOCK_LOW: { label: "Stock bas", color: "text-red-600" },
-  SALE_COMPLETED: { label: "Vente", color: "text-green-600" },
-  ORDER_RECEIVED: { label: "Commande", color: "text-blue-600" },
-  SYSTEM_UPDATE: { label: "Système", color: "text-gray-600" },
+  system: { label: "Système", color: "text-gray-600" },
+  alert: { label: "Alerte", color: "text-red-600" },
+  info: { label: "Information", color: "text-blue-600" },
+  create: { label: "Création", color: "text-green-600" },
 };
 
-function NotificationCard({ notification }: { notification: Notification }) {
+function NotificationCard({ notification }: { notification: NotificationType }) {
   const priority = priorityConfig[notification.priority];
   const type = typeConfig[notification.type];
   const Icon = priority.icon;
 
   return (
-    <Card className={cn(
-      "transition-all hover:shadow-md",
-      !notification.read && "border-l-4 border-l-primary bg-muted/30"
-    )}>
+    <Card
+      className={cn(
+        "transition-all hover:shadow-md",
+        !notification.read && "border-l-4 border-l-primary bg-muted/30"
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className={cn("p-2 rounded-full", priority.bg)}>
             <Icon className={cn("h-4 w-4", priority.color)} />
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className={cn(
-                "font-medium truncate",
-                !notification.read && "font-semibold"
-              )}>
+              <h3
+                className={cn(
+                  "font-medium truncate",
+                  !notification.read && "font-semibold"
+                )}
+              >
                 {notification.title}
               </h3>
               <Badge variant={priority.variant} className="text-xs">
@@ -55,11 +90,11 @@ function NotificationCard({ notification }: { notification: Notification }) {
                 {type.label}
               </Badge>
             </div>
-            
+
             <p className="text-sm text-muted-foreground mb-2">
               {notification.message}
             </p>
-            
+
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
                 {new Date(notification.createdAt).toLocaleString()}
@@ -82,14 +117,20 @@ export default function NotificationsPage() {
   const params = useParams();
   const organizationId = params.id as string;
 
-  const { data: notifications, isLoading, error } = useNotifications(organizationId);
+  const {
+    data: notifications,
+    isLoading,
+    error,
+  } = useNotifications(organizationId);
   const markAsRead = useMarkNotificationsRead(organizationId);
 
   if (isLoading) return <PageLoader text="Chargement des notifications..." />;
   if (error) return <div>Erreur: {error.message}</div>;
 
-  const unreadCount = notifications?.filter(n => !n.read).length || 0;
-  const urgentCount = notifications?.filter(n => n.priority === 'URGENT' && !n.read).length || 0;
+  const unreadCount = notifications?.filter((n: NotificationType) => !n.read).length || 0;
+  const criticalCount =
+    notifications?.filter((n: NotificationType) => n.priority === "CRITICAL" && !n.read)
+      .length || 0;
 
   const handleMarkAllAsRead = () => {
     markAsRead.mutate({ markAllAsRead: true });
@@ -107,7 +148,7 @@ export default function NotificationsPage() {
             Alertes et informations importantes de votre organisation
           </p>
         </div>
-        
+
         {unreadCount > 0 && (
           <Button onClick={handleMarkAllAsRead} disabled={markAsRead.isPending}>
             <CheckCheck className="h-4 w-4 mr-2" />
@@ -122,7 +163,9 @@ export default function NotificationsPage() {
             <CardTitle className="text-sm font-medium">Total</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{notifications?.length || 0}</div>
+            <div className="text-2xl font-bold">
+              {notifications?.length || 0}
+            </div>
             <p className="text-xs text-muted-foreground">Notifications</p>
           </CardContent>
         </Card>
@@ -132,7 +175,9 @@ export default function NotificationsPage() {
             <CardTitle className="text-sm font-medium">Non lues</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{unreadCount}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {unreadCount}
+            </div>
             <p className="text-xs text-muted-foreground">À traiter</p>
           </CardContent>
         </Card>
@@ -142,16 +187,19 @@ export default function NotificationsPage() {
             <CardTitle className="text-sm font-medium">Urgentes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{urgentCount}</div>
-            <p className="text-xs text-muted-foreground">Priorité haute</p>
+            <div className="text-2xl font-bold text-red-600">{criticalCount}</div>
+            <p className="text-xs text-muted-foreground">Priorité critique</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="space-y-4">
         {notifications && notifications.length > 0 ? (
-          notifications.map((notification) => (
-            <NotificationCard key={notification.id} notification={notification} />
+          notifications.map((notification: NotificationType) => (
+            <NotificationCard
+              key={notification.id}
+              notification={notification}
+            />
           ))
         ) : (
           <Card>

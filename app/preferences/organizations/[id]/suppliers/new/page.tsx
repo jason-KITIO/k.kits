@@ -11,37 +11,62 @@ import { ArrowLeft, Building } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { supplierCreateSchema, type SupplierCreateInput } from "@/schema/supplier.schema";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 export default function NewSupplierPage() {
   const params = useParams();
   const router = useRouter();
   const organizationId = params.id as string;
+  const storeId = params.storeId as string | undefined;
   
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    contactPerson: "",
-    taxNumber: "",
-    paymentTerms: "",
-    notes: "",
-    active: true,
-  });
-
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<SupplierCreateInput>({
+    resolver: zodResolver(supplierCreateSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+      contactPerson: "",
+      taxNumber: "",
+      paymentTerms: "",
+      notes: "",
+      active: true,
+    },
+  });
+
+  const handleSubmit = async (data: SupplierCreateInput) => {
     setIsLoading(true);
     
     try {
-      // TODO: Implémenter l'appel API pour créer le fournisseur
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(
+        storeId 
+          ? `/api/organization/${organizationId}/stores/${storeId}/suppliers`
+          : `/api/organization/${organizationId}/suppliers`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(data),
+        }
+      );
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur lors de la création');
+      }
+      
       toast.success("Fournisseur créé avec succès");
-      router.push(`/preferences/organizations/${organizationId}/suppliers`);
-    } catch (error) {
-      toast.error("Erreur lors de la création du fournisseur");
+      const redirectPath = storeId 
+        ? `/preferences/organizations/${organizationId}/stores/${storeId}/suppliers`
+        : `/preferences/organizations/${organizationId}/suppliers`;
+      router.push(redirectPath);
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de la création du fournisseur");
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +76,9 @@ export default function NewSupplierPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/preferences/organizations/${organizationId}/suppliers`}>
+          <Link href={storeId 
+            ? `/preferences/organizations/${organizationId}/stores/${storeId}/suppliers`
+            : `/preferences/organizations/${organizationId}/suppliers`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -63,127 +90,164 @@ export default function NewSupplierPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Informations générales
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nom du fournisseur *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Ex: Entreprise ABC"
-                  required
+      {/* <Form {...form}> */}
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 max-w-4xl">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-5 w-5" />
+                Informations générales
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom du fournisseur *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Entreprise ABC" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="contactPerson"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Personne de contact</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Jean Dupont" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="contactPerson">Personne de contact</Label>
-                <Input
-                  id="contactPerson"
-                  value={formData.contactPerson}
-                  onChange={(e) => setFormData(prev => ({ ...prev, contactPerson: e.target.value }))}
-                  placeholder="Ex: Jean Dupont"
-                />
-              </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="contact@entreprise.com"
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="contact@entreprise.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Téléphone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+237 698 765 432" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">Téléphone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="+33 1 23 45 67 89"
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="address">Adresse complète</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                placeholder="Adresse complète du fournisseur"
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Adresse complète</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Adresse complète du fournisseur" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Informations commerciales</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="taxNumber">Numéro fiscal</Label>
-                <Input
-                  id="taxNumber"
-                  value={formData.taxNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, taxNumber: e.target.value }))}
-                  placeholder="Ex: FR12345678901"
+          <Card>
+            <CardHeader>
+              <CardTitle>Informations commerciales</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="taxNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Numéro fiscal</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: FR12345678901" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="paymentTerms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Conditions de paiement</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 30 jours net" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="paymentTerms">Conditions de paiement</Label>
-                <Input
-                  id="paymentTerms"
-                  value={formData.paymentTerms}
-                  onChange={(e) => setFormData(prev => ({ ...prev, paymentTerms: e.target.value }))}
-                  placeholder="Ex: 30 jours net"
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes additionnelles</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Informations complémentaires sur le fournisseur"
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes additionnelles</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Informations complémentaires sur le fournisseur" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="active"
-                checked={formData.active}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
+              <FormField
+                control={form.control}
+                name="active"
+                render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel>Fournisseur actif</FormLabel>
+                  </FormItem>
+                )}
               />
-              <Label htmlFor="active">Fournisseur actif</Label>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
         <div className="flex gap-2">
           <Button type="submit" disabled={isLoading}>
             {isLoading ? "Création..." : "Créer le fournisseur"}
           </Button>
           <Button type="button" variant="outline" asChild>
-            <Link href={`/preferences/organizations/${organizationId}/suppliers`}>
+            <Link href={storeId 
+              ? `/preferences/organizations/${organizationId}/stores/${storeId}/suppliers`
+              : `/preferences/organizations/${organizationId}/suppliers`}>
               Annuler
             </Link>
           </Button>

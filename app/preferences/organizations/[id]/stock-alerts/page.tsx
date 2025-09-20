@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, Package, ShoppingCart, TrendingDown } from "lucide-react";
-import { StockAlert } from "@/services/organizationService";
 import { cn } from "@/lib/utils";
+import { StockAlert } from "@/types/stock-alert";
 import Link from "next/link";
 
 const urgencyConfig = {
@@ -34,7 +34,7 @@ const urgencyConfig = {
 };
 
 function StockAlertCard({ alert }: { alert: StockAlert }) {
-  const config = urgencyConfig[alert.urgency];
+  const config = urgencyConfig[alert.urgency as keyof typeof urgencyConfig];
   const Icon = config.icon;
   const location = alert.store?.name || alert.warehouse?.name || "Localisation inconnue";
 
@@ -94,9 +94,9 @@ export default function StockAlertsPage() {
   if (isLoading) return <PageLoader text="Chargement des alertes..." />;
   if (error) return <div>Erreur: {error.message}</div>;
 
-  const criticalCount = alerts?.filter(a => a.urgency === 'CRITICAL').length || 0;
-  const highCount = alerts?.filter(a => a.urgency === 'HIGH').length || 0;
-  const totalValue = alerts?.reduce((sum, alert) => 
+  const criticalCount = alerts?.filter((a: StockAlert) => a.urgency === 'CRITICAL').length || 0;
+  const highCount = alerts?.filter((a: StockAlert) => a.urgency === 'HIGH').length || 0;
+  const totalValue = alerts?.reduce((sum: number, alert: StockAlert) => 
     sum + (alert.product.unitPrice * alert.quantity), 0) || 0;
 
   return (
@@ -173,8 +173,8 @@ export default function StockAlertsPage() {
                 </h2>
                 <div className="grid gap-4 md:grid-cols-2">
                   {alerts
-                    .filter(alert => alert.urgency === 'CRITICAL')
-                    .map(alert => (
+                    .filter((alert: StockAlert) => alert.urgency === 'CRITICAL')
+                    .map((alert: StockAlert) => (
                       <StockAlertCard key={alert.id} alert={alert} />
                     ))}
                 </div>
@@ -189,15 +189,15 @@ export default function StockAlertsPage() {
                 </h2>
                 <div className="grid gap-4 md:grid-cols-2">
                   {alerts
-                    .filter(alert => alert.urgency === 'HIGH')
-                    .map(alert => (
+                    .filter((alert: StockAlert) => alert.urgency === 'HIGH')
+                    .map((alert: StockAlert) => (
                       <StockAlertCard key={alert.id} alert={alert} />
                     ))}
                 </div>
               </div>
             )}
 
-            {alerts.filter(alert => alert.urgency === 'MEDIUM').length > 0 && (
+            {alerts.filter((alert: StockAlert) => alert.urgency === 'MEDIUM').length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold text-yellow-600 mb-3 flex items-center gap-2">
                   <Package className="h-5 w-5" />
@@ -205,8 +205,8 @@ export default function StockAlertsPage() {
                 </h2>
                 <div className="grid gap-4 md:grid-cols-2">
                   {alerts
-                    .filter(alert => alert.urgency === 'MEDIUM')
-                    .map(alert => (
+                    .filter((alert: StockAlert) => alert.urgency === 'MEDIUM')
+                    .map((alert: StockAlert) => (
                       <StockAlertCard key={alert.id} alert={alert} />
                     ))}
                 </div>

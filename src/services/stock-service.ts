@@ -1,4 +1,34 @@
-import type { Stock, StockMovement, CreateStockAdjustmentData, StockTransferData, StockFilters } from '@/types/stock';
+import type { Stock } from '@/types/stock';
+import type { StockMovementCreateInput } from '@/schema/stock-movement.schema';
+import type { StockTransferCreateInput } from '@/schema/stock-transfer.schema';
+
+type StockMovement = {
+  id: string;
+  productId: string;
+  quantity: number;
+  type: "IN" | "OUT" | "TRANSFER" | "ADJUSTMENT";
+  fromWarehouseId?: string;
+  toWarehouseId?: string;
+  fromStoreId?: string;
+  toStoreId?: string;
+  reference?: string;
+  reason?: string;
+  createdAt: string;
+  product: {
+    name: string;
+    sku: string;
+  };
+};
+
+type StockFilters = {
+  search?: string;
+  productId?: string;
+  storeId?: string;
+  warehouseId?: string;
+  lowStock?: boolean;
+  page?: number;
+  limit?: number;
+};
 
 const getApiBase = (organizationId: string) => `/api/organization/${organizationId}/stock`;
 
@@ -42,7 +72,7 @@ export const stockService = {
     return response.json();
   },
 
-  createStockAdjustment: async (organizationId: string, data: CreateStockAdjustmentData): Promise<StockMovement> => {
+  createStockAdjustment: async (organizationId: string, data: StockMovementCreateInput): Promise<StockMovement> => {
     const response = await fetch(`${getApiBase(organizationId)}/adjustments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -56,7 +86,7 @@ export const stockService = {
     return response.json();
   },
 
-  createStockTransfer: async (organizationId: string, data: StockTransferData): Promise<StockMovement> => {
+  createStockTransfer: async (organizationId: string, data: StockTransferCreateInput): Promise<StockMovement> => {
     const response = await fetch(`${getApiBase(organizationId)}/transfers`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

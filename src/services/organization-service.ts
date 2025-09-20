@@ -77,3 +77,90 @@ export async function deleteOrganization(id: string): Promise<void> {
     );
   }
 }
+
+// Service object pour compatibilité avec useOrganization.ts
+export const organizationService = {
+  getDashboard: async (organizationId: string) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/dashboard`);
+    if (!res.ok) throw new Error('Erreur dashboard');
+    return res.json();
+  },
+  getSales: async (organizationId: string, params?: Record<string, unknown>) => {
+    const query = params ? new URLSearchParams(params as Record<string, string>).toString() : '';
+    const res = await fetch(`${API_BASE}/${organizationId}/sales${query ? `?${query}` : ''}`);
+    if (!res.ok) throw new Error('Erreur sales');
+    return res.json();
+  },
+  getNotifications: async (organizationId: string) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/notifications`);
+    if (!res.ok) throw new Error('Erreur notifications');
+    return res.json();
+  },
+  getStockAlerts: async (organizationId: string) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/stock-alerts`);
+    if (!res.ok) throw new Error('Erreur stock alerts');
+    return res.json();
+  },
+  getStockTransfers: async (organizationId: string) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/stock-transfers`);
+    if (!res.ok) throw new Error('Erreur stock transfers');
+    return res.json();
+  },
+  getUsers: async (organizationId: string) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/users`);
+    if (!res.ok) throw new Error('Erreur users');
+    return res.json();
+  },
+  search: async (organizationId: string, query: string, type: string) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/search?q=${query}&type=${type}`);
+    if (!res.ok) throw new Error('Erreur search');
+    return res.json();
+  },
+  getReports: async (organizationId: string, type: string, params?: Record<string, unknown>) => {
+    const query = params ? new URLSearchParams(params as Record<string, string>).toString() : '';
+    const res = await fetch(`${API_BASE}/${organizationId}/reports?type=${type}${query ? `&${query}` : ''}`);
+    if (!res.ok) throw new Error('Erreur reports');
+    return res.json();
+  },
+  getSettings: async (organizationId: string) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/settings`);
+    if (!res.ok) throw new Error('Erreur settings');
+    return res.json();
+  },
+  createNotification: async (organizationId: string, data: unknown) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/notifications`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Erreur create notification');
+    return res.json();
+  },
+  markNotificationsRead: async (organizationId: string, data: unknown) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/notifications/mark-read`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Erreur mark notifications');
+    return res.json();
+  },
+  createStockTransfer: async (organizationId: string, data: unknown) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/stock-transfers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Erreur create stock transfer');
+    return res.json();
+  },
+  updateSettings: async (organizationId: string, data: unknown) => {
+    const res = await fetch(`${API_BASE}/${organizationId}/settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Erreur update settings');
+    return res.json();
+  }
+};

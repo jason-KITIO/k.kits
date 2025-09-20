@@ -1,51 +1,76 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    5
-    <title>Bienvenue chez Nous !</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue sur K.Kits</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        color: #333;
-      }
-      .header {
-        background-color: #0070f3;
-        color: white;
-        padding: 10px 20px;
-        text-align: center;
-      }
-      .content {
-        padding: 20px;
-      }
-      .footer {
-        font-size: 12px;
-        color: #666;
-        padding: 10px 20px;
-        text-align: center;
-        border-top: 1px solid #eee;
-        margin-top: 20px;
-      }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); padding: 40px 30px; text-align: center; color: white; }
+        .logo { width: 80px; height: 80px; margin: 0 auto 20px; }
+        .logo img { width: 100%; height: 100%; object-fit: contain; }
+        .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .header p { font-size: 16px; opacity: 0.9; }
+        .content { padding: 40px 30px; }
+        .welcome-text { font-size: 18px; color: #374151; line-height: 1.6; margin-bottom: 30px; }
+        .features { background: #f8fafc; border-radius: 12px; padding: 30px; margin: 30px 0; }
+        .feature { display: flex; align-items: center; margin-bottom: 20px; }
+        .feature:last-child { margin-bottom: 0; }
+        .feature-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: white; font-weight: bold; }
+        .feature-text { color: #4b5563; font-size: 16px; }
+        .cta { text-align: center; margin: 40px 0; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); color: white; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; transition: transform 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .footer { background: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb; }
+        .footer p { color: #6b7280; font-size: 14px; line-height: 1.5; }
     </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>Bienvenue chez Nous, {{username}} !</h1>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="https://res.cloudinary.com/dro8zox5w/image/upload/v1758298431/logo_qteksg.png" alt="K.Kits Logo">
+            </div>
+            <h1>Bienvenue {{firstName}} !</h1>
+            <p>Votre plateforme de gestion d'inventaire est prête</p>
+        </div>
+        
+        <div class="content">
+            <div class="welcome-text">
+                <p>Bonjour <strong>{{firstName}}</strong>,</p>
+                <p>Félicitations ! Votre compte K.Kits a été créé avec succès. Vous pouvez maintenant profiter de notre plateforme complète de gestion d'inventaire et de stock.</p>
+            </div>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📦</div>
+                    <div class="feature-text">Gestion complète de vos stocks en temps réel</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🏪</div>
+                    <div class="feature-text">Multi-boutiques et entrepôts</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">Analytics et rapports détaillés</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-text">Gestion d'équipe avec rôles et permissions</div>
+                </div>
+            </div>
+            
+            <div class="cta">
+                <a href="#" class="btn">Commencer maintenant</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>K.Kits</strong> - Plateforme SaaS de Gestion d'Inventaire</p>
+            <p>© 2025 K.Kits. Tous droits réservés.</p>
+        </div>
     </div>
-    <div class="content">
-      <p>Bonjour {{username}},</p>
-      <p>
-        Nous sommes ravis de vous compter parmi nous. Merci pour votre
-        inscription !
-      </p>
-      <p>
-        Nous espérons que vous apprécierez votre expérience avec notre service.
-      </p>
-    </div>
-    <div class="footer">
-      <p>© 2025 VotreEntreprise. Tous droits réservés.</p>
-    </div>
-  </body>
+</body>
 </html>

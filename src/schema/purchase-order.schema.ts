@@ -3,13 +3,13 @@ import { z } from "zod";
 export const purchaseOrderCreateSchema = z.object({
   supplierId: z.string(),
   warehouseId: z.string(),
-  expectedDate: z.string().datetime().optional(),
-  status: z.enum(["PENDING", "CONFIRMED", "SHIPPED", "RECEIVED", "CANCELLED"]).default("PENDING"),
+  status: z.enum(["PENDING", "CONFIRMED", "SHIPPED", "RECEIVED", "CANCELLED"]),
   items: z.array(z.object({
     productId: z.string(),
     quantity: z.number().int().positive(),
     unitPrice: z.number().positive(),
   })),
+  expectedDate: z.string().datetime().optional(),
 });
 
 export const purchaseOrderUpdateSchema = purchaseOrderCreateSchema.partial().omit({ items: true });

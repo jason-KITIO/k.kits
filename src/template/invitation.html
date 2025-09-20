@@ -1,75 +1,103 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Invitation à rejoindre une organisation</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitation K.Kits - {{organizationName}}</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f9;
-        margin: 0;
-        padding: 20px;
-        color: #333;
-      }
-
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        padding: 40px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
-
-      h1 {
-        color: #1976d2;
-      }
-
-      p {
-        font-size: 16px;
-        line-height: 1.6;
-      }
-
-      .button {
-        display: inline-block;
-        margin-top: 30px;
-        padding: 12px 24px;
-        background-color: #1976d2;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-        font-weight: bold;
-      }
-
-      .footer {
-        margin-top: 40px;
-        font-size: 12px;
-        color: #999;
-        text-align: center;
-      }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); padding: 20px; }
+        .container { max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.15); }
+        .header { background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); padding: 50px 40px; text-align: center; color: white; }
+        .logo { width: 80px; height: 80px; margin: 0 auto 25px; }
+        .logo img { width: 100%; height: 100%; object-fit: contain; }
+        .header h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+        .header p { font-size: 18px; opacity: 0.95; }
+        .content { padding: 50px 40px; }
+        .invitation-details { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 16px; padding: 35px; margin: 35px 0; border-left: 5px solid #a855f7; }
+        .org-name { font-size: 24px; font-weight: 700; color: #a855f7; margin-bottom: 15px; display: flex; align-items: center; }
+        .org-name::before { content: '🏢'; margin-right: 12px; font-size: 28px; }
+        .role-badge { display: inline-block; background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .role-info { margin-top: 20px; }
+        .role-info p { color: #0c4a6e; font-size: 16px; line-height: 1.6; }
+        .message { font-size: 18px; color: #374151; line-height: 1.7; margin: 30px 0; }
+        .cta-section { text-align: center; margin: 50px 0; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); color: white; padding: 18px 40px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 18px; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3); }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(168, 85, 247, 0.4); }
+        .btn::before { content: '✨ '; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin: 40px 0; }
+        .feature { background: #f8fafc; border-radius: 12px; padding: 25px; text-align: center; border: 1px solid #e2e8f0; }
+        .feature-icon { font-size: 32px; margin-bottom: 15px; }
+        .feature h3 { color: #1e293b; font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .feature p { color: #64748b; font-size: 14px; line-height: 1.5; }
+        .security-info { background: #fef7cd; border: 1px solid #fde047; border-radius: 12px; padding: 20px; margin: 30px 0; }
+        .security-info h3 { color: #a16207; font-size: 16px; margin-bottom: 8px; }
+        .security-info p { color: #a16207; font-size: 14px; line-height: 1.5; }
+        .footer { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 40px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer-brand { color: #a855f7; font-size: 24px; font-weight: 800; margin-bottom: 15px; }
+        .footer p { color: #64748b; font-size: 14px; line-height: 1.6; margin-bottom: 8px; }
     </style>
-  </head>
-
-  <body>
+</head>
+<body>
     <div class="container">
-      <h1>Invitation à rejoindre notre organisation</h1>
-      <p>
-        Vous avez été invité à rejoindre
-        <strong>{{organizationName}}</strong> avec le rôle suivant :
-        <strong>{{role}}</strong>.
-      </p>
-      <p>
-        Pour accepter l'invitation, veuillez cliquer sur le bouton ci-dessous :
-      </p>
-      <a href="{{invitationLink}}" class="button">Accepter l'invitation</a>
-      <p>
-        Si vous ne souhaitez pas rejoindre cette organisation, vous pouvez
-        ignorer cet email.
-      </p>
-      <div class="footer">
-        <p>&copy; 2025 Votre Entreprise. Tous droits réservés.</p>
-      </div>
+        <div class="header">
+            <div class="logo">
+                <img src="https://res.cloudinary.com/dro8zox5w/image/upload/v1758298431/logo_qteksg.png" alt="K.Kits Logo">
+            </div>
+            <h1>Vous êtes invité !</h1>
+            <p>Rejoignez une équipe sur K.Kits</p>
+        </div>
+        
+        <div class="content">
+            <div class="message">
+                <p>Excellente nouvelle ! Vous avez été sélectionné pour rejoindre une organisation sur K.Kits, la plateforme leader de gestion d'inventaire et de stock.</p>
+            </div>
+            
+            <div class="invitation-details">
+                <div class="org-name">{{organizationName}}</div>
+                <div class="role-info">
+                    <p>Vous êtes invité avec le rôle : <span class="role-badge">{{role}}</span></p>
+                    <p>Ce rôle vous donnera accès à des fonctionnalités spécifiques adaptées à vos responsabilités au sein de l'organisation.</p>
+                </div>
+            </div>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Dashboard en temps réel</h3>
+                    <p>Suivez vos métriques et KPIs instantanément</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Gestion collaborative</h3>
+                    <p>Travaillez en équipe avec des rôles définis</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📱</div>
+                    <h3>Multi-plateforme</h3>
+                    <p>Accédez depuis n'importe quel appareil</p>
+                </div>
+            </div>
+            
+            <div class="cta-section">
+                <a href="{{invitationLink}}" class="btn">Accepter l'invitation</a>
+                <p style="margin-top: 20px; color: #6b7280; font-size: 14px;">
+                    En acceptant, vous rejoindrez {{organizationName}} et pourrez commencer à collaborer immédiatement.
+                </p>
+            </div>
+            
+            <div class="security-info">
+                <h3>🔒 Invitation sécurisée</h3>
+                <p>Cette invitation est personnelle et sécurisée. Si vous ne souhaitez pas rejoindre cette organisation, vous pouvez ignorer cet email en toute sécurité.</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-brand">K.Kits</div>
+            <p><strong>Plateforme SaaS de Gestion d'Inventaire</strong></p>
+            <p>Gérez vos stocks, boutiques et équipes en toute simplicité</p>
+            <p>© 2025 K.Kits. Tous droits réservés.</p>
+        </div>
     </div>
-  </body>
+</body>
 </html>

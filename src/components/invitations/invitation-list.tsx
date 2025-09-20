@@ -7,7 +7,7 @@ import {
   useCancelInvitation,
 } from "@/hooks/use-invitations";
 import { useRoles } from "@/hooks/use-roles";
-import { CreateInvitationData } from "@/types/invitation";
+import { CreateInvitationData, Invitation } from "@/types/invitation";
 import { Input } from "../ui/input";
 import {
   Select,
@@ -147,7 +147,7 @@ export function InvitationList({ organizationId }: InvitationListProps) {
             <p className="text-muted-foreground">Aucune invitation envoyée</p>
           ) : (
             <div className="space-y-3">
-              {invitations?.map((invitation) => (
+              {invitations?.map((invitation: Invitation) => (
                 <div
                   key={invitation.id}
                   className="flex items-center justify-between p-4 border rounded-lg"
@@ -156,12 +156,13 @@ export function InvitationList({ organizationId }: InvitationListProps) {
                     <div className="flex items-center gap-3">
                       <span className="font-medium">{invitation.email}</span>
                       <span
-                        className="px-2 py-1 text-xs rounded-full"
-                        style={{
-                          backgroundColor:
-                            getStatusColor(invitation.status) + "20",
-                          color: getStatusColor(invitation.status),
-                        }}
+                        className={`px-2 py-1 text-xs rounded-full ${
+                          invitation.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                          invitation.status === 'ACCEPTED' ? 'bg-green-100 text-green-800' :
+                          invitation.status === 'EXPIRED' ? 'bg-gray-100 text-gray-800' :
+                          invitation.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}
                       >
                         {invitation.status}
                       </span>

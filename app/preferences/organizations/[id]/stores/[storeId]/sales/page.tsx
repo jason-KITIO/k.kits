@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useStoreSales, useCreateSale } from "@/hooks/useStore";
+import { useStoreSales } from "@/hooks/useStore";
 import { DataTable } from "@/components/ui/data-table";
 import { PageLoader } from "@/components/ui/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, ShoppingCart, Plus, Eye, Receipt } from "lucide-react";
-import { Sale } from "@/services/organizationService";
+import { Sale, SaleItem } from "@/types/sale";
 import Link from "next/link";
 
 const columns: ColumnDef<Sale>[] = [
@@ -103,7 +103,7 @@ const columns: ColumnDef<Sale>[] = [
     header: "Articles",
     cell: ({ row }) => {
       const items = row.original.items || [];
-      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+      const totalItems = items.reduce((sum: number, item: SaleItem) => sum + item.quantity, 0);
       return <div className="text-sm">{totalItems} article(s)</div>;
     },
   },
@@ -135,10 +135,11 @@ export default function StoreSalesPage() {
   if (isLoading) return <PageLoader text="Chargement des ventes..." />;
   if (error) return <div>Erreur: {error.message}</div>;
 
-  const totalSales = sales?.length || 0;
-  const totalAmount = sales?.reduce((sum, sale) => sum + sale.totalAmount, 0) || 0;
-  const paidAmount = sales?.reduce((sum, sale) => sum + sale.paidAmount, 0) || 0;
-  const pendingSales = sales?.filter(s => s.status === 'PENDING').length || 0;
+  const salesArray = Array.isArray(sales) ? sales as Sale[] : [];
+  const totalSales = salesArray.length;
+  const totalAmount = salesArray.reduce((sum: number, sale: Sale) => sum + sale.totalAmount, 0);
+  const paidAmount = salesArray.reduce((sum: number, sale: Sale) => sum + sale.paidAmount, 0);
+  const pendingSales = salesArray.filter((s: Sale) => s.status === 'PENDING').length;
 
   return (
     <div className="space-y-6 p-6">
@@ -150,13 +151,17 @@ export default function StoreSalesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Receipt className="h-4 w-4 mr-2" />
-            Rapports
+          <Button variant="outline" asChild>
+            <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/reports`}>
+              <Receipt className="h-4 w-4 mr-2" />
+              Rapports
+            </Link>
           </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nouvelle vente
+          <Button asChild>
+            <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/sales/new`}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle vente
+            </Link>
           </Button>
         </div>
       </div>
@@ -217,7 +222,7 @@ export default function StoreSalesPage() {
         <CardContent>
           <DataTable
             columns={columns}
-            data={sales || []}
+            data={salesArray}
             searchKey="id"
             searchPlaceholder="Rechercher par numéro de vente..."
           />

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Package, Plus, Eye, Scan } from "lucide-react";
-import { Product } from "@/services/storeService";
+import { Product, ProductStock } from "@/types/product-with-stock";
 import Link from "next/link";
 
 const columns: ColumnDef<Product>[] = [
@@ -62,7 +62,7 @@ const columns: ColumnDef<Product>[] = [
     header: "Stock",
     cell: ({ row }) => {
       const stocks = row.original.stocks || [];
-      const totalStock = stocks.reduce((sum, stock) => sum + stock.quantity, 0);
+      const totalStock = stocks.reduce((sum: number, stock: ProductStock) => sum + stock.quantity, 0);
       const minStock = row.original.minStock;
       
       return (
@@ -113,7 +113,7 @@ export default function StoreProductsPage() {
 
   const activeProducts = products?.filter(p => p.active).length || 0;
   const lowStockProducts = products?.filter(p => {
-    const totalStock = p.stocks?.reduce((sum, stock) => sum + stock.quantity, 0) || 0;
+    const totalStock = p.stocks?.reduce((sum: number, stock: ProductStock) => sum + stock.quantity, 0) || 0;
     return totalStock <= p.minStock;
   }).length || 0;
 

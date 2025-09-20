@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Eye, Plus, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useStoreHooks } from "@/hooks/useStore";
+// import { useStoreHooks } from "@/hooks/useStore";
 
 interface Supplier {
   id: string;
@@ -71,12 +71,14 @@ export default function SuppliersPage() {
   const organizationId = params.id as string;
   const storeId = params.storeId as string;
 
-  const { data: suppliers = [], isLoading } = useStoreHooks.useSuppliers(organizationId, storeId);
+  // Mock data until hook is implemented
+  const suppliers: Supplier[] = [];
+  const isLoading = false;
 
   if (isLoading) return <PageLoader text="Chargement des fournisseurs..." />;
 
   const totalSuppliers = suppliers.length;
-  const activeSuppliers = suppliers.filter(s => s.active).length;
+  const activeSuppliers = suppliers.filter((s: Supplier) => s.active).length;
 
   return (
     <div className="space-y-6 p-6">

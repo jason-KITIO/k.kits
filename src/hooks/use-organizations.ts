@@ -44,9 +44,10 @@ export const useCreateOrganization = () => {
     mutationFn: async (data: CreateOrganizationData) =>
       await createOrganization(data),
     onSuccess: (newOrg) => {
-      queryClient.setQueryData(["organizations"], (old: any) =>
-        old ? [...old, newOrg] : [newOrg]
-      );
+      queryClient.setQueryData(["organizations"], (old: unknown) => {
+        const organizations = Array.isArray(old) ? old : [];
+        return [...organizations, newOrg];
+      });
       toast.success("Succès", {
         description: "Organisation créée avec succès",
         duration: 5000,

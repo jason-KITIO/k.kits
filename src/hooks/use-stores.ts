@@ -1,7 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { storeService } from "@/services/store-service";
 import { toast } from "sonner";
-import type { CreateStoreData, UpdateStoreData, StoreFilters } from "@/types/store";
+import type { StoreCreateInput, StoreUpdateInput } from "@/schema/store-schema";
+
+type StoreFilters = {
+  type?: "PHYSICAL" | "ONLINE" | "HYBRID";
+  active?: boolean;
+  managerId?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+};
 
 export const useStores = (organizationId: string, filters: Partial<StoreFilters> = {}) => {
   return useQuery({
@@ -31,7 +40,7 @@ export const useCreateStore = (organizationId: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: CreateStoreData) => 
+    mutationFn: async (data: StoreCreateInput) => 
       await storeService.createStore(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stores", organizationId] });
@@ -53,7 +62,7 @@ export const useUpdateStore = (organizationId: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ storeId, data }: { storeId: string; data: UpdateStoreData }) =>
+    mutationFn: async ({ storeId, data }: { storeId: string; data: StoreUpdateInput }) =>
       await storeService.updateStore(organizationId, storeId, data),
     onSuccess: (_, { storeId }) => {
       queryClient.invalidateQueries({ queryKey: ["stores", organizationId] });

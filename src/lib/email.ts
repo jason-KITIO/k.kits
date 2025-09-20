@@ -33,9 +33,9 @@ async function loadTemplate(
 
 export async function sendMagicLinkEmail(email: string, magicLink: string) {
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: `"K.Kits" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: "Votre lien magique pour vous connecter",
+    subject: "K.Kits - Votre lien de connexion sécurisé",
     html: magicLink,
   };
   return transporter.sendMail(mailOptions);
@@ -45,12 +45,11 @@ export async function sendWelcomeEmail(email: string, firstName: string) {
   try {
     const html = await loadTemplate("welcome-email", { firstName });
     await transporter.sendMail({
-      from: `"Votre Entreprise" <${process.env.SMTP_USER}>`,
+      from: `"K.Kits" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Bienvenue chez Nous !",
+      subject: "Bienvenue sur K.Kits - Votre plateforme de gestion d'inventaire",
       html,
     });
-    // console.log(`Email de bienvenue envoyé à ${email}`);
   } catch (error) {
     console.error("Erreur envoi email de bienvenue :", error);
     throw error;
@@ -64,9 +63,9 @@ export async function sendOtpVerificationEmail(email: string, otp: string) {
     const html = await loadTemplate("otp-verification", { otp });
 
     await transporter.sendMail({
-      from: `"Votre Entreprise" <${process.env.SMTP_USER}>`,
+      from: `"K.Kits" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Votre code de vérification OTP",
+      subject: "K.Kits - Votre code de vérification OTP",
       html,
     });
 
@@ -107,15 +106,33 @@ export async function sendInvitationEmail(
 
     // Envoyer l'email
     await transporter.sendMail({
-      from: `"Votre Entreprise" <${process.env.EMAIL_USER}>`,
+      from: `"K.Kits" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Invitation à rejoindre l'organisation",
+      subject: "K.Kits - Invitation à rejoindre une organisation",
       html,
     });
 
     // console.log(`Email d'invitation envoyé à ${email}`);
   } catch (error) {
     console.error("Erreur envoi email invitation:", error);
+    throw error;
+  }
+}
+
+export async function sendPasswordResetEmail(
+  email: string,
+  resetLink: string
+) {
+  try {
+    const html = await loadTemplate("password-reset", { resetLink });
+    await transporter.sendMail({
+      from: `"K.Kits" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "K.Kits - Réinitialisation de votre mot de passe",
+      html,
+    });
+  } catch (error) {
+    console.error("Erreur envoi email réinitialisation:", error);
     throw error;
   }
 }

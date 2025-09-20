@@ -10,11 +10,18 @@ export * from "./use-roles";
 export * from "./use-organization-roles";
 export * from "./use-phone-auth";
 export * from "./useOrganization";
-export * from "./useStore";
+// export * from "./useStore"; // Conflit avec use-stores.ts
 export * from "./use-mobile";
 export * from "./use-auth-with-roles";
 export * from "./use-logout";
 export * from "./use-permissions";
+export * from "./use-warehouses";
+export * from "./use-stores";
+
+// Employee stock system hooks
+export * from "./use-employee-stocks";
+export * from "./use-stock-movement-requests";
+export * from "./use-stock-returns";
 
 // Hooks d'optimisation
 export * from "./use-cache-config";

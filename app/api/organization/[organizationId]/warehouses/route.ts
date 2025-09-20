@@ -35,7 +35,6 @@ export const POST = withPermission(PERMISSIONS.ORG_SETTINGS)(
         data: {
           ...data,
           organizationId,
-          active: data.active ?? true,
         },
       });
 

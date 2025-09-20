@@ -8,6 +8,7 @@ interface UserWithRoles {
   username?: string;
   firstName?: string;
   lastName?: string;
+  profileImageUrl?: string;
   organizationMembers: {
     id: string;
     organizationId: string;

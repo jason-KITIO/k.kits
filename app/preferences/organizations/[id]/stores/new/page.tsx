@@ -113,7 +113,7 @@ export default function NewStorePage() {
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="Ex: +33 1 23 45 67 89"
+                placeholder="Ex: +237 698 765 432"
               />
             </div>
 

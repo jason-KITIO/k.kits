@@ -1,7 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productService } from "@/services/product-service";
 import { toast } from "sonner";
-import type { CreateProductData, UpdateProductData, ProductFilters } from "@/types/product";
+import type { productCreateInput, productUpdateInput } from "@/schema/product.schema";
+
+type ProductFilters = {
+  categoryId?: string;
+  supplierId?: string;
+  active?: boolean;
+  search?: string;
+  page?: number;
+  limit?: number;
+};
 
 export const useProducts = (organizationId: string, filters: Partial<ProductFilters> = {}) => {
   return useQuery({
@@ -31,7 +40,7 @@ export const useCreateProduct = (organizationId: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: CreateProductData) => 
+    mutationFn: async (data: productCreateInput) => 
       await productService.createProduct(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products", organizationId] });
@@ -53,7 +62,7 @@ export const useUpdateProduct = (organizationId: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ productId, data }: { productId: string; data: UpdateProductData }) =>
+    mutationFn: async ({ productId, data }: { productId: string; data: productUpdateInput }) =>
       await productService.updateProduct(organizationId, productId, data),
     onSuccess: (_, { productId }) => {
       queryClient.invalidateQueries({ queryKey: ["products", organizationId] });

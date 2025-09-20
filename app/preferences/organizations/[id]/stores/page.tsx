@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Store, MapPin, Phone, User, ArrowRight } from "lucide-react";
-import { Store as StoreType } from "@/services/storeService";
+import { Store as StoreType } from "@/types/store";
 import Link from "next/link";
 
 import { PageProtection } from "@/components/page-protection";
@@ -26,7 +26,7 @@ function StoreCard({
   store: StoreType;
   organizationId: string;
 }) {
-  const typeConfig = storeTypeConfig[store.type];
+  const typeConfig = storeTypeConfig[store.type as keyof typeof storeTypeConfig];
 
   return (
     <Card className="hover:shadow-md transition-all cursor-pointer group">

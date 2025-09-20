@@ -44,7 +44,7 @@ function generateOtp(length = 6): string {
  *                 type: string
  *                 pattern: "^\\+[1-9]\\d{1,14}$"
  *                 description: Numéro de téléphone au format international
- *                 example: "+33123456789"
+ *                 example: "+237123456789"
  *               password:
  *                 type: string
  *                 description: Mot de passe de l'utilisateur
@@ -62,7 +62,7 @@ function generateOtp(length = 6): string {
  *                   example: "Code OTP envoyé par SMS"
  *                 phone:
  *                   type: string
- *                   example: "+33123456789"
+ *                   example: "+237123456789"
  *       400:
  *         description: Données manquantes
  *         content:

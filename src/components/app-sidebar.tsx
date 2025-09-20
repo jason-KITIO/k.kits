@@ -16,6 +16,7 @@ import {
   Bell,
   Mail,
   Store,
+  Warehouse,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -117,6 +118,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Store,
       isActive: pathname?.includes('/stores'),
       permission: PERMISSIONS.ORG_SETTINGS,
+      badge: null,
+    },
+    {
+      title: "Entrepôts",
+      url: prefixUrl(baseUrl, "/warehouses"),
+      icon: Warehouse,
+      isActive: pathname?.includes('/warehouses'),
+      permission: PERMISSIONS.STOCK_READ,
       badge: null,
     },
     {

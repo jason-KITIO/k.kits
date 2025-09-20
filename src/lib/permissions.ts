@@ -53,7 +53,7 @@ export const PERMISSIONS = {
 export const DEFAULT_ROLES = {
   OWNER: {
     name: "Propriétaire",
-    permissions: ["*"], // Wildcard pour toutes les permissions
+    permissions: Object.values(PERMISSIONS), // Toutes les permissions
     color: "#FF0000"
   },
   

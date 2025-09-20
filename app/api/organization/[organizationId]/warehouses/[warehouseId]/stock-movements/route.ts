@@ -98,29 +98,36 @@ export async function POST(
       }
 
       if (data.toWarehouseId) {
-        await tx.stock.upsert({
+        const existingStock = await tx.stock.findFirst({
           where: {
-            productId_warehouseId_storeId_organizationId: {
-              productId: data.productId,
-              warehouseId: data.toWarehouseId,
-              storeId: "null",
-              organizationId,
-            },
-          },
-          update: {
-            quantity: { increment: data.quantity },
-            lastUpdated: new Date(),
-          },
-          create: {
             productId: data.productId,
             warehouseId: data.toWarehouseId,
             storeId: null,
-            quantity: data.quantity,
-            reservedQuantity: 0,
             organizationId,
-            lastUpdated: new Date(),
           },
         });
+
+        if (existingStock) {
+          await tx.stock.update({
+            where: { id: existingStock.id },
+            data: {
+              quantity: { increment: data.quantity },
+              lastUpdated: new Date(),
+            },
+          });
+        } else {
+          await tx.stock.create({
+            data: {
+              productId: data.productId,
+              warehouseId: data.toWarehouseId,
+              storeId: null,
+              quantity: data.quantity,
+              reservedQuantity: 0,
+              organizationId,
+              lastUpdated: new Date(),
+            },
+          });
+        }
       }
 
       return movement;

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { organizationService } from "@/services/organization-service-old";
+import { organizationService } from "@/services/organization-service";
 import type {
   NotificationCreateInput,
   StockTransferCreateInput,
@@ -151,7 +151,7 @@ export const useUpdateOrganizationSettings = (organizationId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: any) =>
+    mutationFn: async (data: Record<string, unknown>) =>
       await organizationService.updateSettings(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({

@@ -85,6 +85,9 @@ export async function GET(request: Request) {
       await sendWelcomeEmail(updatedUser.email, updatedUser.firstName ?? "");
     }
 
+    // // Envoyer l'email de bienvenue dès la vérification de l'email
+    // await sendWelcomeEmail(updatedUser.email, updatedUser.firstName ?? "Utilisateur");
+
     return NextResponse.json({ message: "Email vérifié avec succès" });
   } catch {
     console.error("Erreur vérification email");

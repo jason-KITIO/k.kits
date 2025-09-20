@@ -8,6 +8,7 @@ export const useCurrentUser = () => {
     data: user ? { user } : null,
     error: null,
     isLoading,
+    isError: false,
     refetch
   };
 };

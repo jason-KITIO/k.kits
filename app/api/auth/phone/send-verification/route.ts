@@ -27,7 +27,7 @@ import prisma from "@/lib/prisma"
  *                 type: string
  *                 pattern: "^\\+[1-9]\\d{1,14}$"
  *                 description: Numéro de téléphone au format international
- *                 example: "+33123456789"
+ *                 example: "+237123456789"
  *     responses:
  *       200:
  *         description: SMS envoyé avec succès

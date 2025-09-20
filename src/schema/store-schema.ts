@@ -10,3 +10,6 @@ export const storeCreateSchema = z.object({
 });
 
 export const storeUpdateSchema = storeCreateSchema.partial();
+
+export type StoreCreateInput = z.infer<typeof storeCreateSchema>;
+export type StoreUpdateInput = z.infer<typeof storeUpdateSchema>;

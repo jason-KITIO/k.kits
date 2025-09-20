@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, UserPlus, Mail, Phone, Calendar } from "lucide-react";
-import { OrganizationMember } from "@/services/organizationService";
+import { OrganizationMember } from "@/types/organization-member";
 import Link from "next/link";
 
 const columns: ColumnDef<OrganizationMember>[] = [
@@ -127,9 +127,9 @@ export default function UsersPage() {
   if (isLoading) return <PageLoader text="Chargement des utilisateurs..." />;
   if (error) return <div>Erreur: {error.message}</div>;
 
-  const activeMembers = members?.filter(m => m.active).length || 0;
+  const activeMembers = members?.filter((m: OrganizationMember) => m.active).length || 0;
   const totalMembers = members?.length || 0;
-  const recentJoins = members?.filter(m => {
+  const recentJoins = members?.filter((m: OrganizationMember) => {
     const joinDate = new Date(m.joinedAt);
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -137,7 +137,7 @@ export default function UsersPage() {
   }).length || 0;
 
   // Grouper par rôles
-  const roleStats = members?.reduce((acc, member) => {
+  const roleStats = members?.reduce((acc: Record<string, number>, member: OrganizationMember) => {
     const roleName = member.role.name;
     acc[roleName] = (acc[roleName] || 0) + 1;
     return acc;
@@ -212,7 +212,7 @@ export default function UsersPage() {
               {Object.entries(roleStats).map(([role, count]) => (
                 <div key={role} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
                   <span className="font-medium">{role}</span>
-                  <Badge variant="secondary">{count}</Badge>
+                  <Badge variant="secondary">{(count as number).toString()}</Badge>
                 </div>
               ))}
             </div>

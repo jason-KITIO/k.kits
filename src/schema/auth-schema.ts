@@ -14,7 +14,7 @@ export const loginSchema = z.object({
 });
 
 export const verifyEmailSchema = z.object({
-  token: z.string().nonempty("Token manquant"),
+  token: z.string().min(1, "Token manquant"),
 });
 
 export const sendOtpSchema = z.object({

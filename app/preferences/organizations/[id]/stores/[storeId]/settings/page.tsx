@@ -14,6 +14,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
+type StoreFormData = {
+  name: string;
+  address: string;
+  phone: string;
+  type: "PHYSICAL" | "ONLINE" | "HYBRID";
+  active: boolean;
+};
+
 export default function StoreSettingsPage() {
   const params = useParams();
   const organizationId = params.id as string;
@@ -21,7 +29,7 @@ export default function StoreSettingsPage() {
 
   const { data: store, isLoading } = useStore(organizationId, storeId);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<StoreFormData>({
     name: store?.name || "",
     address: store?.address || "",
     phone: store?.phone || "",
@@ -85,7 +93,7 @@ export default function StoreSettingsPage() {
                 <Label htmlFor="type">Type de boutique</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as "PHYSICAL" | "ONLINE" | "HYBRID" }))}
                 >
                   <SelectTrigger>
                     <SelectValue />

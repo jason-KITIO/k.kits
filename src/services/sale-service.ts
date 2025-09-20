@@ -1,4 +1,16 @@
-import type { Sale, CreateSaleData, UpdateSaleData, SaleFilters } from '@/types/sale';
+import type { Sale } from '@/types/sale';
+import type { SaleCreateInput, SaleUpdateInput } from '@/schema/sale.schema';
+
+type SaleFilters = {
+  search?: string;
+  storeId?: string;
+  customerId?: string;
+  status?: "PENDING" | "PAID" | "PARTIAL" | "CANCELLED" | "REFUNDED";
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+};
 
 const getApiBase = (organizationId: string) => `/api/organization/${organizationId}/sales`;
 
@@ -35,7 +47,7 @@ export const saleService = {
     return response.json();
   },
 
-  createSale: async (organizationId: string, data: CreateSaleData): Promise<Sale> => {
+  createSale: async (organizationId: string, data: SaleCreateInput): Promise<Sale> => {
     const response = await fetch(getApiBase(organizationId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,7 +61,7 @@ export const saleService = {
     return response.json();
   },
 
-  updateSale: async (organizationId: string, id: string, data: UpdateSaleData): Promise<Sale> => {
+  updateSale: async (organizationId: string, id: string, data: SaleUpdateInput): Promise<Sale> => {
     const response = await fetch(`${getApiBase(organizationId)}/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

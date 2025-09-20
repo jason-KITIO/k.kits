@@ -45,12 +45,17 @@ model User {
   organizationMembers OrganizationMember[] /// Appartenance aux organisations
 
   // 📦 Relations métier - Gestion de stock
-  stockMovements    StockMovement[] /// Mouvements de stock créés
-  sales             Sale[] /// Ventes effectuées
-  managedWarehouses Warehouse[] /// Entrepôts sous gestion
-  managedStores     Store[] /// Boutiques sous gestion
-  purchaseOrders    PurchaseOrder[] /// Commandes d'achat créées
-  notifications     Notification[] /// Notifications reçues
+  stockMovements         StockMovement[] /// Mouvements de stock créés
+  stockMovementRequests  StockMovementRequest[] @relation("RequestedBy") /// Requêtes créées
+  approvedRequests       StockMovementRequest[] @relation("ApprovedBy") /// Requêtes approuvées
+  rejectedRequests       StockMovementRequest[] @relation("RejectedBy") /// Requêtes rejetées
+  employeeStocks         EmployeeStock[] @relation("EmployeeStocks") /// Stocks individuels d'employé
+  stockReturns           StockReturn[] @relation("ReturnEmployee") /// Retours de produits
+  sales                  Sale[] /// Ventes effectuées
+  managedWarehouses      Warehouse[] /// Entrepôts sous gestion
+  managedStores          Store[] /// Boutiques sous gestion
+  purchaseOrders         PurchaseOrder[] /// Commandes d'achat créées
+  notifications          Notification[] /// Notifications reçues
 
   @@map("users")
 }
@@ -145,11 +150,14 @@ model Organization {
   customers  Customer[] /// Base clients (peut être globale ou par boutique)
 
   // 💰 Relations transactions (Agrégées pour dashboard global)
-  sales          Sale[] /// Toutes les ventes de l'organisation
-  purchaseOrders PurchaseOrder[] /// Commandes d'achat
-  stockMovements StockMovement[] /// Mouvements de stock
-  stocks         Stock[] /// État des stocks
-  notifications  Notification[] /// Notifications système
+  sales                 Sale[] /// Toutes les ventes de l'organisation
+  purchaseOrders        PurchaseOrder[] /// Commandes d'achat
+  stockMovements        StockMovement[] /// Mouvements de stock
+  stocks                Stock[] /// État des stocks
+  notifications         Notification[] /// Notifications système
+  employeeStocks        EmployeeStock[] @relation("EmployeeStockOrg") /// Stocks employés
+  stockMovementRequests StockMovementRequest[] @relation("RequestOrg") /// Requêtes de mouvement
+  stockReturns          StockReturn[] @relation("ReturnOrg") /// Retours produits
 
   @@map("organizations")
 }
@@ -363,10 +371,13 @@ model Product {
   supplier     Supplier?    @relation(fields: [supplierId], references: [id])
 
   // Relations stock et mouvements
-  stocks             Stock[] /// Stocks par localisation (boutiques/entrepôts)
-  stockMovements     StockMovement[] /// Historique des mouvements
-  saleItems          SaleItem[] /// Lignes de vente
-  purchaseOrderItems PurchaseOrderItem[] /// Lignes de commande fournisseur
+  stocks                Stock[] /// Stocks par localisation (boutiques/entrepôts)
+  stockMovements        StockMovement[] /// Historique des mouvements
+  saleItems             SaleItem[] /// Lignes de vente
+  purchaseOrderItems    PurchaseOrderItem[] /// Lignes de commande fournisseur
+  employeeStocks        EmployeeStock[] @relation("EmployeeStockProducts") /// Stocks employés
+  stockMovementRequests StockMovementRequest[] @relation("RequestProduct") /// Requêtes de mouvement
+  stockReturns          StockReturn[] @relation("ReturnProduct") /// Retours produits
 
   @@unique([sku, organizationId]) /// SKU unique par organisation
   @@map("products")
@@ -401,6 +412,7 @@ model Store {
   userRoles          UserRole[] /// NOUVEAU: Utilisateurs limités à cette boutique
   stockMovementsFrom StockMovement[] @relation("FromStore") /// Mouvements depuis cette boutique
   stockMovementsTo   StockMovement[] @relation("ToStore") /// Mouvements vers cette boutique
+  employeeStocks     EmployeeStock[] @relation("EmployeeStockStore") /// Stocks employés
 
   @@map("stores")
 }
@@ -487,6 +499,91 @@ model StockMovement {
 }
 
 // ========================================
+// 👤 GESTION DES STOCKS EMPLOYÉS
+// ========================================
+
+/// 📦 STOCK EMPLOYÉ - Stock individuel de chaque employé pour la vente
+/// Chaque employé a son propre stock plus petit destiné à la vente directe
+model EmployeeStock {
+  id               String   @id @default(cuid())
+  employeeId       String   /// Quel employé possède ce stock
+  productId        String   /// Quel produit
+  storeId          String   /// Dans quelle boutique
+  quantity         Int      @default(0) /// Quantité disponible
+  reservedQuantity Int      @default(0) /// Quantité réservée pour mouvements
+  capacity         Int      @default(100) /// Capacité maximale de l'employé
+  organizationId   String   /// Isolation multi-tenant
+  lastUpdated      DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  employee     User         @relation("EmployeeStocks", fields: [employeeId], references: [id])
+  product      Product      @relation("EmployeeStockProducts", fields: [productId], references: [id])
+  store        Store        @relation("EmployeeStockStore", fields: [storeId], references: [id])
+  organization Organization @relation("EmployeeStockOrg", fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, productId, storeId, organizationId])
+  @@map("employee_stocks")
+}
+
+/// 📋 REQUÊTE DE MOUVEMENT DE STOCK - Demandes de transfert avec validation hiérarchique
+/// Les employés font des requêtes qui doivent être approuvées par un supérieur
+model StockMovementRequest {
+  id              String    @id @default(cuid())
+  productId       String    /// Quel produit
+  fromType        String    /// WAREHOUSE, EMPLOYEE_STOCK
+  toType          String    /// WAREHOUSE, EMPLOYEE_STOCK
+  fromId          String    /// ID de la source (warehouseId ou employeeId)
+  toId            String    /// ID de la destination
+  quantity        Int       /// Quantité demandée
+  status          String    @default("PENDING") /// PENDING, APPROVED, IN_TRANSIT, COMPLETED, REJECTED
+  urgencyLevel    String    @default("MEDIUM") /// LOW, MEDIUM, HIGH
+  requestedBy     String    /// Qui a fait la demande
+  approvedBy      String?   /// Qui a approuvé (si applicable)
+  rejectedBy      String?   /// Qui a rejeté (si applicable)
+  rejectionReason String?   /// Motif de refus (obligatoire si rejeté)
+  reason          String?   /// Motif de la demande
+  reference       String?   /// Référence externe
+  expiresAt       DateTime? /// Date d'expiration de la requête
+  organizationId  String    /// Isolation multi-tenant
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  product      Product      @relation("RequestProduct", fields: [productId], references: [id])
+  requester    User         @relation("RequestedBy", fields: [requestedBy], references: [id])
+  approver     User?        @relation("ApprovedBy", fields: [approvedBy], references: [id])
+  rejecter     User?        @relation("RejectedBy", fields: [rejectedBy], references: [id])
+  organization Organization @relation("RequestOrg", fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("stock_movement_requests")
+}
+
+/// 🔄 RETOUR DE PRODUIT - Gestion des retours clients avec réintégration stock
+/// Permet de tracer les retours et leur réintégration dans le stock employé
+model StockReturn {
+  id             String   @id @default(cuid())
+  productId      String   /// Quel produit retourné
+  employeeId     String   /// Employé qui traite le retour
+  customerId     String?  /// Client qui retourne (optionnel)
+  quantity       Int      /// Quantité retournée
+  returnReason   String   /// Motif du retour (défaut, erreur commande, etc.)
+  status         String   @default("RECEIVED") /// RECEIVED, INSPECTED, RESTOCKED, DAMAGED, RETURNED_TO_WAREHOUSE
+  condition      String   @default("GOOD") /// GOOD, DAMAGED, DEFECTIVE
+  saleId         String?  /// Vente d'origine (si applicable)
+  notes          String?  /// Notes additionnelles
+  organizationId String   /// Isolation multi-tenant
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  product      Product      @relation("ReturnProduct", fields: [productId], references: [id])
+  employee     User         @relation("ReturnEmployee", fields: [employeeId], references: [id])
+  customer     Customer?    @relation("ReturnCustomer", fields: [customerId], references: [id])
+  sale         Sale?        @relation("ReturnSale", fields: [saleId], references: [id])
+  organization Organization @relation("ReturnOrg", fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("stock_returns")
+}
+
+// ========================================
 // 👥 GESTION DE LA CLIENTÈLE
 // ========================================
 
@@ -506,6 +603,7 @@ model Customer {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   sales        Sale[] /// Historique des achats
+  stockReturns StockReturn[] @relation("ReturnCustomer") /// Retours effectués
 
   @@map("customers")
 }
@@ -534,6 +632,7 @@ model Sale {
   store        Store        @relation(fields: [storeId], references: [id]) /// Boutique de vente
   user         User         @relation(fields: [userId], references: [id]) /// Vendeur
   items        SaleItem[] /// Lignes de détail de la vente
+  stockReturns StockReturn[] @relation("ReturnSale") /// Retours liés à cette vente
 
   @@map("sales")
 }
@@ -606,11 +705,15 @@ model Notification {
   id             String   @id @default(cuid())
   userId         String /// Destinataire de la notification
   organizationId String /// Contexte organisationnel
-  type           String /// STOCK_LOW, SALE_COMPLETED, ORDER_RECEIVED, SYSTEM_UPDATE
+  type           String /// system, alert, info, create
   title          String /// Titre court de la notification
   message        String /// Message détaillé
   read           Boolean  @default(false) /// Lu ou non lu
-  priority       String   @default("MEDIUM") /// LOW, MEDIUM, HIGH, URGENT
+  priority       String   @default("MEDIUM") /// LOW, MEDIUM, HIGH, CRITICAL
+  persistent     Boolean  @default(false) /// Reste jusqu'à lecture
+  actionRequired Boolean  @default(false) /// Nécessite une action
+  relatedEntity  String? /// Type d'entité liée (stock_movement, purchase_order, etc.)
+  relatedId      String? /// ID de l'entité liée
   createdAt      DateTime @default(now())
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)

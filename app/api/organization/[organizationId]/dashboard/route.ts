@@ -28,7 +28,7 @@ export async function GET(
     }
 
     // Retourner les données du dashboard
-    const permissions = membership.role.rolePermissions.map(rp => rp.permission.name);
+    const permissions = membership.role.rolePermissions.map((rp: any) => rp.permission.name);
     
     return NextResponse.json({
       overview: {

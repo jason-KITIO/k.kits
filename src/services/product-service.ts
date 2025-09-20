@@ -1,4 +1,34 @@
-import type { Product, CreateProductData, UpdateProductData, ProductFilters } from '@/types/product';
+import type { ProductFormData } from '@/types/product';
+import type { productCreateInput, productUpdateInput } from '@/schema/product.schema';
+
+type Product = {
+  id: string;
+  sku: string;
+  name: string;
+  description?: string;
+  categoryId?: string;
+  supplierId?: string;
+  color: string;
+  unitPrice: number;
+  costPrice: number;
+  weight?: number;
+  dimensions?: string;
+  minStock: number;
+  maxStock?: number;
+  organizationId: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ProductFilters = {
+  search?: string;
+  categoryId?: string;
+  supplierId?: string;
+  active?: boolean;
+  page?: number;
+  limit?: number;
+};
 
 const getApiBase = (organizationId: string) => `/api/organization/${organizationId}/products`;
 
@@ -32,7 +62,7 @@ export const productService = {
     return response.json();
   },
 
-  createProduct: async (organizationId: string, data: CreateProductData): Promise<Product> => {
+  createProduct: async (organizationId: string, data: productCreateInput): Promise<Product> => {
     const response = await fetch(getApiBase(organizationId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -46,7 +76,7 @@ export const productService = {
     return response.json();
   },
 
-  updateProduct: async (organizationId: string, id: string, data: UpdateProductData): Promise<Product> => {
+  updateProduct: async (organizationId: string, id: string, data: productUpdateInput): Promise<Product> => {
     const response = await fetch(`${getApiBase(organizationId)}/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

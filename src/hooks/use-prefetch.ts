@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { organizationService } from "@/services/organizationService";
-import { storeService } from "@/services/storeService";
+import { organizationService } from "@/services/organization-service";
+import { storeService } from "@/services/store-service";
 import { CACHE_CONFIG } from "./use-cache-config";
 
 export function usePrefetch() {

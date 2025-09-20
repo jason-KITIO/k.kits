@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Package, Settings, AlertTriangle, TrendingUp } from "lucide-react";
-import { Stock } from "@/services/storeService";
+import { Stock } from "@/types/stock";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

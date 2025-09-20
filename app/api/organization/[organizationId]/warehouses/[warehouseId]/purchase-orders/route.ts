@@ -4,6 +4,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { purchaseOrderCreateSchema } from "@/schema/purchase-order.schema";
+import { getUserFromCookie } from "@/lib/get-user-from-cookie";
 
 export const GET = withPermission(PERMISSIONS.PURCHASE_ORDER_READ)(
   async (
@@ -46,6 +47,11 @@ export const POST = withPermission(PERMISSIONS.PURCHASE_ORDER_CREATE)(
           return sum + item.quantity * item.unitPrice;
         }, 0);
 
+        const user = await getUserFromCookie();
+        if (!user) {
+          throw new Error("Utilisateur non authentifié");
+        }
+
         const order = await tx.purchaseOrder.create({
           data: {
             supplierId: data.supplierId,
@@ -55,7 +61,7 @@ export const POST = withPermission(PERMISSIONS.PURCHASE_ORDER_CREATE)(
               : null,
             status: data.status,
             totalAmount,
-            userId: req.headers.get("user-id") || "",
+            userId: user,
             organizationId,
           },
         });

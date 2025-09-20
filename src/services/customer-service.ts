@@ -1,4 +1,13 @@
-import type { Customer, CreateCustomerData, UpdateCustomerData, CustomerFilters } from '@/types/customer';
+import type { Customer } from '@/types/customer';
+import type { customerCreateInput, customerUpdateInput } from '@/schema/customer.schema';
+
+type CustomerFilters = {
+  search?: string;
+  type?: "INDIVIDUAL" | "COMPANY" | "VIP";
+  active?: boolean;
+  page?: number;
+  limit?: number;
+};
 
 const getApiBase = (organizationId: string) => `/api/organization/${organizationId}/customers`;
 
@@ -33,7 +42,7 @@ export const customerService = {
     return response.json();
   },
 
-  createCustomer: async (organizationId: string, data: CreateCustomerData): Promise<Customer> => {
+  createCustomer: async (organizationId: string, data: customerCreateInput): Promise<Customer> => {
     const response = await fetch(getApiBase(organizationId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -47,7 +56,7 @@ export const customerService = {
     return response.json();
   },
 
-  updateCustomer: async (organizationId: string, id: string, data: UpdateCustomerData): Promise<Customer> => {
+  updateCustomer: async (organizationId: string, id: string, data: customerUpdateInput): Promise<Customer> => {
     const response = await fetch(`${getApiBase(organizationId)}/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

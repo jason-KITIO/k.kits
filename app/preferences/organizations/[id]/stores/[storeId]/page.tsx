@@ -38,29 +38,29 @@ export default function StoreDashboardPage() {
 
   const quickActions = [
     {
-      title: "Nouvelle vente",
-      description: "Enregistrer une vente",
+      title: "Encaisser une vente",
+      description: "Nouvelle transaction",
       icon: ShoppingCart,
       href: `/preferences/organizations/${organizationId}/stores/${storeId}/sales/new`,
       color: "green" as const,
     },
     {
-      title: "Gérer produits",
-      description: "Catalogue et stock",
+      title: "Déplacer des articles",
+      description: "Transfert de marchandises",
       icon: Package,
-      href: `/preferences/organizations/${organizationId}/stores/${storeId}/products`,
+      href: `/preferences/organizations/${organizationId}/stores/${storeId}/stock/demandes-stock`,
       color: "blue" as const,
     },
     {
-      title: "Ajuster stock",
-      description: "Corrections d'inventaire",
+      title: "Voir mes produits",
+      description: "Catalogue et prix",
       icon: TrendingUp,
-      href: `/preferences/organizations/${organizationId}/stores/${storeId}/stock`,
+      href: `/preferences/organizations/${organizationId}/stores/${storeId}/products`,
       color: "yellow" as const,
     },
     {
-      title: "Clients",
-      description: "Base clients",
+      title: "Mes clients",
+      description: "Carnet d'adresses",
       icon: Users,
       href: `/preferences/organizations/${organizationId}/stores/${storeId}/customers`,
       color: "purple" as const,
@@ -102,33 +102,33 @@ export default function StoreDashboardPage() {
       {/* Métriques principales */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Ventes aujourd'hui"
+          title="Ventes du jour"
           value={dashboard?.sales.todayCount || 0}
-          description="Transactions"
+          description="Articles vendus"
           icon={ShoppingCart}
           color="green"
         />
         
         <StatCard
-          title="CA du jour"
-          value={`${dashboard?.sales.todayAmount.toLocaleString() || 0} FCFA`}
-          description="Chiffre d'affaires"
+          title="Recettes du jour"
+          value={`${dashboard?.sales.todayAmount?.toLocaleString() || 0} FCFA`}
+          description="Argent encaissé"
           icon={DollarSign}
           color="blue"
         />
         
         <StatCard
-          title="Produits en stock"
+          title="Articles disponibles"
           value={dashboard?.inventory.totalProducts || 0}
-          description="Références actives"
+          description="Produits en rayon"
           icon={Package}
           color="purple"
         />
         
         <StatCard
-          title="Alertes stock"
+          title="Stock faible"
           value={dashboard?.inventory.lowStockCount || 0}
-          description="Produits à réapprovisionner"
+          description="Articles à commander"
           icon={AlertTriangle}
           color="red"
         />
@@ -175,12 +175,12 @@ export default function StoreDashboardPage() {
           <CardContent className="space-y-3">
             <Button asChild variant="ghost" className="w-full justify-start">
               <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/sales`}>
-                Historique des ventes
+                Mes ventes réalisées
               </Link>
             </Button>
             <Button asChild variant="ghost" className="w-full justify-start">
               <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/customers`}>
-                Gestion clients
+                Carnet de clients
               </Link>
             </Button>
           </CardContent>
@@ -190,23 +190,23 @@ export default function StoreDashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              Inventaire & Stock
+              Marchandises & Stock
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button asChild variant="ghost" className="w-full justify-start">
               <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/products`}>
-                Catalogue produits
+                Mes articles en vente
               </Link>
             </Button>
             <Button asChild variant="ghost" className="w-full justify-start">
               <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/stock`}>
-                État des stocks
+                Quantités disponibles
               </Link>
             </Button>
             <Button asChild variant="ghost" className="w-full justify-start">
-              <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/stock-transfers`}>
-                Transferts de stock
+              <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/stock/demandes-stock`}>
+                Demandes de transfert
               </Link>
             </Button>
           </CardContent>

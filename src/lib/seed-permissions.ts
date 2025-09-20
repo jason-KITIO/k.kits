@@ -91,6 +91,17 @@ export async function assignOwnerRole(userId: string, organizationId: string) {
   });
 
   if (ownerRole) {
+    // Créer le membership dans l'organisation
+    await prisma.organizationMember.create({
+      data: {
+        userId,
+        organizationId,
+        roleId: ownerRole.id,
+        active: true
+      }
+    });
+
+    // Créer le UserRole pour les permissions
     await prisma.userRole.create({
       data: {
         userId,
