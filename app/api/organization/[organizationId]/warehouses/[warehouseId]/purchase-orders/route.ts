@@ -96,7 +96,7 @@ export const POST = withPermission(PERMISSIONS.PURCHASE_ORDER_CREATE)(
     } catch (error) {
       console.error("Erreur lors de la création de la commande:", error);
       if (error instanceof z.ZodError) {
-        return NextResponse.json({ errors: error.errors }, { status: 400 });
+        return NextResponse.json({ errors: error.issues }, { status: 400 });
       }
       return NextResponse.json({ 
         error: "Erreur interne", 

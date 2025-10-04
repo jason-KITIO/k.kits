@@ -298,16 +298,12 @@ export const useUpdateWarehouse = (organizationId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ warehouseId, data }: { warehouseId: string; data: Omit<Warehouse, 'id'> }) => {
-      const transformedData = {
-        ...data,
-        capacity: data.capacity ? Number(data.capacity) : undefined,
-      };
+    mutationFn: async ({ warehouseId, data }: { warehouseId: string; data: Partial<Omit<Warehouse, 'id'>> }) => {
       const response = await fetch(`/api/organization/${organizationId}/warehouses/${warehouseId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(transformedData),
+        body: JSON.stringify(data),
       });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

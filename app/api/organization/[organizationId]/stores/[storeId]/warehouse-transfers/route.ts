@@ -76,26 +76,33 @@ export async function POST(
         });
 
         // Incrémenter le stock de la boutique
-        await tx.stock.upsert({
+        const existingStoreStock = await tx.stock.findFirst({
           where: {
-            productId_warehouseId_storeId_organizationId: {
-              productId: item.productId,
-              warehouseId: null,
-              storeId,
-              organizationId
-            }
-          },
-          update: {
-            quantity: { increment: item.quantity },
-            lastUpdated: new Date()
-          },
-          create: {
             productId: item.productId,
             storeId,
-            quantity: item.quantity,
+            warehouseId: null,
             organizationId
           }
         });
+
+        if (existingStoreStock) {
+          await tx.stock.update({
+            where: { id: existingStoreStock.id },
+            data: {
+              quantity: { increment: item.quantity },
+              lastUpdated: new Date()
+            }
+          });
+        } else {
+          await tx.stock.create({
+            data: {
+              productId: item.productId,
+              storeId,
+              quantity: item.quantity,
+              organizationId
+            }
+          });
+        }
 
         movements.push(movement);
       }

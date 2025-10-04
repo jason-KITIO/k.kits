@@ -6,11 +6,8 @@ export const customerCreateSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
-  type: z
-    .enum(["INDIVIDUAL", "COMPANY", "VIP"])
-    .optional()
-    .default("INDIVIDUAL"),
-  active: z.boolean().optional().default(true),
+  type: z.enum(["INDIVIDUAL", "COMPANY", "VIP"]),
+  active: z.boolean(),
 });
 
 export const customerUpdateSchema = customerCreateSchema.partial();

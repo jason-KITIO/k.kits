@@ -25,14 +25,10 @@ export function CreateStockMovementRequestDialog({
   open,
   onOpenChange,
 }: CreateStockMovementRequestDialogProps) {
-  const form = useForm({
+  const form = useForm<StockMovementRequestCreateInput>({
     resolver: zodResolver(stockMovementRequestCreateSchema),
     defaultValues: {
       productId: "",
-      fromType: "WAREHOUSE",
-      toType: "WAREHOUSE",
-      fromId: "",
-      toId: "",
       quantity: 1,
       urgencyLevel: "MEDIUM",
       reason: "",
@@ -46,10 +42,6 @@ export function CreateStockMovementRequestDialog({
       onSuccess: () => {
         form.reset({
           productId: "",
-          fromType: "WAREHOUSE",
-          toType: "WAREHOUSE",
-          fromId: "",
-          toId: "",
           quantity: 1,
           urgencyLevel: "MEDIUM",
           reason: "",
@@ -130,52 +122,6 @@ export function CreateStockMovementRequestDialog({
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                     />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="fromId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>D'où prendre les articles ?</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir l'emplacement..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="loc1">Entrepôt Principal</SelectItem>
-                      <SelectItem value="loc2">Réserve Boutique</SelectItem>
-                      <SelectItem value="loc3">Vitrine Principale</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="toId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Où les mettre ?</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir la destination..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="loc2">Vitrine Boutique</SelectItem>
-                      <SelectItem value="loc3">Réserve Boutique</SelectItem>
-                      <SelectItem value="loc4">Zone de Vente</SelectItem>
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

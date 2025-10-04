@@ -9,7 +9,6 @@ export const useRoles = (organizationId: string) => {
     queryKey: ["roles", organizationId],
     queryFn: async () => await roleService.getRoles(organizationId),
     enabled: !!organizationId,
-    cacheLevel: "STABLE", // Rôles changent rarement
   });
 };
 
@@ -18,7 +17,6 @@ export const useRole = (organizationId: string, roleId: string) => {
     queryKey: ["role", organizationId, roleId],
     queryFn: async () => await roleService.getRole(organizationId, roleId),
     enabled: !!organizationId && !!roleId,
-    cacheLevel: "STABLE", // Rôle individuel stable
   });
 };
 

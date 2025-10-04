@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const warehouseToStoreTransferSchema = z.object({
+  fromWarehouseId: z.string().min(1, "Entrepôt source requis"),
   toStoreId: z.string().min(1, "Boutique destination requise"),
   items: z.array(z.object({
     productId: z.string().min(1, "ID produit requis"),

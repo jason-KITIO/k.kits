@@ -9,7 +9,6 @@ export const useInvitations = (organizationId: string) => {
     queryKey: ["invitations", organizationId],
     queryFn: async () => await invitationService.getInvitations(organizationId),
     enabled: !!organizationId,
-    cacheLevel: "NORMAL", // Invitations changent modérément
   });
 };
 
@@ -18,7 +17,6 @@ export const useInvitation = (organizationId: string, invitationId: string) => {
     queryKey: ["invitation", organizationId, invitationId],
     queryFn: async () => await invitationService.getInvitation(organizationId, invitationId),
     enabled: !!organizationId && !!invitationId,
-    cacheLevel: "NORMAL", // Invitation individuelle
   });
 };
 
@@ -94,6 +92,5 @@ export const useValidateInvitation = (token: string) => {
     queryKey: ["validate-invitation", token],
     queryFn: async () => await invitationService.validateInvitation(token),
     enabled: !!token,
-    cacheLevel: "VALIDATION", // Validation toujours fraîche
   });
 };

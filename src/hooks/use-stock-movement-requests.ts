@@ -87,7 +87,7 @@ export const useApproveStockMovementRequest = (organizationId: string, storeId: 
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ requestId, data }: { requestId: string; data: { status: string; approverId: string; rejectionReason?: string } }) => {
+    mutationFn: async ({ requestId, data }: { requestId: string; data: { status: string; approvedBy?: string; rejectionReason?: string } }) => {
       const response = await fetch(`/api/organization/${organizationId}/stores/${storeId}/stock-movement-requests/${requestId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },

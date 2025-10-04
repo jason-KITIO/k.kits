@@ -81,7 +81,7 @@ export function InvitationModal({ organizationId, trigger }: InvitationModalProp
                 <SelectValue placeholder="Sélectionner un rôle" />
               </SelectTrigger>
               <SelectContent>
-                {roles?.map((role) => (
+                {(roles as any)?.map((role: any) => (
                   <SelectItem key={role.id} value={role.id}>
                     {role.name}
                   </SelectItem>

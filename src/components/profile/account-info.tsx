@@ -76,11 +76,11 @@ export function AccountInfo() {
           </div>
         </div>
 
-        {user?.organizationMembers && user.organizationMembers.length > 0 && (
+        {(user as any)?.organizationMembers && (user as any).organizationMembers.length > 0 && (
           <div className="pt-4 border-t">
             <p className="text-sm font-medium mb-2">Organisations</p>
             <div className="space-y-2">
-              {user.organizationMembers.map((member) => (
+              {(user as any).organizationMembers.map((member: any) => (
                 <div key={member.id} className="flex items-center justify-between">
                   <span className="text-sm">{member.organization?.name}</span>
                   <Badge variant="outline">{member.role?.name}</Badge>

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { organizationService } from "@/services/organization-service";
 import type {
   NotificationCreateInput,
-  StockTransferCreateInput,
+  StockTransferData,
 } from "@/schema";
 
 export const useOrganizationDashboard = (organizationId: string) => {
@@ -133,11 +133,11 @@ export const useMarkNotificationsRead = (organizationId: string) => {
   });
 };
 
-export const useCreateStockTransfer = (organizationId: string) => {
+export const useCreateOrganizationStockTransfer = (organizationId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: StockTransferCreateInput) =>
+    mutationFn: async (data: StockTransferData) =>
       await organizationService.createStockTransfer(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({

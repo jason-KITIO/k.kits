@@ -234,11 +234,11 @@ export function RoleList({ organizationId }: RoleListProps) {
       <div className="bg-card rounded-lg border">
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-4">Rôles disponibles</h3>
-          {roles?.length === 0 ? (
+          {(roles as any)?.length === 0 ? (
             <p className="text-muted-foreground">Aucun rôle créé</p>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {roles?.map((role) => (
+              {(roles as any)?.map((role: Role) => (
                 <div key={role.id} className="p-4 border rounded-lg">
                   <div className="flex items-center gap-3 mb-2">
                     <div

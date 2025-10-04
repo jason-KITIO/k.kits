@@ -34,7 +34,7 @@ export function UserSettingsForm() {
 
   useEffect(() => {
     if (user?.settings) {
-      form.reset(user.settings);
+      form.reset(user.settings as any);
     }
   }, [user, form]);
 

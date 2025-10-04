@@ -26,9 +26,7 @@ export default function NewStorePage() {
     type: "PHYSICAL" as "PHYSICAL" | "ONLINE" | "HYBRID",
   });
 
-  const { data: duplicateStore } = useStore(organizationId, duplicateId || '', {
-    enabled: !!duplicateId,
-  });
+  const { data: duplicateStore } = useStore(organizationId, duplicateId || '');
   const createStore = useCreateStore();
 
   React.useEffect(() => {

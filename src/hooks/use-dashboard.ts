@@ -17,7 +17,6 @@ export const useLowStock = (organizationId: string, threshold = 10) => {
       return response.json();
     },
     enabled: !!organizationId,
-    cacheLevel: "CRITICAL", // Stock critique - cache court
   });
 };
 
@@ -33,7 +32,6 @@ export const useStockOverview = (organizationId: string) => {
       return response.json();
     },
     enabled: !!organizationId,
-    cacheLevel: "FREQUENT", // Dashboard fréquent
   });
 };
 
@@ -49,6 +47,5 @@ export const useStockValue = (organizationId: string) => {
       return response.json();
     },
     enabled: !!organizationId,
-    cacheLevel: "FREQUENT", // Dashboard fréquent
   });
 };

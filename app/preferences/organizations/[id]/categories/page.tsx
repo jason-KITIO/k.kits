@@ -127,7 +127,7 @@ export default function CategoriesPage() {
         <CardContent>
           <DataTable
             columns={columns}
-            data={categories || []}
+            data={(categories as Category[]) || []}
             searchKey="name"
             searchPlaceholder="Rechercher une catégorie..."
             isLoading={isLoading}

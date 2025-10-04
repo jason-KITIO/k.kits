@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { organizationService } from "@/services/organization-service";
 import { storeService } from "@/services/store-service";
-import { CACHE_CONFIG } from "./use-cache-config";
 
 export function usePrefetch() {
   const queryClient = useQueryClient();
@@ -11,7 +10,6 @@ export function usePrefetch() {
     queryClient.prefetchQuery({
       queryKey: ["organization", organizationId],
       queryFn: () => organizationService.getDashboard(organizationId),
-      ...CACHE_CONFIG.FREQUENT,
     });
   };
 
@@ -20,7 +18,6 @@ export function usePrefetch() {
     queryClient.prefetchQuery({
       queryKey: ["organization", organizationId, "stores", storeId],
       queryFn: () => storeService.getStore(organizationId, storeId),
-      ...CACHE_CONFIG.NORMAL,
     });
   };
 
@@ -29,7 +26,6 @@ export function usePrefetch() {
     queryClient.prefetchQuery({
       queryKey: ["organization", organizationId, "stores", storeId, "products"],
       queryFn: () => storeService.getProducts(organizationId, storeId),
-      ...CACHE_CONFIG.NORMAL,
     });
   };
 
@@ -38,7 +34,6 @@ export function usePrefetch() {
     queryClient.prefetchQuery({
       queryKey: ["organization", organizationId, "stores", storeId, "stock"],
       queryFn: () => storeService.getStock(organizationId, storeId),
-      ...CACHE_CONFIG.CRITICAL,
     });
   };
 

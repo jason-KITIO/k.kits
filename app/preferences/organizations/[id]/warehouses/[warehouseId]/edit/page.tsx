@@ -25,15 +25,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const warehouseSchema = z.object({
-  name: z.string().min(1, "Le nom est requis"),
-  type: z.enum(["MAIN", "SECONDARY", "TRANSIT", "RETURNS"]),
-  address: z.string().optional(),
-  phone: z.string().optional(),
-  capacity: z.string().optional(),
-});
+import { warehouseUpdateSchema, type WarehouseUpdateInput } from "@/schema/warehouse.schema";
 
-type WarehouseFormData = z.infer<typeof warehouseSchema>;
+type WarehouseFormData = WarehouseUpdateInput;
 
 export default function EditWarehousePage() {
   const params = useParams();
@@ -44,9 +38,7 @@ export default function EditWarehousePage() {
 
   const { data: warehouse, isLoading } = useWarehouse(organizationId, warehouseId);
   const updateWarehouse = useUpdateWarehouse(organizationId);
-  const deleteWarehouse = useDeleteWarehouse(organizationId, () => {
-    router.push(`/preferences/organizations/${organizationId}/warehouses`);
-  });
+  const deleteWarehouse = useDeleteWarehouse(organizationId);
 
   const {
     register,
@@ -55,16 +47,17 @@ export default function EditWarehousePage() {
     watch,
     formState: { errors },
   } = useForm<WarehouseFormData>({
-    resolver: zodResolver(warehouseSchema),
-    defaultValues: warehouse,
+    resolver: zodResolver(warehouseUpdateSchema),
   });
 
   if (warehouse && !watch("name")) {
     setValue("name", warehouse.name);
     setValue("type", warehouse.type);
-    setValue("address", warehouse.address || "");
-    setValue("phone", warehouse.phone || "");
-    setValue("capacity", warehouse.capacity || "");
+    setValue("address", warehouse.address || undefined);
+    setValue("phone", warehouse.phone || undefined);
+    setValue("capacity", warehouse.capacity || undefined);
+    setValue("active", warehouse.active);
+    setValue("managerId", warehouse.managerId || undefined);
   }
 
   const onSubmit = async (data: WarehouseFormData) => {
@@ -78,7 +71,8 @@ export default function EditWarehousePage() {
 
   const handleDelete = async () => {
     try {
-      await deleteWarehouse.mutateAsync(warehouseId);
+      await deleteWarehouse.mutateAsync({ warehouseId, forceDelete: true });
+      router.push(`/preferences/organizations/${organizationId}/warehouses`);
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
     }
@@ -170,7 +164,8 @@ export default function EditWarehousePage() {
                 <Label htmlFor="capacity">Capacité</Label>
                 <Input
                   id="capacity"
-                  {...register("capacity")}
+                  type="number"
+                  {...register("capacity", { valueAsNumber: true })}
                   placeholder="Capacité de stockage"
                 />
               </div>

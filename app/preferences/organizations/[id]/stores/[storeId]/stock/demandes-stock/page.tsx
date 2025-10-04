@@ -17,14 +17,11 @@ export default function DemandesStockPage({ params }: PageProps) {
   
   // Charger les statistiques réelles
   const { data: allRequests } = useStockMovementRequests(organizationId, storeId);
-  const { data: pendingRequests } = useStockMovementRequests(organizationId, storeId, { status: "PENDING" });
-  const { data: approvedRequests } = useStockMovementRequests(organizationId, storeId, { status: "APPROVED" });
-  const { data: rejectedRequests } = useStockMovementRequests(organizationId, storeId, { status: "REJECTED" });
 
   const stats = {
-    pending: pendingRequests?.length || 0,
-    approved: approvedRequests?.length || 0,
-    rejected: rejectedRequests?.length || 0,
+    pending: allRequests?.filter((r: { status: string }) => r.status === "PENDING").length || 0,
+    approved: allRequests?.filter((r: { status: string }) => r.status === "APPROVED").length || 0,
+    rejected: allRequests?.filter((r: { status: string }) => r.status === "REJECTED").length || 0,
     total: allRequests?.length || 0
   };
 

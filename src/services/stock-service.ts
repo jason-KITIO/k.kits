@@ -1,6 +1,6 @@
 import type { Stock } from '@/types/stock';
 import type { StockMovementCreateInput } from '@/schema/stock-movement.schema';
-import type { StockTransferCreateInput } from '@/schema/stock-transfer.schema';
+import type { StockTransferData } from '@/schema/stock-transfer.schema';
 
 type StockMovement = {
   id: string;
@@ -86,7 +86,7 @@ export const stockService = {
     return response.json();
   },
 
-  createStockTransfer: async (organizationId: string, data: StockTransferCreateInput): Promise<StockMovement> => {
+  createStockTransfer: async (organizationId: string, data: StockTransferData): Promise<StockMovement> => {
     const response = await fetch(`${getApiBase(organizationId)}/transfers`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

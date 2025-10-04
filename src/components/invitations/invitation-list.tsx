@@ -143,7 +143,7 @@ export function InvitationList({ organizationId }: InvitationListProps) {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Sélectionner un rôle</SelectLabel>
-                    {roles?.map((role) => (
+                    {(roles as any)?.map((role: any) => (
                       <SelectItem key={role.id} value={role.id}>
                         {role.name}
                       </SelectItem>
@@ -175,11 +175,11 @@ export function InvitationList({ organizationId }: InvitationListProps) {
       <div className="bg-card rounded-lg border">
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-4">Invitations envoyées</h3>
-          {invitations?.length === 0 ? (
+          {(invitations as any)?.length === 0 ? (
             <p className="text-muted-foreground">Aucune invitation envoyée</p>
           ) : (
             <div className="space-y-3">
-              {invitations?.map((invitation: Invitation) => (
+              {(invitations as any)?.map((invitation: Invitation) => (
                 <div
                   key={invitation.id}
                   className="flex items-center justify-between p-4 border rounded-lg"

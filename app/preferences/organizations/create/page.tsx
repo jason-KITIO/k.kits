@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,7 @@ const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
 const CLOUDINARY_UPLOAD_PRESET =
   process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
-export default function OrganizationCreatePage() {
+function OrganizationCreateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const createOrganization = useCreateOrganization();
@@ -383,5 +383,17 @@ export default function OrganizationCreatePage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function OrganizationCreatePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    }>
+      <OrganizationCreateContent />
+    </Suspense>
   );
 }

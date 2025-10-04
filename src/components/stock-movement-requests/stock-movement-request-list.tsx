@@ -21,7 +21,8 @@ export function StockMovementRequestList({ organizationId, storeId, status }: St
   const [createOpen, setCreateOpen] = useState(false);
   const [approvalRequest, setApprovalRequest] = useState<StockMovementRequestWithRelations | null>(null);
 
-  const { data: requests, isLoading } = useStockMovementRequests(organizationId, storeId, { status });
+  const { data: allRequests, isLoading } = useStockMovementRequests(organizationId, storeId);
+  const requests = status ? allRequests?.filter((r: StockMovementRequestWithRelations) => r.status === status) : allRequests;
   const approveRequest = useApproveStockMovementRequest(organizationId, storeId);
 
   const getStatusBadge = (status: string) => {
@@ -94,7 +95,7 @@ export function StockMovementRequestList({ organizationId, storeId, status }: St
       </div>
 
       <div className="grid gap-4">
-        {requests?.map((request) => (
+        {requests?.map((request: StockMovementRequestWithRelations) => (
           <Card key={request.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-lg font-medium flex items-center gap-2">

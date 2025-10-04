@@ -140,7 +140,7 @@ export const POST = withPermission(PERMISSIONS.SALE_CREATE)(
     } catch (error) {
       console.error("Erreur création vente:", error);
       if (error instanceof z.ZodError) {
-        return NextResponse.json({ errors: error.errors }, { status: 400 });
+        return NextResponse.json({ errors: error.issues }, { status: 400 });
       }
       return NextResponse.json({ 
         error: "Erreur interne", 

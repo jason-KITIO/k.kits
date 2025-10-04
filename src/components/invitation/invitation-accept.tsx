@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useValidateInvitation } from "@/hooks/use-invitations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-export function InvitationAccept() {
+function InvitationAcceptContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -53,7 +53,7 @@ export function InvitationAccept() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: invitation?.email,
+          email: (invitation as any)?.email,
           password: formData.password,
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -108,7 +108,7 @@ export function InvitationAccept() {
     );
   }
 
-  if (error || !invitation?.valid) {
+  if (error || !(invitation as any)?.valid) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-md">
@@ -139,8 +139,8 @@ export function InvitationAccept() {
           <CardTitle className="text-xl">Accepter l'invitation</CardTitle>
           <p className="text-sm text-muted-foreground">
             Vous êtes invité à rejoindre{" "}
-            <strong>{invitation.organizationName}</strong>
-            en tant que <strong>{invitation.roleName}</strong>
+            <strong>{(invitation as any).organizationName}</strong>
+            en tant que <strong>{(invitation as any).roleName}</strong>
           </p>
         </CardHeader>
         <CardContent>
@@ -150,7 +150,7 @@ export function InvitationAccept() {
               <Input
                 id="email"
                 type="email"
-                value={invitation.email}
+                value={(invitation as any).email}
                 disabled
                 className="bg-muted"
               />
@@ -223,5 +223,17 @@ export function InvitationAccept() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export function InvitationAccept() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    }>
+      <InvitationAcceptContent />
+    </Suspense>
   );
 }
