@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useOptimizedQuery } from "./use-optimized-query";
 import { productService } from "@/services/product-service";
 import { toast } from "sonner";
 import type { productCreateInput, productUpdateInput } from "@/schema/product.schema";
@@ -12,38 +13,30 @@ type ProductFilters = {
   limit?: number;
 };
 
-export const useProducts = (organizationId: string, filters: Partial<ProductFilters> = {}) => {
-  return useQuery({
-    queryKey: ["products", organizationId, filters],
-    queryFn: async () => await productService.getProducts(organizationId, filters),
+export const useProducts = (organizationId: string, filters: Partial<ProductFilters> = {}, storeId?: string) => {
+  return useOptimizedQuery({
+    queryKey: ["products", organizationId, storeId, filters],
+    queryFn: async () => await productService.getProducts(organizationId, filters, storeId),
     enabled: !!organizationId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
   });
 };
 
-export const useProduct = (organizationId: string, productId: string) => {
-  return useQuery({
-    queryKey: ["product", organizationId, productId],
-    queryFn: async () => await productService.getProduct(organizationId, productId),
+export const useProduct = (organizationId: string, productId: string, storeId?: string) => {
+  return useOptimizedQuery({
+    queryKey: ["product", organizationId, storeId, productId],
+    queryFn: async () => await productService.getProduct(organizationId, productId, storeId),
     enabled: !!organizationId && !!productId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
   });
 };
 
-export const useCreateProduct = (organizationId: string) => {
+export const useCreateProduct = (organizationId: string, storeId?: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (data: productCreateInput) => 
-      await productService.createProduct(organizationId, data),
+      await productService.createProduct(organizationId, data, storeId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products", organizationId] });
+      queryClient.invalidateQueries({ queryKey: ["products", organizationId, storeId] });
       toast.success("Succès", {
         description: "Produit créé avec succès",
         duration: 5000,
@@ -58,15 +51,15 @@ export const useCreateProduct = (organizationId: string) => {
   });
 };
 
-export const useUpdateProduct = (organizationId: string) => {
+export const useUpdateProduct = (organizationId: string, storeId?: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({ productId, data }: { productId: string; data: productUpdateInput }) =>
-      await productService.updateProduct(organizationId, productId, data),
+      await productService.updateProduct(organizationId, productId, data, storeId),
     onSuccess: (_, { productId }) => {
-      queryClient.invalidateQueries({ queryKey: ["products", organizationId] });
-      queryClient.invalidateQueries({ queryKey: ["product", organizationId, productId] });
+      queryClient.invalidateQueries({ queryKey: ["products", organizationId, storeId] });
+      queryClient.invalidateQueries({ queryKey: ["product", organizationId, storeId, productId] });
       toast.success("Succès", {
         description: "Produit modifié avec succès",
         duration: 5000,
@@ -81,14 +74,14 @@ export const useUpdateProduct = (organizationId: string) => {
   });
 };
 
-export const useDeleteProduct = (organizationId: string) => {
+export const useDeleteProduct = (organizationId: string, storeId?: string) => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (productId: string) => 
-      await productService.deleteProduct(organizationId, productId),
+      await productService.deleteProduct(organizationId, productId, storeId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products", organizationId] });
+      queryClient.invalidateQueries({ queryKey: ["products", organizationId, storeId] });
       toast.success("Succès", {
         description: "Produit supprimé avec succès",
         duration: 5000,

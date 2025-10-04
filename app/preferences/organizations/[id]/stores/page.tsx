@@ -2,11 +2,30 @@
 
 import { useParams } from "next/navigation";
 import { useStores } from "@/hooks/useStore";
-import { PageLoader } from "@/components/ui/loading-spinner";
+import { useDeleteStore } from "@/hooks/use-stores";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Store, MapPin, Phone, User, ArrowRight } from "lucide-react";
+import { Store, MapPin, Phone, User, ArrowRight, MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Store as StoreType } from "@/types/store";
 import Link from "next/link";
 
@@ -26,17 +45,89 @@ function StoreCard({
   store: StoreType;
   organizationId: string;
 }) {
-  const typeConfig = storeTypeConfig[store.type as keyof typeof storeTypeConfig];
+  const typeConfig =
+    storeTypeConfig[store.type as keyof typeof storeTypeConfig];
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const deleteStore = useDeleteStore(organizationId);
+
+  const handleEdit = () => {
+    window.location.href = `/preferences/organizations/${organizationId}/stores/${store.id}/edit`;
+  };
+
+  const handleDuplicate = () => {
+    window.location.href = `/preferences/organizations/${organizationId}/stores/new?duplicate=${store.id}`;
+  };
+
+  const handleDelete = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
+      await deleteStore.mutateAsync(store.id);
+      setDialogOpen(false);
+    } catch (error) {
+      // Le toast d'erreur est géré par le hook
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
-    <Card className="hover:shadow-md transition-all cursor-pointer group">
+    <Card className="hover:shadow-md transition-all group">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Store className="h-5 w-5 text-blue-600" />
             {store.name}
           </CardTitle>
-          <Badge className={typeConfig.color}>{typeConfig.label}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={typeConfig.color}>{typeConfig.label}</Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleEdit}>
+                  <Edit className="h-4 w-4" />
+                  Modifier
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDuplicate}>
+                  <Copy className="h-4 w-4" />
+                  Dupliquer
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <DropdownMenuItem variant="destructive" onSelect={(e) => e.preventDefault()}>
+                      <Trash2 className="h-4 w-4" />
+                      Supprimer
+                    </DropdownMenuItem>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Supprimer la boutique</DialogTitle>
+                      <DialogDescription>
+                        Êtes-vous sûr de vouloir supprimer la boutique "{store.name}" ?
+                        Cette action est irréversible.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setDialogOpen(false)}>Annuler</Button>
+                      <Button 
+                        variant="destructive" 
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? "Suppression..." : "Supprimer"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </CardHeader>
 
@@ -67,11 +158,7 @@ function StoreCard({
             Créée le {new Date(store.createdAt).toLocaleDateString()}
           </div>
 
-          <Button
-            asChild
-            size="sm"
-            className="group-hover:bg-primary group-hover:text-primary-foreground"
-          >
+          <Button asChild size="sm">
             <Link
               href={`/preferences/organizations/${organizationId}/stores/${store.id}`}
             >
@@ -91,7 +178,65 @@ export default function StoresPage() {
 
   const { data: stores, isLoading, error } = useStores(organizationId);
 
-  if (isLoading) return <PageLoader text="Chargement des boutiques..." />;
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-[150px]" />
+            <Skeleton className="h-4 w-[250px]" />
+          </div>
+          <Skeleton className="h-10 w-[140px]" />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-[100px]" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-[60px] mb-2" />
+                <Skeleton className="h-3 w-[120px]" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-5" />
+                    <Skeleton className="h-5 w-[120px]" />
+                  </div>
+                  <Skeleton className="h-6 w-[60px]" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-[150px]" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-[100px]" />
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <Skeleton className="h-3 w-[80px]" />
+                    <Skeleton className="h-8 w-[80px]" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
   if (error) return <div>Erreur: {error.message}</div>;
 
   const activeStores = stores?.filter((s) => s.active).length || 0;

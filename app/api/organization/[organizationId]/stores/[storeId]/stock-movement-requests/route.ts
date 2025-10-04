@@ -49,12 +49,29 @@ export async function POST(
       return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
     }
 
+    // Récupérer un utilisateur valide de l'organisation
+    const user = await prisma.user.findFirst({
+      where: {
+        organizationMembers: {
+          some: { organizationId }
+        }
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "Aucun utilisateur trouvé dans l'organisation" }, { status: 400 });
+    }
+
     const request = await prisma.stockMovementRequest.create({
       data: {
         ...parsed.data,
         organizationId,
         status: "PENDING",
-        requestedBy: "temp-user-id"
+        requestedBy: user.id,
+        fromType: "WAREHOUSE",
+        toType: "EMPLOYEE_STOCK",
+        fromId: "warehouse-default",
+        toId: storeId
       },
       include: {
         requester: { select: { id: true, firstName: true, lastName: true, email: true } },

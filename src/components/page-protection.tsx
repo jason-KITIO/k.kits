@@ -17,7 +17,7 @@ export function PageProtection({
   children,
   requiredPermission,
   organizationId,
-  fallbackUrl = "/dashboard"
+  fallbackUrl = "/preferences"
 }: PageProtectionProps) {
   const router = useRouter();
   const { user, isLoading } = useAuth();

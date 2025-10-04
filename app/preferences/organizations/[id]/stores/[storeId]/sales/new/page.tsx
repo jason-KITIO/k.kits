@@ -1,7 +1,8 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useCreateSale, useStoreCustomers, useStoreProducts } from "@/hooks/useStore";
+import { useCreateSale, useStoreCustomers } from "@/hooks/useStore";
+import { useOptimizedQuery } from "@/hooks/use-optimized-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +26,18 @@ export default function NewSalePage() {
 
   const createSale = useCreateSale(organizationId, storeId);
   const { data: customers } = useStoreCustomers(organizationId, storeId);
-  const { data: products } = useStoreProducts(organizationId, storeId);
+  const { data: storeStock } = useOptimizedQuery({
+    queryKey: ["store-stock", organizationId, storeId],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/organization/${organizationId}/stores/${storeId}/stock`,
+        { credentials: "include" }
+      );
+      if (!response.ok) throw new Error("Erreur lors de la récupération du stock");
+      return response.json();
+    },
+    enabled: !!organizationId && !!storeId,
+  });
 
   const addItem = () => {
     setSaleData(prev => ({
@@ -44,9 +56,21 @@ export default function NewSalePage() {
   const updateItem = (index: number, field: string, value: string | number) => {
     setSaleData(prev => ({
       ...prev,
-      items: prev.items.map((item, i) => 
-        i === index ? { ...item, [field]: value } : item
-      )
+      items: prev.items.map((item, i) => {
+        if (i === index) {
+          const updatedItem = { ...item, [field]: value };
+          // Vérifier le stock disponible
+          if (field === "quantity" || field === "productId") {
+            const stockItem = storeStock?.find((s: any) => s.product.id === updatedItem.productId);
+            if (stockItem && field === "quantity" && Number(value) > stockItem.quantity) {
+              toast.error(`Stock insuffisant. Disponible: ${stockItem.quantity}`);
+              return { ...item, quantity: stockItem.quantity };
+            }
+          }
+          return updatedItem;
+        }
+        return item;
+      })
     }));
   };
 
@@ -70,13 +94,14 @@ export default function NewSalePage() {
     try {
       const submitData = {
         customerId: saleData.customerId === "__no_customer__" ? undefined : saleData.customerId,
-        storeId,
-        totalAmount,
-        paidAmount: totalAmount, // Vente payée par défaut
+        totalAmount: totalAmount,
+        paidAmount: totalAmount,
         status: "PAID" as const,
         items: validItems.map(item => ({
-          ...item,
-          discount: item.discount || 0
+          productId: item.productId,
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          discount: Number(item.discount) || 0
         }))
       };
       
@@ -84,6 +109,7 @@ export default function NewSalePage() {
       toast.success("Vente enregistrée avec succès !");
       router.push(`/preferences/organizations/${organizationId}/stores/${storeId}/sales`);
     } catch (error: unknown) {
+      console.error('Erreur vente:', error);
       const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'enregistrement de la vente";
       toast.error(errorMessage);
     }
@@ -167,10 +193,10 @@ export default function NewSalePage() {
                   <Select
                     value={item.productId}
                     onValueChange={(value) => {
-                      const product = products?.find(p => p.id === value);
+                      const stockItem = storeStock?.find((s: any) => s.product.id === value);
                       updateItem(index, "productId", value);
-                      if (product) {
-                        updateItem(index, "unitPrice", product.unitPrice);
+                      if (stockItem) {
+                        updateItem(index, "unitPrice", stockItem.product.unitPrice);
                       }
                     }}
                   >
@@ -178,9 +204,9 @@ export default function NewSalePage() {
                       <SelectValue placeholder="Choisir l'article vendu..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {products?.map((product) => (
-                        <SelectItem key={product.id} value={product.id}>
-                          {product.name} - {product.unitPrice?.toLocaleString()} FCFA
+                      {storeStock?.filter((stock: any) => stock.quantity > 0).map((stock: any) => (
+                        <SelectItem key={stock.product.id} value={stock.product.id}>
+                          {stock.product.name} - {stock.product.unitPrice?.toLocaleString()} FCFA (Stock: {stock.quantity})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -191,10 +217,16 @@ export default function NewSalePage() {
                   <Input
                     type="number"
                     min="1"
+                    max={storeStock?.find((s: any) => s.product.id === item.productId)?.quantity || 999}
                     value={item.quantity}
                     onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
                     required
                   />
+                  {item.productId && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Stock: {storeStock?.find((s: any) => s.product.id === item.productId)?.quantity || 0}
+                    </p>
+                  )}
                 </div>
                 <div className="col-span-3">
                   <Label>Prix à l'unité</Label>
@@ -229,17 +261,9 @@ export default function NewSalePage() {
             ))}
             
             <div className="border-t pt-4 space-y-2">
-              <div className="flex justify-between items-center">
-                <span>Prix des articles :</span>
-                <span>{totalAmount.toLocaleString()} FCFA</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Taxes (19.25%) :</span>
-                <span>{Math.round(totalAmount * 0.1925).toLocaleString()} FCFA</span>
-              </div>
-              <div className="flex justify-between items-center text-xl font-bold border-t pt-2 bg-green-50 p-3 rounded">
+              <div className="flex justify-between items-center text-xl font-bold bg-green-50 p-3 rounded">
                 <span>Le client paie :</span>
-                <span className="text-green-700">{Math.round(totalAmount * 1.1925).toLocaleString()} FCFA</span>
+                <span className="text-green-700">{totalAmount.toLocaleString()} FCFA</span>
               </div>
             </div>
           </CardContent>

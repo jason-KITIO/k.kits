@@ -1,29 +1,24 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useOptimizedQuery } from "./use-optimized-query";
 import { roleService } from "@/services/role-service";
 import { toast } from "sonner";
 import { CreateRoleData, UpdateRoleData } from "@/types/role";
 
 export const useRoles = (organizationId: string) => {
-  return useQuery({
+  return useOptimizedQuery({
     queryKey: ["roles", organizationId],
     queryFn: async () => await roleService.getRoles(organizationId),
     enabled: !!organizationId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    cacheLevel: "STABLE", // Rôles changent rarement
   });
 };
 
 export const useRole = (organizationId: string, roleId: string) => {
-  return useQuery({
+  return useOptimizedQuery({
     queryKey: ["role", organizationId, roleId],
     queryFn: async () => await roleService.getRole(organizationId, roleId),
     enabled: !!organizationId && !!roleId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    cacheLevel: "STABLE", // Rôle individuel stable
   });
 };
 

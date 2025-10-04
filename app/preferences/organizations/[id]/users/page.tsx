@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, UserPlus, Mail, Phone, Calendar } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { OrganizationMember } from "@/types/organization-member";
 import Link from "next/link";
 
@@ -124,7 +125,90 @@ export default function UsersPage() {
 
   const { data: members, isLoading, error } = useOrganizationUsers(organizationId);
 
-  if (isLoading) return <PageLoader text="Chargement des utilisateurs..." />;
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-[150px]" />
+            <Skeleton className="h-4 w-[250px]" />
+          </div>
+          <Skeleton className="h-10 w-[160px]" />
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-[100px]" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-[60px] mb-2" />
+                <Skeleton className="h-3 w-[120px]" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-[150px]" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                  <Skeleton className="h-4 w-[80px]" />
+                  <Skeleton className="h-6 w-[30px]" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-[180px]" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-10 w-[200px]" />
+                <Skeleton className="h-10 w-[100px]" />
+              </div>
+              <div className="border rounded-md">
+                <div className="border-b p-4">
+                  <div className="flex space-x-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-[100px]" />
+                    ))}
+                  </div>
+                </div>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="border-b p-4 last:border-b-0">
+                    <div className="flex space-x-4">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-[120px]" />
+                          <Skeleton className="h-3 w-[150px]" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-4 w-[100px]" />
+                      <Skeleton className="h-6 w-[80px]" />
+                      <Skeleton className="h-4 w-[100px]" />
+                      <Skeleton className="h-4 w-[120px]" />
+                      <Skeleton className="h-6 w-[60px]" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   if (error) return <div>Erreur: {error.message}</div>;
 
   const activeMembers = members?.filter((m: OrganizationMember) => m.active).length || 0;

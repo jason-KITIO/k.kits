@@ -1,29 +1,24 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useOptimizedQuery } from "./use-optimized-query";
 import { invitationService } from "@/services/invitation-service";
 import { toast } from "sonner";
 import { CreateInvitationData, UpdateInvitationData } from "@/types/invitation";
 
 export const useInvitations = (organizationId: string) => {
-  return useQuery({
+  return useOptimizedQuery({
     queryKey: ["invitations", organizationId],
     queryFn: async () => await invitationService.getInvitations(organizationId),
     enabled: !!organizationId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    cacheLevel: "NORMAL", // Invitations changent modérément
   });
 };
 
 export const useInvitation = (organizationId: string, invitationId: string) => {
-  return useQuery({
+  return useOptimizedQuery({
     queryKey: ["invitation", organizationId, invitationId],
     queryFn: async () => await invitationService.getInvitation(organizationId, invitationId),
     enabled: !!organizationId && !!invitationId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    cacheLevel: "NORMAL", // Invitation individuelle
   });
 };
 
@@ -95,10 +90,10 @@ export const useCancelInvitation = (organizationId: string) => {
 };
 
 export const useValidateInvitation = (token: string) => {
-  return useQuery({
+  return useOptimizedQuery({
     queryKey: ["validate-invitation", token],
     queryFn: async () => await invitationService.validateInvitation(token),
     enabled: !!token,
-    staleTime: 0,
+    cacheLevel: "VALIDATION", // Validation toujours fraîche
   });
 };

@@ -1,52 +1,84 @@
 import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 import { withPermission } from "@/lib/route-protection";
 import { PERMISSIONS } from "@/lib/permissions";
-import prisma from "@/lib/prisma";
 
+// GET - Lire les alertes de stock
 export const GET = withPermission(PERMISSIONS.STOCK_READ)(
-  async (
-    req: NextRequest,
-    { params }: { params: Promise<{ organizationId: string }> }
-  ) => {
+  async (req: NextRequest, { params }: any) => {
     const { organizationId } = await params;
 
-    // Étape 1 : Récupérer toutes les entrées de stock avec les données du produit
-    const allStocks = await prisma.stock.findMany({
-      where: {
-        organizationId,
-      },
-      include: {
-        product: {
-          select: {
-            name: true,
-            sku: true,
-            minStock: true,
-            unitPrice: true,
+    try {
+      const stocks = await prisma.stock.findMany({
+        where: {
+          OR: [
+            { store: { organizationId } },
+            { warehouse: { organizationId } },
+          ],
+        },
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+              minStock: true,
+              unitPrice: true,
+            },
+          },
+          store: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          warehouse: {
+            select: {
+              id: true,
+              name: true,
+            },
           },
         },
-        store: { select: { name: true } },
-        warehouse: { select: { name: true } },
-      },
-      orderBy: [{ quantity: "asc" }, { lastUpdated: "desc" }],
-    });
+      });
 
-    // Étape 2 : Filtrer les stocks en fonction de la quantité minimale et calculer les alertes
-    const alerts = allStocks
-      .filter((stock) => stock.quantity <= stock.product.minStock)
-      .map((stock) => ({
-        ...stock,
-        urgency:
-          stock.quantity === 0
-            ? "CRITICAL"
-            : stock.quantity <= stock.product.minStock * 0.2
-            ? "HIGH"
-            : "MEDIUM",
-        percentageLeft:
-          stock.product.minStock > 0
-            ? (stock.quantity / stock.product.minStock) * 100
-            : 0,
-      }));
+      // Filtrer les stocks avec alertes et calculer l'urgence
+      const alerts = stocks
+        .filter((stock) => stock.quantity <= stock.product.minStock)
+        .map((stock) => {
+          const percentageLeft = (stock.quantity / stock.product.minStock) * 100;
+          let urgency: "CRITICAL" | "HIGH" | "MEDIUM";
+          
+          if (stock.quantity === 0) {
+            urgency = "CRITICAL";
+          } else if (percentageLeft <= 25) {
+            urgency = "HIGH";
+          } else {
+            urgency = "MEDIUM";
+          }
 
-    return NextResponse.json(alerts);
+          return {
+            id: stock.id,
+            quantity: stock.quantity,
+            percentageLeft,
+            urgency,
+            product: stock.product,
+            store: stock.store,
+            warehouse: stock.warehouse,
+          };
+        })
+        .sort((a, b) => {
+          // Trier par urgence puis par pourcentage
+          const urgencyOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2 };
+          if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
+            return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+          }
+          return a.percentageLeft - b.percentageLeft;
+        });
+
+      return NextResponse.json(alerts);
+    } catch (error) {
+      console.error("Erreur GET stock-alerts", error);
+      return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    }
   }
 );

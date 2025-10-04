@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useOptimizedQuery } from "./use-optimized-query";
 import {
   LowStockItem,
   StockOverviewItem,
@@ -6,7 +6,7 @@ import {
 } from "@/types/dashboard";
 
 export const useLowStock = (organizationId: string, threshold = 10) => {
-  return useQuery({
+  return useOptimizedQuery<LowStockItem[]>({
     queryKey: ["dashboard", "low-stock", organizationId, threshold],
     queryFn: async () => {
       const response = await fetch(
@@ -17,15 +17,12 @@ export const useLowStock = (organizationId: string, threshold = 10) => {
       return response.json();
     },
     enabled: !!organizationId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    cacheLevel: "CRITICAL", // Stock critique - cache court
   });
 };
 
 export const useStockOverview = (organizationId: string) => {
-  return useQuery({
+  return useOptimizedQuery<StockOverviewItem[]>({
     queryKey: ["dashboard", "stock-overview", organizationId],
     queryFn: async () => {
       const response = await fetch(
@@ -36,15 +33,12 @@ export const useStockOverview = (organizationId: string) => {
       return response.json();
     },
     enabled: !!organizationId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    cacheLevel: "FREQUENT", // Dashboard fréquent
   });
 };
 
 export const useStockValue = (organizationId: string) => {
-  return useQuery({
+  return useOptimizedQuery<StockValueResponse>({
     queryKey: ["dashboard", "stock-value", organizationId],
     queryFn: async () => {
       const response = await fetch(
@@ -55,9 +49,6 @@ export const useStockValue = (organizationId: string) => {
       return response.json();
     },
     enabled: !!organizationId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    cacheLevel: "FREQUENT", // Dashboard fréquent
   });
 };

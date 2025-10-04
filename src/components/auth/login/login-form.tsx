@@ -56,9 +56,13 @@ export function LoginForm({
       mutateEmail(
         { email: input, password },
         {
-          onSuccess: () => {
-            localStorage.setItem("otpEmail", input);
-            router.push("/login/verification");
+          onSuccess: (response) => {
+            if (response.requiresOtp) {
+              localStorage.setItem("otpEmail", input);
+              router.push("/login/verification");
+            } else {
+              router.push("/dashboard");
+            }
           },
         }
       );

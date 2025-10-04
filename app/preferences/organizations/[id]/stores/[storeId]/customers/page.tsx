@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useStoreCustomers } from "@/hooks/useStore";
-import { PageLoader } from "@/components/ui/loading-spinner";
+import { TableSkeleton } from "@/components/ui/skeletons";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,26 @@ import { Users, Plus, ArrowLeft } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Customer } from "@/types/customer";
 import Link from "next/link";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import { useDeleteCustomer } from "@/hooks/useStore";
+import { toast } from "sonner";
 
 const customerTypeConfig = {
   INDIVIDUAL: { label: "Particulier", color: "bg-blue-100 text-blue-800" },
@@ -18,7 +38,69 @@ const customerTypeConfig = {
   VIP: { label: "VIP", color: "bg-purple-100 text-purple-800" },
 };
 
-const columns: ColumnDef<Customer>[] = [
+function CustomerActions({ customer, organizationId, storeId }: { customer: Customer; organizationId: string; storeId: string }) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const deleteCustomer = useDeleteCustomer(organizationId, storeId);
+
+  const handleDelete = async () => {
+    try {
+      await deleteCustomer.mutateAsync(customer.id);
+      toast.success("Client supprimé avec succès");
+      setShowDeleteDialog(false);
+    } catch (error) {
+      toast.error("Erreur lors de la suppression du client");
+    }
+  };
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/customers/${customer.id}`}>
+              <Edit className="h-4 w-4 mr-2" />
+              Modifier
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setShowDeleteDialog(true)}
+            className="text-red-600"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Supprimer
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le client</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer {customer.name} ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+const createColumns = (organizationId: string, storeId: string): ColumnDef<Customer>[] => [
   {
     accessorKey: "name",
     header: "Nom",
@@ -47,6 +129,16 @@ const columns: ColumnDef<Customer>[] = [
     header: "Créé le",
     cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString(),
   },
+  {
+    id: "actions",
+    cell: ({ row }) => (
+      <CustomerActions
+        customer={row.original}
+        organizationId={organizationId}
+        storeId={storeId}
+      />
+    ),
+  },
 ];
 
 export default function CustomersPage() {
@@ -60,7 +152,7 @@ export default function CustomersPage() {
     error,
   } = useStoreCustomers(organizationId, storeId);
 
-  if (isLoading) return <PageLoader text="Chargement des clients..." />;
+  if (isLoading) return <TableSkeleton rows={6} cols={6} />;
   if (error) return <div>Erreur: {error.message}</div>;
 
   const totalCustomers = customers?.length || 0;
@@ -69,6 +161,8 @@ export default function CustomersPage() {
   const companyCustomers =
     customers?.filter((c) => c.type === "COMPANY").length || 0;
   const vipCustomers = customers?.filter((c) => c.type === "VIP").length || 0;
+
+  const columns = createColumns(organizationId, storeId);
 
   return (
     <div className="space-y-6 p-6">

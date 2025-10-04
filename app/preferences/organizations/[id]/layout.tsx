@@ -27,7 +27,7 @@ export default function Layout({
     <SidebarProvider>
       <ProtectedSidebar organizationId={organizationId} />
       <SidebarInset>
-        <Header />
+        {/* <Header /> */}
         {children}
       </SidebarInset>
     </SidebarProvider>

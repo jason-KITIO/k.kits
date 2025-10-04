@@ -1,135 +1,155 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPermission } from "@/lib/route-protection";
 import { PERMISSIONS } from "@/lib/permissions";
-import prisma from "@/lib/prisma"
-
-import { z } from "zod";
-import { stockTransferCreateSchema } from "@/schema/stock-transfer.schema";
-
-
-export const GET = withPermission(PERMISSIONS.STOCK_READ)(
-  async (
-    req: NextRequest,
-    { params }: { params: Promise<{ organizationId: string }> }
-  ) => {
-    const { organizationId } = await params;
-
-    const transfers = await prisma.stockMovement.findMany({
-      where: {
-        organizationId,
-        type: "TRANSFER",
-      },
-      include: {
-        product: { select: { name: true, sku: true } },
-        user: { select: { firstName: true, lastName: true } },
-        fromStore: { select: { name: true } },
-        toStore: { select: { name: true } },
-        fromWarehouse: { select: { name: true } },
-        toWarehouse: { select: { name: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return NextResponse.json(transfers);
-  }
-);
+import prisma from "@/lib/prisma";
+import { stockTransferSchema } from "@/schema/stock-transfer.schema";
 
 export const POST = withPermission(PERMISSIONS.STOCK_TRANSFER)(
   async (
     req: NextRequest,
-    { params }: { params: Promise<{ organizationId: string }> }
+    {
+      params,
+      user,
+    }: { 
+      params: Promise<{ organizationId: string }>;
+      user: any;
+    }
   ) => {
     const { organizationId } = await params;
 
     try {
       const json = await req.json();
-      const data = stockTransferCreateSchema.parse(json);
+      const data = stockTransferSchema.parse(json);
 
-      const result = await prisma.$transaction(async (tx) => {
-        // Vérifier stock source
-        const sourceStock = await tx.stock.findFirst({
-          where: {
-            productId: data.productId,
-            warehouseId: data.fromWarehouseId || null,
-            storeId: data.fromStoreId || null,
-            organizationId,
-          },
-        });
+      // Vérifier que les entrepôts existent
+      const [fromWarehouse, toWarehouse] = await Promise.all([
+        prisma.warehouse.findFirst({
+          where: { id: data.fromWarehouseId, organizationId },
+        }),
+        prisma.warehouse.findFirst({
+          where: { id: data.toWarehouseId, organizationId },
+        }),
+      ]);
 
-        if (!sourceStock || sourceStock.quantity < data.quantity) {
-          throw new Error("Stock insuffisant");
-        }
+      if (!fromWarehouse || !toWarehouse) {
+        return NextResponse.json(
+          { error: "Entrepôt source ou destination introuvable" },
+          { status: 404 }
+        );
+      }
 
-        // Créer mouvement OUT (source)
-        const outMovement = await tx.stockMovement.create({
-          data: {
-            productId: data.productId,
-            fromWarehouseId: data.fromWarehouseId,
-            fromStoreId: data.fromStoreId,
-            quantity: data.quantity,
-            type: "TRANSFER",
-            reason: data.reason || "Transfert de stock",
-            userId: req.headers.get("user-id") || "",
-            organizationId,
-          },
-        });
-
-        // Créer mouvement IN (destination)
-        await tx.stockMovement.create({
-          data: {
-            productId: data.productId,
-            toWarehouseId: data.toWarehouseId,
-            toStoreId: data.toStoreId,
-            quantity: data.quantity,
-            type: "TRANSFER",
-            reference: outMovement.id,
-            reason: data.reason || "Transfert de stock",
-            userId: req.headers.get("user-id") || "",
-            organizationId,
-          },
-        });
-
-        // Décrémenter stock source
-        await tx.stock.update({
-          where: { id: sourceStock.id },
-          data: {
-            quantity: { decrement: data.quantity },
-            lastUpdated: new Date(),
-          },
-        });
-
-        // Incrémenter stock destination
-        await tx.stock.upsert({
-          where: {
-            productId_warehouseId_storeId_organizationId: {
-              productId: data.productId,
-              warehouseId: data.toWarehouseId || "",
-              storeId: data.toStoreId || "",
-              organizationId,
-            },
-          },
-          update: {
-            quantity: { increment: data.quantity },
-            lastUpdated: new Date(),
-          },
-          create: {
-            productId: data.productId,
-            warehouseId: data.toWarehouseId || null,
-            storeId: data.toStoreId || null,
-            quantity: data.quantity,
-            organizationId,
-          },
-        });
-
-        return outMovement;
+      // Vérifier le stock disponible
+      const stockItems = await prisma.stock.findMany({
+        where: {
+          warehouseId: data.fromWarehouseId,
+          productId: { in: data.items.map(item => item.productId) },
+          organizationId,
+        },
       });
 
-      return NextResponse.json(result, { status: 201 });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return NextResponse.json({ errors: error }, { status: 400 });
+      for (const item of data.items) {
+        const stockItem = stockItems.find(s => s.productId === item.productId);
+        if (!stockItem || stockItem.quantity < item.quantity) {
+          return NextResponse.json(
+            { error: `Stock insuffisant pour le produit ${item.productId}` },
+            { status: 400 }
+          );
+        }
       }
-      return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+
+      // Vérifier la capacité de l'entrepôt de destination
+      if (toWarehouse.capacity) {
+        const currentStock = await prisma.stock.aggregate({
+          where: { warehouseId: data.toWarehouseId, organizationId },
+          _sum: { quantity: true },
+        });
+        
+        const transferQuantity = data.items.reduce((sum, item) => sum + item.quantity, 0);
+        const totalAfterTransfer = (currentStock._sum.quantity || 0) + transferQuantity;
+        
+        if (totalAfterTransfer > toWarehouse.capacity) {
+          return NextResponse.json(
+            { 
+              error: "Capacité insuffisante dans l'entrepôt de destination",
+              details: `Capacité: ${toWarehouse.capacity}, Stock actuel: ${currentStock._sum.quantity || 0}, Transfert: ${transferQuantity}`
+            },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Effectuer le transfert
+      await prisma.$transaction(async (tx) => {
+        for (const item of data.items) {
+          // Réduire le stock source
+          await tx.stock.updateMany({
+            where: {
+              productId: item.productId,
+              warehouseId: data.fromWarehouseId,
+              organizationId,
+            },
+            data: {
+              quantity: { decrement: item.quantity },
+              lastUpdated: new Date(),
+            },
+          });
+
+          // Augmenter le stock destination
+          const existingStock = await tx.stock.findFirst({
+            where: {
+              productId: item.productId,
+              warehouseId: data.toWarehouseId,
+              organizationId,
+            },
+          });
+
+          if (existingStock) {
+            await tx.stock.update({
+              where: { id: existingStock.id },
+              data: {
+                quantity: { increment: item.quantity },
+                lastUpdated: new Date(),
+              },
+            });
+          } else {
+            await tx.stock.create({
+              data: {
+                productId: item.productId,
+                warehouseId: data.toWarehouseId,
+                quantity: item.quantity,
+                reservedQuantity: 0,
+                organizationId,
+                lastUpdated: new Date(),
+              },
+            });
+          }
+
+          // Créer le mouvement de stock
+          await tx.stockMovement.create({
+            data: {
+              productId: item.productId,
+              fromWarehouseId: data.fromWarehouseId,
+              toWarehouseId: data.toWarehouseId,
+              quantity: item.quantity,
+              type: "TRANSFER",
+              reason: data.reason || "Transfert manuel",
+              organizationId,
+              userId: user.id,
+            },
+          });
+        }
+      });
+
+      return NextResponse.json({ message: "Transfert effectué avec succès" });
+    } catch (error) {
+      console.error("Erreur POST stock-transfers", error);
+      if (error instanceof Error && 'issues' in error) {
+        return NextResponse.json(
+          { error: "Données invalides", details: (error as any).issues },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
     }
   }
 );

@@ -4,9 +4,9 @@ export const stockReturnCreateSchema = z.object({
   productId: z.string(),
   employeeId: z.string(),
   customerId: z.string().optional(),
-  quantity: z.number().int().positive(),
+  quantity: z.number().int().min(1),
   returnReason: z.string(),
-  condition: z.enum(["GOOD", "DAMAGED", "DEFECTIVE"]),
+  condition: z.enum(["GOOD", "DAMAGED", "DEFECTIVE"]).default("GOOD"),
   saleId: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -17,13 +17,5 @@ export const stockReturnUpdateSchema = z.object({
   notes: z.string().optional(),
 });
 
-export const stockReturnProcessSchema = z.object({
-  status: z.enum(["INSPECTED", "RESTOCKED", "DAMAGED", "RETURNED_TO_WAREHOUSE"]),
-  condition: z.enum(["GOOD", "DAMAGED", "DEFECTIVE"]),
-  notes: z.string().optional(),
-  restockToEmployeeStock: z.boolean().default(true),
-});
-
 export type StockReturnCreateInput = z.infer<typeof stockReturnCreateSchema>;
 export type StockReturnUpdateInput = z.infer<typeof stockReturnUpdateSchema>;
-export type StockReturnProcessInput = z.infer<typeof stockReturnProcessSchema>;

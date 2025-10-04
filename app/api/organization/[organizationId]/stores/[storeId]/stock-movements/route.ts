@@ -67,6 +67,38 @@ export const POST = withPermission(PERMISSIONS.STOCK_CREATE)(
       const json = await req.json();
       const data = stockMovementCreateSchema.parse(json);
 
+      // Vérifier le stock disponible pour les mouvements OUT
+      if (data.type === "OUT") {
+        const currentStock = await prisma.stock.findFirst({
+          where: {
+            productId: data.productId,
+            warehouseId: data.fromWarehouseId || null,
+            storeId: data.fromStoreId || storeId,
+            organizationId,
+          },
+        });
+
+        if (!currentStock || currentStock.quantity < data.quantity) {
+          const product = await prisma.product.findUnique({
+            where: { id: data.productId },
+            select: { name: true, sku: true }
+          });
+          return NextResponse.json(
+            { 
+              error: `Stock insuffisant pour le mouvement OUT du produit ${product?.name || data.productId}`,
+              details: {
+                productId: data.productId,
+                productName: product?.name,
+                sku: product?.sku,
+                requested: data.quantity,
+                available: currentStock?.quantity || 0
+              }
+            },
+            { status: 400 }
+          );
+        }
+      }
+
       const result = await prisma.$transaction(async (tx) => {
         // Créer le mouvement
         const movement = await tx.stockMovement.create({

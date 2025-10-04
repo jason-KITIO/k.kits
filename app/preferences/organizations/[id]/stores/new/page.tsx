@@ -1,7 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useCreateStore } from "@/hooks/useStore";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useCreateStore, useStore } from "@/hooks/useStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,13 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Store } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 
 export default function NewStorePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const organizationId = params.id as string;
+  const duplicateId = searchParams.get('duplicate');
   
   const [formData, setFormData] = useState({
     name: "",
@@ -24,7 +26,21 @@ export default function NewStorePage() {
     type: "PHYSICAL" as "PHYSICAL" | "ONLINE" | "HYBRID",
   });
 
+  const { data: duplicateStore } = useStore(organizationId, duplicateId || '', {
+    enabled: !!duplicateId,
+  });
   const createStore = useCreateStore();
+
+  React.useEffect(() => {
+    if (duplicateStore) {
+      setFormData({
+        name: `${duplicateStore.name} (Copie)`,
+        address: duplicateStore.address || "",
+        phone: duplicateStore.phone || "",
+        type: duplicateStore.type as "PHYSICAL" | "ONLINE" | "HYBRID",
+      });
+    }
+  }, [duplicateStore]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,9 +67,11 @@ export default function NewStorePage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Nouvelle boutique</h1>
+          <h1 className="text-3xl font-bold">
+            {duplicateId ? "Dupliquer la boutique" : "Nouvelle boutique"}
+          </h1>
           <p className="text-muted-foreground">
-            Créez un nouveau point de vente
+            {duplicateId ? "Créer une copie de la boutique" : "Créez un nouveau point de vente"}
           </p>
         </div>
       </div>

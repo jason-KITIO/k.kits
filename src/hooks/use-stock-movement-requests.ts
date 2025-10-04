@@ -1,41 +1,52 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { stockMovementRequestService } from "@/services/stock-movement-request-service";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useOptimizedQuery } from "./use-optimized-query";
 import { toast } from "sonner";
-import type { StockMovementRequestCreate, StockMovementRequestApproval } from "@/types/stock-movement-request";
 
-export const useStockMovementRequests = (
-  organizationId: string, 
-  storeId: string, 
-  params?: { status?: string; requesterId?: string }
-) => {
-  return useQuery({
-    queryKey: ["stock-movement-requests", organizationId, storeId, params],
-    queryFn: () => stockMovementRequestService.getByStore(organizationId, storeId, params),
-    enabled: !!organizationId && !!storeId,
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
+export const useStockMovementRequests = (organizationId: string, storeId?: string) => {
+  return useOptimizedQuery({
+    queryKey: ["stock-movement-requests", organizationId, storeId],
+    queryFn: async () => {
+      const url = storeId 
+        ? `/api/organization/${organizationId}/stores/${storeId}/stock-movement-requests`
+        : `/api/organization/${organizationId}/stock-movement-requests`;
+      
+      const response = await fetch(url, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des requêtes');
+      }
+      return response.json();
+    },
+    enabled: !!organizationId,
   });
 };
 
-export const useStockMovementRequest = (organizationId: string, storeId: string, requestId: string) => {
-  return useQuery({
-    queryKey: ["stock-movement-request", organizationId, storeId, requestId],
-    queryFn: () => stockMovementRequestService.getById(organizationId, storeId, requestId),
-    enabled: !!organizationId && !!storeId && !!requestId,
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
-  });
-};
-
-export const useCreateStockMovementRequest = (organizationId: string, storeId: string) => {
+export const useCreateStockRequest = (organizationId: string, storeId: string) => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (data: StockMovementRequestCreate) => 
-      stockMovementRequestService.create(organizationId, storeId, data),
+    mutationFn: async (data: {
+      productId: string;
+      quantity: number;
+      urgencyLevel: string;
+      reason?: string;
+    }) => {
+      const response = await fetch(`/api/organization/${organizationId}/stores/${storeId}/stock-movement-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Erreur lors de la création de la requête');
+      }
+      return response.json();
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stock-movement-requests", organizationId, storeId] });
-      toast.success("Demande de mouvement créée avec succès");
+      queryClient.invalidateQueries({ queryKey: ['stock-movement-requests', organizationId, storeId] });
+      toast.success('Demande créée avec succès');
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -43,16 +54,55 @@ export const useCreateStockMovementRequest = (organizationId: string, storeId: s
   });
 };
 
+export const useApproveStockRequest = (organizationId: string, storeId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (requestId: string) => {
+      const response = await fetch(`/api/organization/${organizationId}/stores/${storeId}/stock-movement-requests/${requestId}/approve`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Erreur lors de l\'approbation');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stock-movement-requests', organizationId, storeId] });
+      toast.success('Requête approuvée avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+};
+
+export const useCreateStockMovementRequest = (organizationId: string, storeId: string) => {
+  return useCreateStockRequest(organizationId, storeId);
+};
+
 export const useApproveStockMovementRequest = (organizationId: string, storeId: string) => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ requestId, data }: { requestId: string; data: StockMovementRequestApproval }) =>
-      stockMovementRequestService.approve(organizationId, storeId, requestId, data),
-    onSuccess: (_, { requestId }) => {
-      queryClient.invalidateQueries({ queryKey: ["stock-movement-requests", organizationId, storeId] });
-      queryClient.invalidateQueries({ queryKey: ["stock-movement-request", organizationId, storeId, requestId] });
-      toast.success("Demande traitée avec succès");
+    mutationFn: async ({ requestId, data }: { requestId: string; data: { status: string; approverId: string; rejectionReason?: string } }) => {
+      const response = await fetch(`/api/organization/${organizationId}/stores/${storeId}/stock-movement-requests/${requestId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Erreur lors de la mise à jour');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stock-movement-requests', organizationId, storeId] });
+      toast.success('Demande mise à jour avec succès');
     },
     onError: (error: Error) => {
       toast.error(error.message);

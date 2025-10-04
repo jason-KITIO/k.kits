@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useStore, useStoreDashboard } from "@/hooks/useStore";
-import { PageLoader } from "@/components/ui/loading-spinner";
+import { DashboardSkeleton } from "@/components/ui/skeletons";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ export default function StoreDashboardPage() {
   const { data: dashboard, isLoading: dashboardLoading } = useStoreDashboard(organizationId, storeId);
 
   if (storeLoading || dashboardLoading) {
-    return <PageLoader text="Chargement du dashboard boutique..." />;
+    return <DashboardSkeleton />;
   }
 
   if (!store) {

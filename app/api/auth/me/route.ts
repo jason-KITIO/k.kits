@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { updateUserProfileSchema } from "@/schema/user-settings.schema";
 
 /**
  * @swagger
@@ -185,6 +186,67 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ user: userSafe });
   } catch {
     console.error("Erreur /api/auth/me");
+    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
+  }
+}
+
+// PUT - Mettre à jour le profil utilisateur
+export async function PUT(request: NextRequest) {
+  try {
+    const cookie = request.headers.get("cookie") || "";
+    const match = cookie.match(/session_token=([^;]+)/);
+    if (!match) {
+      return NextResponse.json({ message: "Non authentifié" }, { status: 401 });
+    }
+    const sessionToken = match[1];
+
+    const session = await prisma.userSession.findFirst({
+      where: {
+        sessionToken,
+        active: true,
+        expiresAt: { gt: new Date() },
+      },
+      include: { user: true },
+    });
+
+    if (!session || !session.user) {
+      return NextResponse.json({ message: "Session invalide" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const parsed = updateUserProfileSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json(
+        { message: "Données invalides", errors: parsed.error.issues },
+        { status: 400 }
+      );
+    }
+    
+    const { settings, ...profileData } = parsed.data;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        ...profileData,
+        settings: settings || session.user.settings || {},
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        profileImageUrl: true,
+        settings: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return NextResponse.json({ user: updatedUser });
+  } catch (error) {
+    console.error("Erreur PUT /api/auth/me", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

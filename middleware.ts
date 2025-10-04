@@ -20,7 +20,7 @@ export function middleware(request: NextRequest) {
   const errorRoutes = ["/error"];
 
   // Routes protégées qui nécessitent une authentification
-  const protectedRoutes = ["/dashboard", "/preferences"];
+  const protectedRoutes = ["/preferences"];
 
   // Vérifier si la route est publique
   const isPublicRoute = publicRoutes.some((route) =>
@@ -55,7 +55,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Si utilisateur connecté mais pas d'organisation sélectionnée pour le dashboard
-  if (sessionToken && !selectedOrgId && pathname.startsWith("/dashboard")) {
+  if (sessionToken && !selectedOrgId && pathname.startsWith("/preferences")) {
     // Rediriger vers page de sélection d'organisation
     return NextResponse.redirect(new URL("/preferences", request.url));
   }

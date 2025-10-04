@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useStoreSales } from "@/hooks/useStore";
 import { DataTable } from "@/components/ui/data-table";
-import { PageLoader } from "@/components/ui/loading-spinner";
+import { TableSkeleton } from "@/components/ui/skeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,13 +111,14 @@ const columns: ColumnDef<Sale>[] = [
     id: "actions",
     cell: ({ row }) => {
       const sale = row.original;
+      const organizationId = window.location.pathname.split('/')[3];
+      const storeId = window.location.pathname.split('/')[5];
       return (
         <div className="flex gap-1">
-          <Button variant="ghost" size="sm">
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Receipt className="h-4 w-4" />
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/sales/${sale.id}`}>
+              <Eye className="h-4 w-4" />
+            </Link>
           </Button>
         </div>
       );
@@ -132,13 +133,13 @@ export default function StoreSalesPage() {
 
   const { data: sales, isLoading, error } = useStoreSales(organizationId, storeId);
 
-  if (isLoading) return <PageLoader text="Chargement des ventes..." />;
+  if (isLoading) return <TableSkeleton rows={8} cols={7} />;
   if (error) return <div>Erreur: {error.message}</div>;
 
   const salesArray = Array.isArray(sales) ? sales as Sale[] : [];
   const totalSales = salesArray.length;
-  const totalAmount = salesArray.reduce((sum: number, sale: Sale) => sum + sale.totalAmount, 0);
-  const paidAmount = salesArray.reduce((sum: number, sale: Sale) => sum + sale.paidAmount, 0);
+  const totalAmount = salesArray.reduce((sum: number, sale: Sale) => sum + Number(sale.totalAmount), 0);
+  const paidAmount = salesArray.reduce((sum: number, sale: Sale) => sum + Number(sale.paidAmount), 0);
   const pendingSales = salesArray.filter((s: Sale) => s.status === 'PENDING').length;
 
   return (
@@ -151,12 +152,12 @@ export default function StoreSalesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
+          {/* <Button variant="outline" asChild>
             <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/reports`}>
               <Receipt className="h-4 w-4 mr-2" />
               Rapports
             </Link>
-          </Button>
+          </Button> */}
           <Button asChild>
             <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/sales/new`}>
               <Plus className="h-4 w-4 mr-2" />

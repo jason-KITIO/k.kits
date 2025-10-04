@@ -25,7 +25,6 @@ export function useLogout() {
       
       // Nettoyer le cache AuthProvider
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('k-kits-auth-cache');
         document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         document.cookie = 'selected-org-id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       }

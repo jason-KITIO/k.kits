@@ -39,7 +39,7 @@ export function VerificationResultPage({
           <CardDescription>
             {success ? (
               <span className="text-green-600">
-                Votre compte a bien été vérifié. Vous allez être redirigé...
+                Votre compte a bien été vérifié et vous êtes maintenant connecté. Redirection vers le dashboard...
               </span>
             ) : (
               <span className="text-red-600">

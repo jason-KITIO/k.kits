@@ -28,6 +28,10 @@ export default function RegisterVerificationPage() {
           const data = await response.json();
           if (data.message === "Email vérifié avec succès") {
             setSuccess(true);
+            // Redirection automatique vers le dashboard après 2 secondes
+            setTimeout(() => {
+              window.location.href = "/preferences/organizations";
+            }, 2000);
           } else {
             setSuccess(false);
           }

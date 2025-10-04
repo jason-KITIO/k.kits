@@ -3,6 +3,7 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation"; // Import useRouter pour navigation
 import { ChevronsUpDown, Plus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   DropdownMenu,
@@ -68,9 +69,14 @@ export function NavOrganisation() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <div className="p-4 text-center text-sm text-muted-foreground">
-            Chargement des boutiques...
-          </div>
+          <SidebarMenuButton size="lg">
+            <Skeleton className="h-4 w-8 rounded-lg" />
+            <div className="grid flex-1 text-left">
+              <Skeleton className="h-4 w-[120px]" />
+              <Skeleton className="h-3 w-[80px]" />
+            </div>
+            <Skeleton className="h-4 w-4" />
+          </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
     );

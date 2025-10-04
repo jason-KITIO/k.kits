@@ -17,6 +17,8 @@ import {
   Mail,
   Store,
   Warehouse,
+  Package,
+  Tag,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -34,6 +36,8 @@ import { User } from "@solar-icons/react";
 import { useUserPermissions } from "@/hooks/use-auth-with-roles";
 import { usePermissions } from "@/hooks/use-permissions";
 import { PERMISSIONS } from "@/lib/permissions";
+import { SidebarSkeleton } from "./sidebar-skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 function prefixUrl(base: string | null, path: string) {
   // Préfixe l'url avec base si disponible, gère les slashs
@@ -76,20 +80,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Récupérer les permissions de l'utilisateur pour cette organisation
   const userPermissions = useUserPermissions(orgId || undefined);
   const { can, is } = usePermissions(orgId || undefined);
-  
+
   // console.log("🔐 AppSidebar: User permissions for org", orgId, ":", userPermissions);
   // console.log("🎯 AppSidebar: Permission helpers:", { can, is });
 
-  // Éviter l'erreur d'hydratation
+  // Éviter l'erreur d'hydratation avec skeleton animé
   if (!mounted) {
     return (
-      <Sidebar variant="inset" {...props}>
-        <SidebarContent>
-          <div className="p-4 text-center text-sm text-muted-foreground">
-            Chargement...
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <SidebarSkeleton />
           </div>
-        </SidebarContent>
-      </Sidebar>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Chargement de la navigation...</p>
+        </TooltipContent>
+      </Tooltip>
     );
   }
 
@@ -99,7 +106,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Fonction pour vérifier si l'utilisateur a une permission
   const hasPermission = (permission: string) => {
     // Le propriétaire (wildcard *) a toutes les permissions
-    return userPermissions.includes("*") || userPermissions.includes(permission);
+    return (
+      userPermissions.includes("*") || userPermissions.includes(permission)
+    );
   };
 
   // Données menus avec URLs dynamiques et vérification des permissions
@@ -108,7 +117,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Tableau de bord",
       url: prefixUrl(baseUrl, "/dashboard"),
       icon: BarChart3,
-      isActive: pathname?.includes('/dashboard'),
+      isActive: pathname?.includes("/dashboard"),
       permission: PERMISSIONS.DASHBOARD_READ,
       badge: null,
     },
@@ -116,7 +125,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Boutiques",
       url: prefixUrl(baseUrl, "/stores"),
       icon: Store,
-      isActive: pathname?.includes('/stores'),
+      isActive: pathname?.includes("/stores"),
       permission: PERMISSIONS.ORG_SETTINGS,
       badge: null,
     },
@@ -124,23 +133,47 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Entrepôts",
       url: prefixUrl(baseUrl, "/warehouses"),
       icon: Warehouse,
-      isActive: pathname?.includes('/warehouses'),
+      isActive: pathname?.includes("/warehouses"),
       permission: PERMISSIONS.STOCK_READ,
+      badge: null,
+    },
+    {
+      title: "Produits",
+      url: prefixUrl(baseUrl, "/products"),
+      icon: Package,
+      isActive: pathname?.includes("/products"),
+      permission: PERMISSIONS.PRODUCT_READ,
+      badge: null,
+    },
+    {
+      title: "Catégories",
+      url: prefixUrl(baseUrl, "/categories"),
+      icon: Tag,
+      isActive: pathname?.includes("/categories"),
+      permission: PERMISSIONS.PRODUCT_READ,
+      badge: null,
+    },
+    {
+      title: "Fournisseurs",
+      url: prefixUrl(baseUrl, "/suppliers"),
+      icon: Building2,
+      isActive: pathname?.includes("/suppliers"),
+      permission: PERMISSIONS.PRODUCT_READ,
       badge: null,
     },
     {
       title: "Ventes",
       url: prefixUrl(baseUrl, "/sales"),
       icon: ShoppingCart,
-      isActive: pathname?.includes('/sales'),
+      isActive: pathname?.includes("/sales"),
       permission: PERMISSIONS.SALE_READ,
       badge: null,
     },
     {
-      title: "Notifications",
-      url: prefixUrl(baseUrl, "/notifications"),
+      title: "Alertes",
+      url: prefixUrl(baseUrl, "/alerts"),
       icon: Bell,
-      isActive: pathname?.includes('/notifications'),
+      isActive: pathname?.includes("/alerts"),
       permission: PERMISSIONS.NOTIFICATION_READ,
       badge: null,
     },
@@ -148,39 +181,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Equipes",
       url: prefixUrl(baseUrl, "/users"),
       icon: User,
-      isActive: pathname?.includes('/users'),
+      isActive: pathname?.includes("/users"),
       permission: PERMISSIONS.USER_MANAGE,
       badge: is.owner ? "Admin" : null,
     },
-    {
-      title: "Invitations",
-      url: prefixUrl(baseUrl, "/invitation"),
-      icon: Mail,
-      isActive: pathname?.includes('/invitation'),
-      permission: PERMISSIONS.USER_INVITE,
-      badge: null,
-    },
-    {
-      title: "Rôles",
-      url: prefixUrl(baseUrl, "/role"),
-      icon: Settings2,
-      isActive: pathname?.includes('/role'),
-      permission: PERMISSIONS.USER_ROLES,
-      badge: is.owner ? "Admin" : null,
-    },
-    {
-      title: "Alertes Stock",
-      url: prefixUrl(baseUrl, "/stock-alerts"),
-      icon: AlertTriangle,
-      isActive: pathname?.includes('/stock-alerts'),
-      permission: PERMISSIONS.STOCK_READ,
-      badge: null,
-    },
+
     {
       title: "Transferts Stock",
       url: prefixUrl(baseUrl, "/stock-transfers"),
       icon: ArrowRightLeft,
-      isActive: pathname?.includes('/stock-transfers'),
+      isActive: pathname?.includes("/stock-transfers"),
       permission: PERMISSIONS.STOCK_TRANSFER,
       badge: null,
     },
@@ -188,7 +198,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Rapports",
       url: prefixUrl(baseUrl, "/reports"),
       icon: FileText,
-      isActive: pathname?.includes('/reports'),
+      isActive: pathname?.includes("/reports"),
       permission: PERMISSIONS.REPORT_READ,
       badge: null,
     },
@@ -196,9 +206,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Paramètres",
       url: prefixUrl(baseUrl, "/settings"),
       icon: Settings2,
-      isActive: pathname?.includes('/settings'),
+      isActive: pathname?.includes("/settings"),
       permission: PERMISSIONS.ORG_SETTINGS,
-      badge: is.owner ? "Admin" : null,
+      badge: null,
     },
   ];
 
@@ -206,14 +216,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Le propriétaire (wildcard *) voit tout, sinon filtrer selon les permissions
   const navMain = userPermissions.includes("*")
     ? allNavItems // Propriétaire voit tous les éléments
-    : userPermissions.length > 0 
-      ? allNavItems.filter(item => hasPermission(item.permission))
-      : [allNavItems[0]]; // Afficher au moins le tableau de bord
+    : userPermissions.length > 0
+    ? allNavItems.filter((item) => hasPermission(item.permission))
+    : [allNavItems[0]]; // Afficher au moins le tableau de bord
 
   // Ajouter des indicateurs de rôle pour certains éléments
-  const navMainWithBadges = navMain.map(item => ({
+  const navMainWithBadges = navMain.map((item) => ({
     ...item,
-    badge: item.badge || (is.owner && ['Equipes', 'Rôles', 'Paramètres'].includes(item.title) ? 'Admin' : undefined)
+    badge:
+      item.badge ||
+      (is.owner && ["Equipes", "Rôles", "Paramètres"].includes(item.title)
+        ? "Admin"
+        : undefined),
   }));
 
   const navSecondary = [
@@ -244,7 +258,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       name: "Voir alertes",
-      url: prefixUrl(baseUrl, "/stock-alerts"),
+      url: prefixUrl(baseUrl, "/alerts"),
       icon: AlertTriangle,
       permission: PERMISSIONS.STOCK_READ,
     },
@@ -254,8 +268,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Le propriétaire (wildcard *) voit toutes les actions
   const quickActions = userPermissions.includes("*")
     ? allQuickActions // Propriétaire voit toutes les actions
-    : allQuickActions.filter(action => hasPermission(action.permission));
-
+    : allQuickActions.filter((action) => hasPermission(action.permission));
 
   return (
     <Sidebar variant="inset" {...props}>

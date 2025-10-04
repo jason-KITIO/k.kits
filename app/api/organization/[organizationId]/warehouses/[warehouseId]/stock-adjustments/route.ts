@@ -23,6 +23,38 @@ export const POST = withPermission(PERMISSIONS.STOCK_ADJUST)(
         return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
       }
 
+      // Vérifier le stock disponible pour les ajustements OUT
+      if (data.type === "OUT") {
+        const currentStock = await prisma.stock.findFirst({
+          where: {
+            productId: data.productId,
+            warehouseId,
+            storeId: null,
+            organizationId,
+          },
+        });
+
+        if (!currentStock || currentStock.quantity < Math.abs(data.quantity)) {
+          const product = await prisma.product.findUnique({
+            where: { id: data.productId },
+            select: { name: true, sku: true }
+          });
+          return NextResponse.json(
+            { 
+              error: `Stock insuffisant pour l'ajustement du produit ${product?.name || data.productId}`,
+              details: {
+                productId: data.productId,
+                productName: product?.name,
+                sku: product?.sku,
+                requested: Math.abs(data.quantity),
+                available: currentStock?.quantity || 0
+              }
+            },
+            { status: 400 }
+          );
+        }
+      }
+
       const result = await prisma.$transaction(async (tx) => {
         // Créer le mouvement de stock
         const movement = await tx.stockMovement.create({

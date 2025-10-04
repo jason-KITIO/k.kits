@@ -4,7 +4,8 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/providers/auth-provider";
 import { AppSidebar } from "./app-sidebar";
 import { Sidebar, SidebarContent } from "./ui/sidebar";
-import { Loader2 } from "lucide-react";
+import { SidebarSkeleton } from "./sidebar-skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface ProtectedSidebarProps {
   organizationId: string;
@@ -18,16 +19,13 @@ export function ProtectedSidebar({ organizationId }: ProtectedSidebarProps) {
   // État de chargement
   if (isLoading) {
     return (
-      <Sidebar variant="inset">
-        <SidebarContent>
-          <div className="flex items-center justify-center p-8">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Chargement des permissions...</span>
-            </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <SidebarSkeleton />
           </div>
-        </SidebarContent>
-      </Sidebar>
+        </TooltipTrigger>
+      </Tooltip>
     );
   }
 

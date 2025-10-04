@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const saleCreateSchema = z.object({
   customerId: z.string().optional(),
-  storeId: z.string(),
   totalAmount: z.number().positive(),
   paidAmount: z.number().min(0).default(0),
   status: z.enum(["PENDING", "PAID", "PARTIAL", "CANCELLED", "REFUNDED"]).default("PENDING"),

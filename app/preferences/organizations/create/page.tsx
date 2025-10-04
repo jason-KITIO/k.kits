@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +26,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { getUserFromCookie } from "@/lib/get-user-from-cookie";
+import { useCreateOrganization } from "@/hooks/use-organizations";
 
 const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
 const CLOUDINARY_UPLOAD_PRESET =
@@ -34,6 +34,9 @@ const CLOUDINARY_UPLOAD_PRESET =
 
 export default function OrganizationCreatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const createOrganization = useCreateOrganization();
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -45,10 +48,22 @@ export default function OrganizationCreatePage() {
     active: true,
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const domainManuallyEdited = useRef(false);
+
+  // Gérer la duplication
+  useEffect(() => {
+    const duplicateData = searchParams.get('duplicate');
+    if (duplicateData) {
+      try {
+        const parsedData = JSON.parse(decodeURIComponent(duplicateData));
+        setFormData(parsedData);
+        domainManuallyEdited.current = true;
+      } catch (error) {
+        console.error('Erreur lors du parsing des données de duplication:', error);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (domainManuallyEdited.current) return;
@@ -86,7 +101,6 @@ export default function OrganizationCreatePage() {
 
     const file = e.target.files[0];
     setUploading(true);
-    setError(null);
 
     const formDataCloud = new FormData();
     formDataCloud.append("file", file);
@@ -105,12 +119,9 @@ export default function OrganizationCreatePage() {
 
       if (data.secure_url) {
         setFormData((prev) => ({ ...prev, logo: data.secure_url }));
-      } else {
-        setError("Erreur lors de l'upload de l'image");
       }
     } catch (err) {
       console.error("Upload image error", err);
-      setError("Erreur lors de l'upload de l'image, veuillez réessayer");
     } finally {
       setUploading(false);
     }
@@ -118,8 +129,6 @@ export default function OrganizationCreatePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
 
     let domainFull: string | undefined = undefined;
     if (formData.domain && formData.domain.trim() !== "") {
@@ -132,29 +141,11 @@ export default function OrganizationCreatePage() {
       active: formData.active ?? true,
     };
 
-    // console.log("les data : ", payload);
-
-    try {
-      const res = await fetch("/api/organization", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const json = await res.json();
-        throw new Error(json.message || "Erreur lors de la création");
+    createOrganization.mutate(payload, {
+      onSuccess: () => {
+        router.push("/preferences/organizations");
       }
-
-      router.push("/preferences/organizations");
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message || "Erreur inconnue"
-          : "Erreur inconnue"
-      );
-      setIsSubmitting(false);
-    }
+    });
   }
 
   return (
@@ -205,7 +196,7 @@ export default function OrganizationCreatePage() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                disabled={isSubmitting}
+                disabled={createOrganization.isPending}
               />
             </div>
 
@@ -217,7 +208,7 @@ export default function OrganizationCreatePage() {
                 value={formData.description}
                 onChange={handleChange}
                 rows={4}
-                disabled={isSubmitting}
+                disabled={createOrganization.isPending}
               />
             </div>
           </CardContent>
@@ -244,7 +235,7 @@ export default function OrganizationCreatePage() {
                     placeholder="mon-entreprise"
                     value={formData.domain}
                     onChange={handleChange}
-                    disabled={isSubmitting}
+                    disabled={createOrganization.isPending}
                     className="rounded-r-none"
                   />
                   <div className="px-3 py-2 bg-muted border border-l-0 rounded-r-md text-sm text-muted-foreground">
@@ -277,7 +268,7 @@ export default function OrganizationCreatePage() {
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    disabled={isSubmitting || uploading}
+                    disabled={createOrganization.isPending || uploading}
                     className="flex-1"
                   />
                   {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -325,7 +316,7 @@ export default function OrganizationCreatePage() {
                   placeholder="contact@monentreprise.com"
                   value={formData.email}
                   onChange={handleChange}
-                  disabled={isSubmitting}
+                  disabled={createOrganization.isPending}
                 />
               </div>
 
@@ -340,7 +331,7 @@ export default function OrganizationCreatePage() {
                   placeholder="+237 698 765 432"
                   value={formData.phone}
                   onChange={handleChange}
-                  disabled={isSubmitting}
+                  disabled={createOrganization.isPending}
                 />
               </div>
             </div>
@@ -356,28 +347,28 @@ export default function OrganizationCreatePage() {
                 placeholder="Logbessou, Douala, Cameroun"
                 value={formData.address}
                 onChange={handleChange}
-                disabled={isSubmitting}
+                disabled={createOrganization.isPending}
               />
             </div>
           </CardContent>
         </Card>
 
-        {error && (
+        {createOrganization.error && (
           <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{createOrganization.error.message}</AlertDescription>
           </Alert>
         )}
 
         <div className="flex gap-4 pt-6">
           <Button type="button" variant="outline" className="flex-1" asChild>
-            <Link href="/organizations">Annuler</Link>
+            <Link href="/preferences/organizations">Annuler</Link>
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting || uploading}
+            disabled={createOrganization.isPending || uploading}
             className="flex-1"
           >
-            {isSubmitting ? (
+            {createOrganization.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Création en cours...

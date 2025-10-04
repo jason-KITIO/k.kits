@@ -26,8 +26,9 @@ import {
   Building2,
   LifeBuoy,
   Send,
-  Loader2,
+  Tag,
 } from "lucide-react";
+import { SidebarSkeleton } from "@/components/sidebar-skeleton";
 
 function prefixUrl(base: string | null, path: string) {
   if (!base) return path;
@@ -58,12 +59,7 @@ export function ProtectedStoreSidebar({ ...props }: React.ComponentProps<typeof 
       icon: BarChart3,
       permission: PERMISSIONS.DASHBOARD_READ,
     },
-    {
-      title: "Produits",
-      url: prefixUrl(baseUrl, "/products"),
-      icon: Package,
-      permission: PERMISSIONS.PRODUCT_READ,
-    },
+
     {
       title: "Stock",
       url: prefixUrl(baseUrl, "/stock"),
@@ -82,12 +78,7 @@ export function ProtectedStoreSidebar({ ...props }: React.ComponentProps<typeof 
       icon: Users,
       permission: PERMISSIONS.CUSTOMER_READ,
     },
-    {
-      title: "Fournisseurs",
-      url: prefixUrl(baseUrl, "/suppliers"),
-      icon: Building2,
-      permission: PERMISSIONS.PRODUCT_READ, // Les fournisseurs sont liés aux produits
-    },
+
     {
       title: "Transferts Stock",
       url: prefixUrl(baseUrl, "/stock-transfers"),
@@ -128,18 +119,7 @@ export function ProtectedStoreSidebar({ ...props }: React.ComponentProps<typeof 
 
   // État de chargement si pas de permissions encore
   if (!orgId || navMain.length === 0) {
-    return (
-      <Sidebar variant="inset" {...props}>
-        <SidebarContent>
-          <div className="flex items-center justify-center p-8">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Chargement...</span>
-            </div>
-          </div>
-        </SidebarContent>
-      </Sidebar>
-    );
+    return <SidebarSkeleton />;
   }
 
   return (

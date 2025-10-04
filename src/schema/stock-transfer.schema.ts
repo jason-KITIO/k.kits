@@ -1,25 +1,19 @@
 import { z } from "zod";
 
-export const stockTransferCreateSchema = z.object({
-  productId: z.string(),
-  quantity: z.number().int().positive(),
-  fromWarehouseId: z.string().optional(),
-  toWarehouseId: z.string().optional(),
-  fromStoreId: z.string().optional(),
-  toStoreId: z.string().optional(),
+export const stockTransferSchema = z.object({
+  fromWarehouseId: z.string().min(1, "Entrepôt source requis"),
+  toWarehouseId: z.string().min(1, "Entrepôt destination requis"),
+  items: z.array(z.object({
+    productId: z.string().min(1, "ID produit requis"),
+    quantity: z.number().positive("La quantité doit être positive"),
+  })).min(1, "Au moins un produit doit être sélectionné"),
   reason: z.string().optional(),
 }).refine(
-  (data) => {
-    const hasFrom = data.fromWarehouseId || data.fromStoreId;
-    const hasTo = data.toWarehouseId || data.toStoreId;
-    return hasFrom && hasTo;
-  },
-  { message: "Source et destination requises" }
+  (data) => data.fromWarehouseId !== data.toWarehouseId,
+  {
+    message: "L'entrepôt source et destination doivent être différents",
+    path: ["toWarehouseId"],
+  }
 );
 
-export const stockTransferUpdateSchema = z.object({
-  status: z.enum(["PENDING", "IN_TRANSIT", "COMPLETED", "CANCELLED"]),
-});
-
-export type StockTransferCreateInput = z.infer<typeof stockTransferCreateSchema>;
-export type StockTransferUpdateInput = z.infer<typeof stockTransferUpdateSchema>;
+export type StockTransferData = z.infer<typeof stockTransferSchema>;

@@ -16,11 +16,6 @@ export const useOrganizations = () => {
   return useQuery({
     queryKey: ["organizations"],
     queryFn: async () => await fetchUserOrganizations(),
-    staleTime: Infinity, // JAMAIS périmé
-    gcTime: Infinity, // JAMAIS supprimé
-    refetchOnMount: false, // Ne jamais refetch
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
   });
 };
 
@@ -29,11 +24,6 @@ export const useOrganization = (id: string) => {
     queryKey: ["organization", id],
     queryFn: async () => await getOrganizationById(id),
     enabled: !!id,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
   });
 };
 

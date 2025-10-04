@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useStoreStock, useCreateStockAdjustment } from "@/hooks/useStore";
 import { DataTable } from "@/components/ui/data-table";
-import { PageLoader } from "@/components/ui/loading-spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,23 +12,26 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Package, Settings, AlertTriangle, TrendingUp } from "lucide-react";
+import { ArrowUpDown, Package, Settings, AlertTriangle, TrendingUp, Clock } from "lucide-react";
+import Link from "next/link";
 import { Stock } from "@/types/stock";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { stockAdjustmentSchema, type StockAdjustmentInput } from "@/schema/stock-movement.schema";
+import { stockMovementAdjustmentSchema, type StockMovementAdjustmentInput } from "@/schema";
 
 const columns: ColumnDef<Stock>[] = [
   {
-    accessorKey: "product.sku",
+    id: "productSku",
+    accessorFn: (row) => row.product.sku,
     header: "SKU",
     cell: ({ row }) => (
       <div className="font-mono text-sm">{row.original.product.sku}</div>
     ),
   },
   {
-    accessorKey: "product.name",
+    id: "productName",
+    accessorFn: (row) => row.product.name,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -72,7 +75,8 @@ const columns: ColumnDef<Stock>[] = [
     },
   },
   {
-    accessorKey: "product.minStock",
+    id: "minStock",
+    accessorFn: (row) => row.product.minStock,
     header: "Seuil min",
     cell: ({ row }) => row.original.product.minStock,
   },
@@ -109,8 +113,8 @@ function AdjustmentDialog({ stock }: { stock: Stock }) {
   
   const createAdjustment = useCreateStockAdjustment(organizationId, storeId);
   
-  const form = useForm<StockAdjustmentInput>({
-    resolver: zodResolver(stockAdjustmentSchema),
+  const form = useForm<StockMovementAdjustmentInput>({
+    resolver: zodResolver(stockMovementAdjustmentSchema),
     defaultValues: {
       productId: stock.productId,
       quantity: 0,
@@ -118,7 +122,7 @@ function AdjustmentDialog({ stock }: { stock: Stock }) {
     },
   });
 
-  const onSubmit = (data: StockAdjustmentInput) => {
+  const onSubmit = (data: StockMovementAdjustmentInput) => {
     createAdjustment.mutate(data, {
       onSuccess: () => {
         setOpen(false);
@@ -189,7 +193,68 @@ export default function StoreStockPage() {
 
   const { data: stocks, isLoading, error } = useStoreStock(organizationId, storeId);
 
-  if (isLoading) return <PageLoader text="Chargement des stocks..." />;
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-[100px]" />
+            <Skeleton className="h-4 w-[200px]" />
+          </div>
+          <Skeleton className="h-10 w-[150px]" />
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-[120px]" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-[60px] mb-2" />
+                <Skeleton className="h-3 w-[80px]" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-5" />
+              <Skeleton className="h-6 w-[120px]" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-10 w-[200px]" />
+                <Skeleton className="h-10 w-[100px]" />
+              </div>
+              <div className="border rounded-md">
+                <div className="border-b p-4">
+                  <div className="flex space-x-4">
+                    {Array.from({ length: 7 }).map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-[100px]" />
+                    ))}
+                  </div>
+                </div>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="border-b p-4 last:border-b-0">
+                    <div className="flex space-x-4">
+                      {Array.from({ length: 7 }).map((_, j) => (
+                        <Skeleton key={j} className="h-4 w-[100px]" />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   if (error) return <div>Erreur: {error.message}</div>;
 
   const totalProducts = stocks?.length || 0;
@@ -207,10 +272,20 @@ export default function StoreStockPage() {
             État des stocks et ajustements
           </p>
         </div>
-        <Button>
-          <TrendingUp className="h-4 w-4 mr-2" />
-          Mouvement de stock
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/employee-stock`}>
+              <Package className="h-4 w-4 mr-2" />
+              Mon Stock
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/stock-requests`}>
+              <Clock className="h-4 w-4 mr-2" />
+              Requêtes
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -266,7 +341,7 @@ export default function StoreStockPage() {
           <DataTable
             columns={columns}
             data={stocks || []}
-            searchKey="product.name"
+            searchKey="productName"
             searchPlaceholder="Rechercher un produit..."
           />
         </CardContent>

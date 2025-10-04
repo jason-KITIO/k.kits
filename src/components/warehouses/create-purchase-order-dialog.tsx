@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreatePurchaseOrder } from "@/hooks/use-warehouses";
+import { useCreatePurchaseOrder, useSuppliers, useProducts } from "@/hooks/use-warehouses";
+import { useCurrencyFormatter } from "@/hooks/use-currency";
 import {
   purchaseOrderCreateSchema,
   type PurchaseOrderCreateInput,
@@ -33,7 +34,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface CreatePurchaseOrderDialogProps {
   open: boolean;
@@ -49,6 +55,9 @@ export function CreatePurchaseOrderDialog({
   warehouseId,
 }: CreatePurchaseOrderDialogProps) {
   const createOrder = useCreatePurchaseOrder(organizationId, warehouseId);
+  const { data: suppliers, isLoading: suppliersLoading } = useSuppliers(organizationId);
+  const { data: products, isLoading: productsLoading } = useProducts(organizationId);
+  const formatCurrency = useCurrencyFormatter(organizationId);
 
   const form = useForm<PurchaseOrderCreateInput>({
     resolver: zodResolver(purchaseOrderCreateSchema),
@@ -76,9 +85,21 @@ export function CreatePurchaseOrderDialog({
     }
   };
 
+  const handleProductChange = (productId: string, index: number) => {
+    const selectedProduct = products?.find(p => p.id === productId);
+    if (selectedProduct) {
+      form.setValue(`items.${index}.unitPrice`, Number(selectedProduct.unitPrice));
+    }
+  };
+
+  const watchedItems = form.watch('items');
+  const totalAmount = watchedItems?.reduce((sum, item) => {
+    return sum + (item.quantity * item.unitPrice);
+  }, 0) || 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Créer une commande d'achat</DialogTitle>
           <DialogDescription>
@@ -103,9 +124,21 @@ export function CreatePurchaseOrderDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {/* TODO: Charger la liste des fournisseurs */}
-                      <SelectItem value="supplier1">Fournisseur 1</SelectItem>
-                      <SelectItem value="supplier2">Fournisseur 2</SelectItem>
+                      {suppliersLoading ? (
+                        <SelectItem value="" disabled>
+                          Chargement...
+                        </SelectItem>
+                      ) : suppliers && suppliers.length > 0 ? (
+                        suppliers.map((supplier) => (
+                          <SelectItem key={supplier.id} value={supplier.id}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          Aucun fournisseur disponible
+                        </SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -117,11 +150,37 @@ export function CreatePurchaseOrderDialog({
               control={form.control}
               name="expectedDate"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Date de livraison prévue</FormLabel>
-                  <FormControl>
-                    <Input type="datetime-local" {...field} />
-                  </FormControl>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(new Date(field.value), "PPP", { locale: fr })
+                          ) : (
+                            <span>Sélectionner une date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => field.onChange(date?.toISOString())}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -154,7 +213,10 @@ export function CreatePurchaseOrderDialog({
                         <FormItem className="flex-1">
                           <FormLabel>Produit</FormLabel>
                           <Select
-                            onValueChange={field.onChange}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              handleProductChange(value, index);
+                            }}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -163,13 +225,32 @@ export function CreatePurchaseOrderDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {/* TODO: Charger la liste des produits */}
-                              <SelectItem value="product1">
-                                Produit 1
-                              </SelectItem>
-                              <SelectItem value="product2">
-                                Produit 2
-                              </SelectItem>
+                              {productsLoading ? (
+                                <SelectItem value="" disabled>
+                                  Chargement...
+                                </SelectItem>
+                              ) : products && products.length > 0 ? (
+                                products.map((product) => (
+                                  <SelectItem key={product.id} value={product.id}>
+                                    <div className="flex justify-between items-start w-full">
+                                      <div className="flex flex-col items-start">
+                                        <span className="font-medium">{product.name}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          SKU: {product.sku}
+                                          {product.category && ` • ${product.category.name}`}
+                                        </span>
+                                      </div>
+                                      <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                                        {formatCurrency(product.unitPrice)}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="" disabled>
+                                  Aucun produit disponible
+                                </SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -209,10 +290,12 @@ export function CreatePurchaseOrderDialog({
                               type="number"
                               step="0.01"
                               min="0"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(parseFloat(e.target.value) || 0)
-                              }
+                              placeholder="0.00"
+                              value={field.value || ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                field.onChange(value === '' ? 0 : Number(value));
+                              }}
                             />
                           </FormControl>
                           <FormMessage />
@@ -234,6 +317,22 @@ export function CreatePurchaseOrderDialog({
               </CardContent>
             </Card>
 
+            {/* Récapitulatif */}
+            {watchedItems && watchedItems.length > 0 && totalAmount > 0 && (
+              <Card className="bg-muted/50">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-muted-foreground">
+                      {watchedItems.length} article(s) - {watchedItems.reduce((sum, item) => sum + item.quantity, 0)} unité(s)
+                    </div>
+                    <div className="text-lg font-semibold text-foreground">
+                      Total: {formatCurrency(totalAmount)}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
@@ -242,7 +341,10 @@ export function CreatePurchaseOrderDialog({
               >
                 Annuler
               </Button>
-              <Button type="submit" disabled={createOrder.isPending}>
+              <Button 
+                type="submit" 
+                disabled={createOrder.isPending || suppliersLoading || productsLoading}
+              >
                 {createOrder.isPending ? "Création..." : "Créer la commande"}
               </Button>
             </div>

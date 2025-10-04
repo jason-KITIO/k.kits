@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma"
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { sendOtpVerificationEmail } from "@/lib/email";
 
 const OTP_VALIDITY_MINUTES = 10;
@@ -138,20 +139,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const otp = generateOtp();
-    const expiry = new Date(Date.now() + OTP_VALIDITY_MINUTES * 60 * 1000);
+    // Vérifier si l'utilisateur ne s'est pas connecté depuis plus d'un mois
+    const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const requiresOtp = !user.lastSignInAt || user.lastSignInAt < oneMonthAgo;
 
-    await prisma.user.update({
-      where: { id: user.id },
+    if (requiresOtp) {
+      const otp = generateOtp();
+      const expiry = new Date(Date.now() + OTP_VALIDITY_MINUTES * 60 * 1000);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          verificationToken: otp,
+          verificationTokenExpiry: expiry,
+        },
+      });
+
+      await sendOtpVerificationEmail(email, otp);
+
+      return NextResponse.json({ 
+        message: "Code OTP envoyé par email",
+        requiresOtp: true 
+      });
+    }
+
+    // Connexion directe sans OTP
+    const sessionToken = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 jours
+
+    await prisma.userSession.create({
       data: {
-        verificationToken: otp,
-        verificationTokenExpiry: expiry,
+        userId: user.id,
+        sessionToken,
+        expiresAt,
+        ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
+        userAgent: request.headers.get("user-agent") || "unknown",
       },
     });
 
-    await sendOtpVerificationEmail(email, otp);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastSignInAt: new Date() },
+    });
 
-    return NextResponse.json({ message: "Code OTP envoyé par email" });
+    const cookieValue = `session_token=${sessionToken}; HttpOnly; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`;
+
+    const response = NextResponse.json({ 
+      message: "Connexion réussie",
+      requiresOtp: false,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      }
+    });
+
+    response.headers.append("Set-Cookie", cookieValue);
+    return response;
   } catch {
     console.error("Erreur envoi OTP");
     return NextResponse.json(

@@ -9,14 +9,13 @@ export async function GET(
   const { organizationId, storeId } = await params;
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
-  const returnedById = searchParams.get("returnedById");
+  const employeeId = searchParams.get("employeeId");
 
   try {
     const where = {
-      storeId,
-      store: { organizationId },
+      organizationId,
       ...(status && { status }),
-      ...(returnedById && { returnedById })
+      ...(employeeId && { employeeId })
     };
 
     const returns = await prisma.stockReturn.findMany({

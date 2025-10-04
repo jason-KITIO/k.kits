@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useStore } from "@/hooks/useStore";
-import { PageLoader } from "@/components/ui/loading-spinner";
+import { FormSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Settings, Save, Store } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 type StoreFormData = {
@@ -30,16 +30,28 @@ export default function StoreSettingsPage() {
   const { data: store, isLoading } = useStore(organizationId, storeId);
   
   const [formData, setFormData] = useState<StoreFormData>({
-    name: store?.name || "",
-    address: store?.address || "",
-    phone: store?.phone || "",
-    type: store?.type || "PHYSICAL",
-    active: store?.active || true,
+    name: "",
+    address: "",
+    phone: "",
+    type: "PHYSICAL",
+    active: true,
   });
+
+  useEffect(() => {
+    if (store) {
+      setFormData({
+        name: store.name || "",
+        address: store.address || "",
+        phone: store.phone || "",
+        type: store.type || "PHYSICAL",
+        active: store.active ?? true,
+      });
+    }
+  }, [store]);
 
   const [isSaving, setIsSaving] = useState(false);
 
-  if (isLoading) return <PageLoader text="Chargement des paramètres..." />;
+  if (isLoading) return <FormSkeleton />;
 
   const handleSave = async () => {
     setIsSaving(true);

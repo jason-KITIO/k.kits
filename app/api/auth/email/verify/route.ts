@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { sendWelcomeEmail } from "@/lib/email";
+
+const SESSION_EXPIRES_IN = 60 * 60 * 24 * 30; // 30 jours
 
 /**
  * @swagger
@@ -76,19 +79,49 @@ export async function GET(request: Request) {
       );
     }
 
+    const now = new Date();
     const updatedUser = await prisma.user.update({
       where: { id: decoded.userId },
-      data: { emailVerified: true, updatedAt: new Date() },
+      data: { 
+        emailVerified: true, 
+        lastSignInAt: now,
+        updatedAt: now 
+      },
+    });
+
+    // Créer une session automatiquement
+    const sessionToken = crypto.randomUUID();
+    const expiresAt = new Date(now.getTime() + SESSION_EXPIRES_IN * 1000);
+
+    await prisma.userSession.create({
+      data: {
+        userId: updatedUser.id,
+        sessionToken,
+        expiresAt,
+        createdAt: now,
+        lastActiveAt: now,
+        active: true,
+      },
     });
 
     if (updatedUser.emailVerified && updatedUser.phoneVerified) {
       await sendWelcomeEmail(updatedUser.email, updatedUser.firstName ?? "");
     }
 
-    // // Envoyer l'email de bienvenue dès la vérification de l'email
-    // await sendWelcomeEmail(updatedUser.email, updatedUser.firstName ?? "Utilisateur");
+    const cookieValue = `session_token=${sessionToken}; HttpOnly; Path=/; Max-Age=${SESSION_EXPIRES_IN}; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`;
 
-    return NextResponse.json({ message: "Email vérifié avec succès" });
+    const response = NextResponse.json({ 
+      message: "Email vérifié avec succès",
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+      }
+    });
+
+    response.headers.append("Set-Cookie", cookieValue);
+    return response;
   } catch {
     console.error("Erreur vérification email");
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });

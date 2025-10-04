@@ -15,6 +15,8 @@ export const useCurrentUser = () => {
 
 // Hook recommandé pour les nouveaux composants
 export const useUser = () => {
-  console.warn("useCurrentUser is deprecated. Use useAuth from @/providers/auth-provider instead.");
+  if (process.env.NODE_ENV === 'development') {
+    console.warn("useCurrentUser is deprecated. Use useAuth from @/providers/auth-provider instead.");
+  }
   return useAuth();
 };

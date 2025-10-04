@@ -18,6 +18,7 @@ export * from './supplier.schema';
 export * from './stock.schema';
 export * from './store-schema';
 export * from './warehouse.schema';
+export * from './warehouse-to-store-transfer.schema';
 export * from './organization-schema';
 export * from './role-schema';
 export * from './user-schema';
@@ -26,6 +27,8 @@ export * from './auth-schema';
 export * from './phone-auth';
 
 // New schemas for employee stock system
-export * from './employee-stock.schema';
 export * from './stock-movement-request.schema';
 export * from './stock-return.schema';
+
+// Reports schemas
+export * from './report.schema';

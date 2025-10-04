@@ -2,41 +2,47 @@
 
 import { useState, useEffect } from "react";
 
+const STORAGE_KEY = 'selected-org-id';
+
+function loadOrganizationId(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const cookies = document.cookie.split(";");
+    const orgCookie = cookies.find((cookie) =>
+      cookie.trim().startsWith("selected-org-id=")
+    );
+
+    if (orgCookie) {
+      return orgCookie.split("=")[1];
+    }
+    
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function saveOrganizationId(orgId: string) {
+  if (typeof window === 'undefined') return;
+  
+  localStorage.setItem(STORAGE_KEY, orgId);
+  document.cookie = `selected-org-id=${orgId}; path=/; max-age=${60 * 60 * 24 * 30}`;
+}
+
 export function useOrganization() {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Récupérer l'organizationId depuis le cookie ou localStorage
-    const getOrganizationId = () => {
-      // Méthode 1: Depuis les cookies (côté client)
-      const cookies = document.cookie.split(";");
-      const orgCookie = cookies.find((cookie) =>
-        cookie.trim().startsWith("selected-org-id=")
-      );
-
-      if (orgCookie) {
-        const orgId = orgCookie.split("=")[1];
-        return orgId;
-      }
-
-      // Méthode 2: Depuis localStorage en fallback
-      const storedOrgId = localStorage.getItem("selected-org-id");
-      return storedOrgId;
-    };
-
-    const orgId = getOrganizationId();
+    const orgId = loadOrganizationId();
     setOrganizationId(orgId);
     setIsLoading(false);
   }, []);
 
   const setCurrentOrganization = (orgId: string) => {
+    saveOrganizationId(orgId);
     setOrganizationId(orgId);
-    localStorage.setItem("selected-org-id", orgId);
-    // Optionnel: Mettre à jour le cookie côté client
-    document.cookie = `selected-org-id=${orgId}; path=/; max-age=${
-      60 * 60 * 24 * 30
-    }`;
   };
 
   return {

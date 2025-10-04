@@ -9,12 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Building } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supplierCreateSchema, type SupplierCreateInput } from "@/schema/supplier.schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useCreateSupplier } from "@/hooks/useSuppliers";
 
 export default function NewSupplierPage() {
   const params = useParams();
@@ -22,7 +21,7 @@ export default function NewSupplierPage() {
   const organizationId = params.id as string;
   const storeId = params.storeId as string | undefined;
   
-  const [isLoading, setIsLoading] = useState(false);
+  const createSupplier = useCreateSupplier(organizationId);
 
   const form = useForm<SupplierCreateInput>({
     resolver: zodResolver(supplierCreateSchema),
@@ -40,36 +39,11 @@ export default function NewSupplierPage() {
   });
 
   const handleSubmit = async (data: SupplierCreateInput) => {
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch(
-        storeId 
-          ? `/api/organization/${organizationId}/stores/${storeId}/suppliers`
-          : `/api/organization/${organizationId}/suppliers`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(data),
-        }
-      );
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erreur lors de la création');
-      }
-      
-      toast.success("Fournisseur créé avec succès");
-      const redirectPath = storeId 
-        ? `/preferences/organizations/${organizationId}/stores/${storeId}/suppliers`
-        : `/preferences/organizations/${organizationId}/suppliers`;
-      router.push(redirectPath);
-    } catch (error: any) {
-      toast.error(error.message || "Erreur lors de la création du fournisseur");
-    } finally {
-      setIsLoading(false);
-    }
+    await createSupplier.mutateAsync(data);
+    const redirectPath = storeId 
+      ? `/preferences/organizations/${organizationId}/stores/${storeId}/suppliers`
+      : `/preferences/organizations/${organizationId}/suppliers`;
+    router.push(redirectPath);
   };
 
   return (
@@ -90,7 +64,7 @@ export default function NewSupplierPage() {
         </div>
       </div>
 
-      {/* <Form {...form}> */}
+      <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 max-w-4xl">
           <Card>
             <CardHeader>
@@ -240,19 +214,20 @@ export default function NewSupplierPage() {
             </CardContent>
           </Card>
 
-        <div className="flex gap-2">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Création..." : "Créer le fournisseur"}
-          </Button>
-          <Button type="button" variant="outline" asChild>
-            <Link href={storeId 
-              ? `/preferences/organizations/${organizationId}/stores/${storeId}/suppliers`
-              : `/preferences/organizations/${organizationId}/suppliers`}>
-              Annuler
-            </Link>
-          </Button>
-        </div>
-      </form>
+          <div className="flex gap-2">
+            <Button type="submit" disabled={createSupplier.isPending}>
+              {createSupplier.isPending ? "Création..." : "Créer le fournisseur"}
+            </Button>
+            <Button type="button" variant="outline" asChild>
+              <Link href={storeId 
+                ? `/preferences/organizations/${organizationId}/stores/${storeId}/suppliers`
+                : `/preferences/organizations/${organizationId}/suppliers`}>
+                Annuler
+              </Link>
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

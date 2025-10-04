@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { storeService } from "@/services/store-service";
-import type { SaleCreateInput, StockAdjustmentInput } from "@/schema";
+import type { SaleCreateInput, StockMovementAdjustmentInput } from "@/schema";
 
 export const useStores = (organizationId: string) => {
   return useQuery({
@@ -178,7 +178,7 @@ export const useCreateStockAdjustment = (
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: StockAdjustmentInput) =>
+    mutationFn: async (data: StockMovementAdjustmentInput) =>
       await storeService.createStockAdjustment(organizationId, storeId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -242,6 +242,27 @@ export const useCreateStore = () => {
   });
 };
 
+export const useStoreCustomer = (
+  organizationId: string,
+  storeId: string,
+  customerId: string
+) => {
+  return useQuery({
+    queryKey: [
+      "organization",
+      organizationId,
+      "stores",
+      storeId,
+      "customers",
+      customerId,
+    ],
+    queryFn: async () =>
+      await storeService.getCustomer(organizationId, storeId, customerId),
+    enabled: !!organizationId && !!storeId && !!customerId,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 export const useCreateCustomer = (organizationId: string, storeId: string) => {
   const queryClient = useQueryClient();
 
@@ -257,6 +278,72 @@ export const useCreateCustomer = (organizationId: string, storeId: string) => {
           storeId,
           "customers",
         ],
+      });
+    },
+  });
+};
+
+export const useUpdateCustomer = (organizationId: string, storeId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      customerId,
+      data,
+    }: {
+      customerId: string;
+      data: any;
+    }) => await storeService.updateCustomer(organizationId, storeId, customerId, data),
+    onSuccess: (_, { customerId }) => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "organization",
+          organizationId,
+          "stores",
+          storeId,
+          "customers",
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "organization",
+          organizationId,
+          "stores",
+          storeId,
+          "customers",
+          customerId,
+        ],
+      });
+    },
+  });
+};
+
+export const useDeleteCustomer = (organizationId: string, storeId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (customerId: string) =>
+      await storeService.deleteCustomer(organizationId, storeId, customerId),
+    onSuccess: (_, customerId) => {
+      queryClient.removeQueries({
+        queryKey: [
+          "organization",
+          organizationId,
+          "stores",
+          storeId,
+          "customers",
+          customerId,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "organization",
+          organizationId,
+          "stores",
+          storeId,
+          "customers",
+        ],
+        exact: true,
       });
     },
   });
@@ -297,6 +384,55 @@ export const useCreateProduct = (organizationId: string, storeId: string) => {
           storeId,
           "products",
         ],
+      });
+    },
+  });
+};
+
+export const useUpdateStore = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      organizationId,
+      storeId,
+      data,
+    }: {
+      organizationId: string;
+      storeId: string;
+      data: any;
+    }) => await storeService.updateStore(organizationId, storeId, data),
+    onSuccess: (_, { organizationId, storeId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["organization", organizationId, "stores"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["organization", organizationId, "stores", storeId],
+      });
+    },
+  });
+};
+
+export const useDeleteStore = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      organizationId,
+      storeId,
+    }: {
+      organizationId: string;
+      storeId: string;
+    }) => await storeService.deleteStore(organizationId, storeId),
+    onSuccess: (_, { organizationId, storeId }) => {
+      // Supprimer les données du cache au lieu de les invalider
+      queryClient.removeQueries({
+        queryKey: ["organization", organizationId, "stores", storeId],
+      });
+      // Invalider seulement la liste des stores
+      queryClient.invalidateQueries({
+        queryKey: ["organization", organizationId, "stores"],
+        exact: true,
       });
     },
   });

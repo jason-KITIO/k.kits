@@ -1,31 +1,34 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useWarehouses, useDeleteWarehouse } from "@/hooks/use-warehouses";
+import { useWarehouses } from "@/hooks/use-warehouses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MapPin, Phone, User, Package, Trash2, Edit } from "lucide-react";
+import { Plus, MapPin, Phone, User, Package, Trash2, Edit, MoreHorizontal, Copy } from "lucide-react";
 import { CreateWarehouseDialog } from "@/components/warehouses/create-warehouse-dialog";
 import { useState } from "react";
 import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DeleteWarehouseDialog } from "@/components/warehouses/delete-warehouse-dialog";
 
 export default function WarehousesPage() {
   const params = useParams();
   const organizationId = params.id as string;
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [warehouseToDelete, setWarehouseToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const { data: warehouses, isLoading } = useWarehouses(organizationId);
-  const deleteWarehouse = useDeleteWarehouse(organizationId);
 
-  const handleDelete = async (warehouseId: string, warehouseName: string) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'entrepôt "${warehouseName}" ?`)) {
-      try {
-        await deleteWarehouse.mutateAsync(warehouseId);
-      } catch (error) {
-        console.error("Erreur lors de la suppression:", error);
-      }
-    }
+  const handleDeleteClick = (warehouseId: string, warehouseName: string) => {
+    setWarehouseToDelete({ id: warehouseId, name: warehouseName });
+    setDeleteDialogOpen(true);
   };
 
   const getTypeLabel = (type: string) => {
@@ -86,25 +89,34 @@ export default function WarehousesPage() {
                     {getTypeLabel(warehouse.type)}
                   </Badge>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    asChild
-                  >
-                    <Link href={`/preferences/organizations/${organizationId}/warehouses/${warehouse.id}`}>
-                      <Edit className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(warehouse.id, warehouse.name)}
-                    disabled={deleteWarehouse.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/preferences/organizations/${organizationId}/warehouses/${warehouse.id}/edit`}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Modifier
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/preferences/organizations/${organizationId}/warehouses/new?duplicate=${warehouse.id}`}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Dupliquer
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDeleteClick(warehouse.id, warehouse.name)}
+                      className="text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Supprimer
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -176,6 +188,18 @@ export default function WarehousesPage() {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         organizationId={organizationId}
+      />
+
+      <DeleteWarehouseDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        warehouseId={warehouseToDelete?.id || ''}
+        warehouseName={warehouseToDelete?.name || ''}
+        organizationId={organizationId}
+        onSuccess={() => {
+          setWarehouseToDelete(null);
+          setDeleteDialogOpen(false);
+        }}
       />
     </div>
   );

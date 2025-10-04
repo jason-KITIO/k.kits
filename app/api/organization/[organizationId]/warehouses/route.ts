@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPermission } from "@/lib/route-protection";
 import { PERMISSIONS } from "@/lib/permissions";
-import { warehouseCreateSchema } from "@/schema/warehouse.schema";
 import prisma from "@/lib/prisma";
+import { warehouseCreateSchema } from "@/schema/warehouse.schema";
 
-export const GET = withPermission(PERMISSIONS.ORG_SETTINGS)(
+export const GET = withPermission(PERMISSIONS.WAREHOUSE_READ)(
   async (
     req: NextRequest,
     { params }: { params: Promise<{ organizationId: string }> }
@@ -13,37 +13,39 @@ export const GET = withPermission(PERMISSIONS.ORG_SETTINGS)(
 
     const warehouses = await prisma.warehouse.findMany({
       where: { organizationId, active: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: { name: "asc" },
     });
 
     return NextResponse.json(warehouses);
   }
 );
 
-export const POST = withPermission(PERMISSIONS.ORG_SETTINGS)(
+export const POST = withPermission(PERMISSIONS.WAREHOUSE_CREATE)(
   async (
     req: NextRequest,
     { params }: { params: Promise<{ organizationId: string }> }
   ) => {
     const { organizationId } = await params;
-
+    
     try {
-      const json = await req.json();
-      const data = warehouseCreateSchema.parse(json);
-
+      const body = await req.json();
+      const parsed = warehouseCreateSchema.safeParse(body);
+      
+      if (!parsed.success) {
+        return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
+      }
+      
       const warehouse = await prisma.warehouse.create({
         data: {
-          ...data,
+          ...parsed.data,
           organizationId,
         },
       });
-
+      
       return NextResponse.json(warehouse, { status: 201 });
     } catch (error) {
-      if (error instanceof Error) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-      }
-      return NextResponse.json({ error: "Erreur inconnue" }, { status: 400 });
+      console.error("Erreur POST warehouse", error);
+      return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
     }
   }
 );

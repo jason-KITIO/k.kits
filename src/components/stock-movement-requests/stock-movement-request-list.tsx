@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Plus, Package, ArrowRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CreateStockMovementRequestDialog } from "./create-stock-movement-request-dialog";
 import { ApprovalDialog } from "./approval-dialog";
 import type { StockMovementRequestWithRelations } from "@/types/stock-movement-request";
@@ -34,7 +35,53 @@ export function StockMovementRequestList({ organizationId, storeId, status }: St
     return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
 
-  if (isLoading) return <div>Chargement des demandes...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-[250px]" />
+          <Skeleton className="h-10 w-[180px]" />
+        </div>
+        <div className="grid gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-5" />
+                  <Skeleton className="h-5 w-[150px]" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-[80px]" />
+                  <Skeleton className="h-8 w-[60px]" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-8 w-[40px]" />
+                    <Skeleton className="h-4 w-[120px]" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-[100px]" />
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-[100px]" />
+                  </div>
+                  <div className="bg-muted p-3 rounded-lg">
+                    <Skeleton className="h-4 w-[150px] mb-1" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-[150px]" />
+                    <Skeleton className="h-4 w-[80px]" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

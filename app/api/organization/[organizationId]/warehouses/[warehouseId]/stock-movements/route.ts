@@ -64,6 +64,38 @@ export async function POST(
       );
     }
 
+    // Vérifier le stock disponible pour les mouvements sortants
+    if (data.fromWarehouseId) {
+      const currentStock = await prisma.stock.findFirst({
+        where: {
+          productId: data.productId,
+          warehouseId: data.fromWarehouseId,
+          storeId: null,
+          organizationId,
+        },
+      });
+
+      if (!currentStock || currentStock.quantity < data.quantity) {
+        const product = await prisma.product.findUnique({
+          where: { id: data.productId },
+          select: { name: true, sku: true }
+        });
+        return NextResponse.json(
+          { 
+            error: `Stock insuffisant pour le mouvement du produit ${product?.name || data.productId}`,
+            details: {
+              productId: data.productId,
+              productName: product?.name,
+              sku: product?.sku,
+              requested: data.quantity,
+              available: currentStock?.quantity || 0
+            }
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Créer le mouvement et ajuster quantités en transaction
     const result = await prisma.$transaction(async (tx) => {
       const movement = await tx.stockMovement.create({

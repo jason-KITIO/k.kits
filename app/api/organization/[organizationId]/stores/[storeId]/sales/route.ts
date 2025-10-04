@@ -30,13 +30,45 @@ export const GET = withPermission(PERMISSIONS.SALE_READ)(
 export const POST = withPermission(PERMISSIONS.SALE_CREATE)(
   async (
     req: NextRequest,
-    { params }: { params: Promise<{ organizationId: string; storeId: string }> }
+    { params, user }: { params: Promise<{ organizationId: string; storeId: string }>; user: any }
   ) => {
     const { organizationId, storeId } = await params;
 
     try {
       const json = await req.json();
       const data = saleCreateSchema.parse(json);
+
+      // Vérifier le stock disponible avant de créer la vente
+      const stockItems = await prisma.stock.findMany({
+        where: {
+          storeId,
+          productId: { in: data.items.map(item => item.productId) },
+          organizationId,
+        },
+      });
+
+      for (const item of data.items) {
+        const stockItem = stockItems.find(s => s.productId === item.productId);
+        if (!stockItem || stockItem.quantity < item.quantity) {
+          const product = await prisma.product.findUnique({
+            where: { id: item.productId },
+            select: { name: true, sku: true }
+          });
+          return NextResponse.json(
+            { 
+              error: `Stock insuffisant pour le produit ${product?.name || item.productId}`,
+              details: {
+                productId: item.productId,
+                productName: product?.name,
+                sku: product?.sku,
+                requested: item.quantity,
+                available: stockItem?.quantity || 0
+              }
+            },
+            { status: 400 }
+          );
+        }
+      }
 
       const result = await prisma.$transaction(async (tx) => {
         // Calculer le montant total
@@ -48,13 +80,13 @@ export const POST = withPermission(PERMISSIONS.SALE_CREATE)(
         // Créer la vente
         const sale = await tx.sale.create({
           data: {
-            customerId: data.customerId,
+            customerId: data.customerId || null,
             storeId,
             totalAmount,
             paidAmount: data.paidAmount,
             status: data.status,
             dueDate: data.dueDate ? new Date(data.dueDate) : null,
-            userId: req.headers.get("user-id") || "",
+            userId: user.id,
             organizationId,
           },
         });
@@ -82,7 +114,7 @@ export const POST = withPermission(PERMISSIONS.SALE_CREATE)(
               quantity: item.quantity,
               type: "SALE",
               reference: sale.id,
-              userId: req.headers.get("user-id") || "",
+              userId: user.id,
               organizationId,
             },
           });
@@ -106,10 +138,14 @@ export const POST = withPermission(PERMISSIONS.SALE_CREATE)(
 
       return NextResponse.json(result, { status: 201 });
     } catch (error) {
+      console.error("Erreur création vente:", error);
       if (error instanceof z.ZodError) {
-        return NextResponse.json({ errors: error }, { status: 400 });
+        return NextResponse.json({ errors: error.errors }, { status: 400 });
       }
-      return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+      return NextResponse.json({ 
+        error: "Erreur interne", 
+        details: error instanceof Error ? error.message : String(error) 
+      }, { status: 500 });
     }
   }
 );

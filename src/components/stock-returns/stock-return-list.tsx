@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Plus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CreateStockReturnDialog } from "./create-stock-return-dialog";
 import { ProcessReturnDialog } from "./process-return-dialog";
 import type { StockReturnWithRelations } from "@/types/stock-return";
@@ -41,7 +42,38 @@ export function StockReturnList({ organizationId, storeId, status }: StockReturn
     return <Badge variant={variants[status as keyof typeof variants] || "default"}>{status}</Badge>;
   };
 
-  if (isLoading) return <div>Chargement...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-[180px]" />
+          <Skeleton className="h-10 w-[130px]" />
+        </div>
+        <div className="grid gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-[200px]" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-[80px]" />
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[180px]" />
+                  <Skeleton className="h-4 w-[120px]" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-[100px]" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

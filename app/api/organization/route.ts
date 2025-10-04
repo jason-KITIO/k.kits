@@ -87,28 +87,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
     }
 
-    // 1. Initialiser les permissions et rôles de base
+    // 1. Initialiser les permissions et rôles de base (seulement si nécessaire)
     await seedPermissions();
 
-    // 2. Création organisation
-    const newOrg = await prisma.organization.create({
-      data: {
-        name: parsed.data.name,
-        description: parsed.data.description,
-        domain: parsed.data.domain,
-        logo: parsed.data.logo,
-        address: parsed.data.address,
-        phone: parsed.data.phone,
-        email: parsed.data.email,
-        createdBy: userId,
-      },
+    // 2. Utiliser une transaction pour toutes les opérations
+    const result = await prisma.$transaction(async (tx) => {
+      // Création organisation
+      const newOrg = await tx.organization.create({
+        data: {
+          name: parsed.data.name,
+          description: parsed.data.description,
+          domain: parsed.data.domain,
+          logo: parsed.data.logo,
+          address: parsed.data.address,
+          phone: parsed.data.phone,
+          email: parsed.data.email,
+          createdBy: userId,
+        },
+      });
+
+      return newOrg;
     });
 
     // 3. Lier tous les rôles par défaut à cette organisation
-    await linkRolesToOrganization(newOrg.id);
+    await linkRolesToOrganization(result.id);
 
     // 4. Assigner le rôle OWNER au créateur
-    await assignOwnerRole(userId, newOrg.id);
+    await assignOwnerRole(userId, result.id);
+
+    const newOrg = result;
 
     // console.log("Organisation créée avec succès:", newOrg.id);
     return NextResponse.json(newOrg, { status: 201 });

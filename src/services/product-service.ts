@@ -30,10 +30,11 @@ type ProductFilters = {
   limit?: number;
 };
 
-const getApiBase = (organizationId: string) => `/api/organization/${organizationId}/products`;
+const getApiBase = (organizationId: string, storeId?: string) => 
+  storeId ? `/api/organization/${organizationId}/stores/${storeId}/products` : `/api/organization/${organizationId}/products`;
 
 export const productService = {
-  getProducts: async (organizationId: string, filters: Partial<ProductFilters> = {}): Promise<Product[]> => {
+  getProducts: async (organizationId: string, filters: Partial<ProductFilters> = {}, storeId?: string): Promise<Product[]> => {
     const params = new URLSearchParams();
     
     if (filters.search) params.append('search', filters.search);
@@ -41,7 +42,7 @@ export const productService = {
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.limit) params.append('limit', filters.limit.toString());
 
-    const response = await fetch(`${getApiBase(organizationId)}?${params}`, {
+    const response = await fetch(`${getApiBase(organizationId, storeId)}?${params}`, {
       credentials: 'include',
     });
     if (!response.ok) {
@@ -51,8 +52,8 @@ export const productService = {
     return response.json();
   },
 
-  getProduct: async (organizationId: string, id: string): Promise<Product> => {
-    const response = await fetch(`${getApiBase(organizationId)}/${id}`, {
+  getProduct: async (organizationId: string, id: string, storeId?: string): Promise<Product> => {
+    const response = await fetch(`${getApiBase(organizationId, storeId)}/${id}`, {
       credentials: 'include',
     });
     if (!response.ok) {
@@ -62,8 +63,8 @@ export const productService = {
     return response.json();
   },
 
-  createProduct: async (organizationId: string, data: productCreateInput): Promise<Product> => {
-    const response = await fetch(getApiBase(organizationId), {
+  createProduct: async (organizationId: string, data: productCreateInput, storeId?: string): Promise<Product> => {
+    const response = await fetch(getApiBase(organizationId, storeId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -76,8 +77,8 @@ export const productService = {
     return response.json();
   },
 
-  updateProduct: async (organizationId: string, id: string, data: productUpdateInput): Promise<Product> => {
-    const response = await fetch(`${getApiBase(organizationId)}/${id}`, {
+  updateProduct: async (organizationId: string, id: string, data: productUpdateInput, storeId?: string): Promise<Product> => {
+    const response = await fetch(`${getApiBase(organizationId, storeId)}/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -90,8 +91,8 @@ export const productService = {
     return response.json();
   },
 
-  deleteProduct: async (organizationId: string, id: string): Promise<void> => {
-    const response = await fetch(`${getApiBase(organizationId)}/${id}`, {
+  deleteProduct: async (organizationId: string, id: string, storeId?: string): Promise<void> => {
+    const response = await fetch(`${getApiBase(organizationId, storeId)}/${id}`, {
       method: 'DELETE',
       credentials: 'include',
     });

@@ -47,21 +47,32 @@ export const POST = withPermission(PERMISSIONS.PURCHASE_ORDER_CREATE)(
           return sum + item.quantity * item.unitPrice;
         }, 0);
 
-        const user = await getUserFromCookie();
-        if (!user) {
+        const sessionToken = await getUserFromCookie();
+        if (!sessionToken) {
           throw new Error("Utilisateur non authentifié");
+        }
+
+        // Récupérer l'utilisateur depuis le token de session
+        const session = await tx.userSession.findUnique({
+          where: { sessionToken, active: true },
+          include: { user: true },
+        });
+
+        if (!session || !session.user) {
+          throw new Error("Session invalide");
         }
 
         const order = await tx.purchaseOrder.create({
           data: {
             supplierId: data.supplierId,
             warehouseId,
+            orderDate: new Date(),
             expectedDate: data.expectedDate
               ? new Date(data.expectedDate)
               : null,
             status: data.status,
             totalAmount,
-            userId: user,
+            userId: session.user.id,
             organizationId,
           },
         });
@@ -83,10 +94,14 @@ export const POST = withPermission(PERMISSIONS.PURCHASE_ORDER_CREATE)(
 
       return NextResponse.json(result, { status: 201 });
     } catch (error) {
+      console.error("Erreur lors de la création de la commande:", error);
       if (error instanceof z.ZodError) {
-        return NextResponse.json({ errors: error }, { status: 400 });
+        return NextResponse.json({ errors: error.errors }, { status: 400 });
       }
-      return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+      return NextResponse.json({ 
+        error: "Erreur interne", 
+        details: error instanceof Error ? error.message : String(error) 
+      }, { status: 500 });
     }
   }
 );

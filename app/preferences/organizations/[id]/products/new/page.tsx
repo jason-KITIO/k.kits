@@ -9,24 +9,41 @@ import { ArrowLeft, Package } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { productCreateSchema, type productCreateInput } from "@/schema/product.schema";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ProductFormData } from "@/types/product";
+import {
+  productCreateSchema,
+  type productCreateInput,
+} from "@/schema/product.schema";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCategories } from "@/hooks/useCategories";
+import { useSuppliers } from "@/hooks/useSuppliers";
+import { useWarehouses } from "@/hooks/useWarehouses";
 
 export default function NewProductPage() {
   const params = useParams();
   const router = useRouter();
   const organizationId = params.id as string;
-  const storeId = params.storeId as string | undefined;
-  
+
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<ProductFormData>({
+  const form = useForm({
     resolver: zodResolver(productCreateSchema),
     defaultValues: {
-      sku: "",
       name: "",
       description: "",
       color: "",
@@ -34,49 +51,68 @@ export default function NewProductPage() {
       costPrice: 0,
       weight: 0,
       dimensions: "",
-      minStock: 0,
-      maxStock: 0,
       active: true,
+      initialStock: 0,
+      categoryId: "",
+      supplierId: "",
+      warehouseId: "",
     },
   });
 
-  const handleSubmit = async (data: ProductFormData) => {
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useCategories(organizationId);
+  const {
+    data: suppliers = [],
+    isLoading: suppliersLoading,
+    error: suppliersError,
+  } = useSuppliers(organizationId);
+  const {
+    data: warehouses = [],
+    isLoading: warehousesLoading,
+    error: warehousesError,
+  } = useWarehouses(organizationId);
+
+  // Debug: afficher les erreurs dans la console
+  if (categoriesError) console.error("Categories error:", categoriesError);
+  if (suppliersError) console.error("Suppliers error:", suppliersError);
+  if (warehousesError) console.error("Warehouses error:", warehousesError);
+
+  const handleSubmit: SubmitHandler<productCreateInput> = async (data) => {
     setIsLoading(true);
-    
+
     try {
       const response = await fetch(
-        storeId 
-          ? `/api/organization/${organizationId}/stores/${storeId}/products`
-          : `/api/organization/${organizationId}/products`,
+        `/api/organization/${organizationId}/products`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify(data),
         }
       );
-      
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Erreur lors de la création');
+        throw new Error(error.error || "Erreur lors de la création");
       }
-      
+
       toast.success("Produit créé avec succès");
-      const redirectPath = storeId 
-        ? `/preferences/organizations/${organizationId}/stores/${storeId}/products`
-        : `/preferences/organizations/${organizationId}/products`;
-      router.push(redirectPath);
+      router.push(`/preferences/organizations/${organizationId}/products`);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la création du produit";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la création du produit";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const backPath = storeId 
-    ? `/preferences/organizations/${organizationId}/stores/${storeId}/products`
-    : `/preferences/organizations/${organizationId}/products`;
+  const backPath = `/preferences/organizations/${organizationId}/products`;
 
   return (
     <div className="space-y-6 p-6">
@@ -94,6 +130,29 @@ export default function NewProductPage() {
         </div>
       </div>
 
+      {(categoriesError || suppliersError || warehousesError) && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <h3 className="text-red-800 font-medium mb-2">
+            Erreurs de chargement :
+          </h3>
+          {categoriesError && (
+            <p className="text-red-600 text-sm">
+              Catégories: {categoriesError.message}
+            </p>
+          )}
+          {suppliersError && (
+            <p className="text-red-600 text-sm">
+              Fournisseurs: {suppliersError.message}
+            </p>
+          )}
+          {warehousesError && (
+            <p className="text-red-600 text-sm">
+              Entrepôts: {warehousesError.message}
+            </p>
+          )}
+        </div>
+      )}
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <Card>
@@ -104,35 +163,173 @@ export default function NewProductPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom du produit *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: T-shirt blanc" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid gap-4 md:grid-cols-3">
                 <FormField
                   control={form.control}
-                  name="sku"
+                  name="categoryId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Code produit (SKU) *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: PROD-001" {...field} />
-                      </FormControl>
+                      <FormLabel>Catégorie</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value ?? ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger
+                            disabled={categoriesLoading || !!categoriesError}
+                          >
+                            <SelectValue placeholder="Sélectionner une catégorie" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categoriesLoading ? (
+                            <SelectItem value="loading" disabled>
+                              Chargement...
+                            </SelectItem>
+                          ) : categoriesError ? (
+                            <SelectItem value="error" disabled>
+                              Erreur de chargement
+                            </SelectItem>
+                          ) : categories.length === 0 ? (
+                            <SelectItem value="empty" disabled>
+                              Aucune catégorie disponible
+                            </SelectItem>
+                          ) : (
+                            categories
+                              .filter((c) => c.active)
+                              .map((category) => (
+                                <SelectItem
+                                  key={category.id}
+                                  value={String(category.id)}
+                                >
+                                  {category.name}
+                                </SelectItem>
+                              ))
+                          )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="supplierId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nom du produit *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: T-shirt blanc" {...field} />
-                      </FormControl>
+                      <FormLabel>Fournisseur</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value ?? ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger
+                            disabled={suppliersLoading || !!suppliersError}
+                          >
+                            <SelectValue placeholder="Sélectionner un fournisseur" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {suppliersLoading ? (
+                            <SelectItem value="loading" disabled>
+                              Chargement...
+                            </SelectItem>
+                          ) : suppliersError ? (
+                            <SelectItem value="error" disabled>
+                              Erreur de chargement
+                            </SelectItem>
+                          ) : suppliers.length === 0 ? (
+                            <SelectItem value="empty" disabled>
+                              Aucun fournisseur disponible
+                            </SelectItem>
+                          ) : (
+                            suppliers
+                              .filter((s) => s.active)
+                              .map((supplier) => (
+                                <SelectItem
+                                  key={supplier.id}
+                                  value={String(supplier.id)}
+                                >
+                                  {supplier.name}
+                                </SelectItem>
+                              ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="warehouseId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Entrepôt</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value ?? ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger
+                            disabled={warehousesLoading || !!warehousesError}
+                          >
+                            <SelectValue placeholder="Sélectionner un entrepôt" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {warehousesLoading ? (
+                            <SelectItem value="loading" disabled>
+                              Chargement...
+                            </SelectItem>
+                          ) : warehousesError ? (
+                            <SelectItem value="error" disabled>
+                              Erreur de chargement
+                            </SelectItem>
+                          ) : warehouses.length === 0 ? (
+                            <SelectItem value="empty" disabled>
+                              Aucun entrepôt disponible
+                            </SelectItem>
+                          ) : (
+                            warehouses
+                              .filter((w) => w.active)
+                              .map((warehouse) => (
+                                <SelectItem
+                                  key={warehouse.id}
+                                  value={String(warehouse.id)}
+                                >
+                                  {warehouse.name}
+                                </SelectItem>
+                              ))
+                          )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              {/* Debug: Affichage des warehouses */}
+              <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
+                categories debug: {JSON.stringify(categories, null, 2)}
+              </p>
 
               <FormField
                 control={form.control}
@@ -141,7 +338,10 @@ export default function NewProductPage() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Description détaillée du produit" {...field} />
+                      <Textarea
+                        placeholder="Description détaillée du produit"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -155,7 +355,10 @@ export default function NewProductPage() {
                   <FormItem>
                     <FormLabel>Couleur</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Rouge, Bleu, #FF0000" {...field} />
+                      <Input
+                        placeholder="Ex: Rouge, Bleu, #FF0000"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -177,19 +380,21 @@ export default function NewProductPage() {
                     <FormItem>
                       <FormLabel>Prix de vente (FCFA) *</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.01" 
-                          min="0" 
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="costPrice"
@@ -197,12 +402,14 @@ export default function NewProductPage() {
                     <FormItem>
                       <FormLabel>Prix d'achat (FCFA) *</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.01" 
-                          min="0" 
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -215,48 +422,30 @@ export default function NewProductPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Gestion des stocks</CardTitle>
+              <CardTitle>Stock initial</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="minStock"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Stock minimum *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          min="0" 
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="maxStock"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Stock maximum</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          min="0" 
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="initialStock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quantité initiale</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value) || 0)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 
@@ -265,9 +454,7 @@ export default function NewProductPage() {
               {isLoading ? "Création..." : "Créer le produit"}
             </Button>
             <Button type="button" variant="outline" asChild>
-              <Link href={backPath}>
-                Annuler
-              </Link>
+              <Link href={backPath}>Annuler</Link>
             </Button>
           </div>
         </form>

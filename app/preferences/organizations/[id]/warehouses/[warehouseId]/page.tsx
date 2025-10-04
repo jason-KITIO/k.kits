@@ -1,39 +1,123 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useWarehouse, useWarehouseStock, useWarehouseStockMovements, useWarehousePurchaseOrders } from "@/hooks/use-warehouses";
+import {
+  useWarehouse,
+  useWarehouseStock,
+  useWarehouseStockMovements,
+  useWarehousePurchaseOrders,
+} from "@/hooks/use-warehouses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Package, TrendingUp, TrendingDown, ShoppingCart, Plus, Settings } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ArrowLeft,
+  Package,
+  TrendingUp,
+  TrendingDown,
+  ShoppingCart,
+  Plus,
+  Settings,
+  Store,
+  MoreHorizontal,
+  Eye,
+} from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { StockAdjustmentDialog } from "@/components/warehouses/stock-adjustment-dialog";
 import { CreatePurchaseOrderDialog } from "@/components/warehouses/create-purchase-order-dialog";
-import { useState } from "react";
+import { DeleteWarehouseDialog } from "@/components/warehouses/delete-warehouse-dialog";
+import { StockTransferDialog } from "@/components/warehouses/stock-transfer-dialog";
+import { StoreTransferDialog } from "@/components/warehouses/store-transfer-dialog";
+import { RestockDialog } from "@/components/warehouses/restock-dialog";
+import { useState, useEffect } from "react";
+import { useCurrencyFormatter } from "@/hooks/use-currency";
+import { Trash2, ArrowRightLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export default function WarehouseDetailsPage() {
   const params = useParams();
   const organizationId = params.id as string;
   const warehouseId = params.warehouseId as string;
+  
+  console.log('Params complets:', params); // Debug
+  console.log('OrganizationId:', organizationId); // Debug
+  console.log('WarehouseId:', warehouseId); // Debug
+  
   const [adjustmentDialogOpen, setAdjustmentDialogOpen] = useState(false);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [storeTransferDialogOpen, setStoreTransferDialogOpen] = useState(false);
+  const [restockDialogOpen, setRestockDialogOpen] = useState(false);
+  const formatCurrency = useCurrencyFormatter(organizationId);
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const { data: warehouse, isLoading: warehouseLoading } = useWarehouse(organizationId, warehouseId);
-  const { data: stock, isLoading: stockLoading } = useWarehouseStock(organizationId, warehouseId);
-  const { data: movements, isLoading: movementsLoading } = useWarehouseStockMovements(organizationId, warehouseId);
-  const { data: purchaseOrders, isLoading: ordersLoading } = useWarehousePurchaseOrders(organizationId, warehouseId);
+  const markAsReceivedMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      const response = await fetch(
+        `/api/organization/${organizationId}/warehouses/${warehouseId}/purchase-orders/${orderId}/receive`,
+        {
+          method: 'POST',
+          credentials: 'include',
+        }
+      );
+      if (!response.ok) {
+        throw new Error('Erreur lors de la réception de la commande');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['warehouse-purchase-orders', organizationId, warehouseId] });
+      queryClient.invalidateQueries({ queryKey: ['warehouse-stocks', organizationId, warehouseId] });
+      toast.success('Commande marquée comme reçue et stock mis à jour');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la réception de la commande');
+    },
+  });
+
+  const { data: warehouse, isLoading: warehouseLoading } = useWarehouse(
+    organizationId,
+    warehouseId
+  );
+  const { data: stock, isLoading: stockLoading } = useWarehouseStock(
+    organizationId,
+    warehouseId
+  );
+  const { data: movements, isLoading: movementsLoading } =
+    useWarehouseStockMovements(organizationId, warehouseId);
+  const { data: purchaseOrders, isLoading: ordersLoading } =
+    useWarehousePurchaseOrders(organizationId, warehouseId);
 
   const getMovementIcon = (type: string) => {
     switch (type) {
-      case 'IN':
-      case 'PURCHASE':
+      case "IN":
+      case "PURCHASE":
         return <TrendingUp className="h-4 w-4 text-green-600" />;
-      case 'OUT':
-      case 'SALE':
+      case "OUT":
+      case "SALE":
         return <TrendingDown className="h-4 w-4 text-red-600" />;
       default:
         return <Package className="h-4 w-4 text-blue-600" />;
@@ -46,10 +130,22 @@ export default function WarehouseDetailsPage() {
       CONFIRMED: "bg-blue-100 text-blue-800",
       SHIPPED: "bg-purple-100 text-purple-800",
       RECEIVED: "bg-green-100 text-green-800",
-      CANCELLED: "bg-red-100 text-red-800"
+      CANCELLED: "bg-red-100 text-red-800",
+      APPROVED: "bg-green-100 text-green-800",
+      REJECTED: "bg-red-100 text-red-800",
     };
     return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
+
+  if (!warehouseId || warehouseId === 'undefined') {
+    return (
+      <div className="p-6">
+        <p>ID d'entrepôt manquant</p>
+        <p>Params: {JSON.stringify(params)}</p>
+        <p>WarehouseId: {warehouseId}</p>
+      </div>
+    );
+  }
 
   if (warehouseLoading) {
     return <div className="p-6">Chargement...</div>;
@@ -63,7 +159,9 @@ export default function WarehouseDetailsPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/preferences/organizations/${organizationId}/warehouses`}>
+          <Link
+            href={`/preferences/organizations/${organizationId}/warehouses`}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour
           </Link>
@@ -81,6 +179,56 @@ export default function WarehouseDetailsPage() {
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle commande
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <MoreHorizontal className="h-4 w-4 mr-2" />
+                Actions
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setRestockDialogOpen(true)}>
+                <Package className="h-4 w-4 mr-2" />
+                Recharger produits
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => setTransferDialogOpen(true)}
+                disabled={!stock || stock.length === 0}
+              >
+                <ArrowRightLeft className="h-4 w-4 mr-2" />
+                Transférer vers entrepôt
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setStoreTransferDialogOpen(true)}
+                disabled={!stock || stock.length === 0}
+              >
+                <Store className="h-4 w-4 mr-2" />
+                Transférer vers boutique
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href={`/preferences/organizations/${organizationId}/warehouses/${warehouseId}/edit`}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Modifier l'entrepôt
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/preferences/organizations/${organizationId}/warehouses/new?duplicate=${warehouseId}`}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Dupliquer l'entrepôt
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => setDeleteDialogOpen(true)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Supprimer l'entrepôt
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -89,7 +237,9 @@ export default function WarehouseDetailsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Produits en stock</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Produits en stock
+                </p>
                 <p className="text-2xl font-bold">{stock?.length || 0}</p>
               </div>
               <Package className="h-8 w-8 text-muted-foreground" />
@@ -101,9 +251,11 @@ export default function WarehouseDetailsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Quantité totale</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Quantité totale
+                </p>
                 <p className="text-2xl font-bold">
-                  {stock?.reduce((sum, item) => sum + item.quantity, 0) || 0}
+                  {stock?.reduce((sum: number, item) => sum + item.quantity, 0) || 0}
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-muted-foreground" />
@@ -115,9 +267,15 @@ export default function WarehouseDetailsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Commandes en cours</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Commandes en cours
+                </p>
                 <p className="text-2xl font-bold">
-                  {purchaseOrders?.filter(order => order.status !== 'RECEIVED' && order.status !== 'CANCELLED').length || 0}
+                  {purchaseOrders?.filter(
+                    (order) =>
+                      order.status !== "RECEIVED" &&
+                      order.status !== "CANCELLED"
+                  ).length || 0}
                 </p>
               </div>
               <ShoppingCart className="h-8 w-8 text-muted-foreground" />
@@ -129,13 +287,16 @@ export default function WarehouseDetailsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Valeur du stock</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Valeur du stock
+                </p>
                 <p className="text-2xl font-bold">
-                  {new Intl.NumberFormat('fr-FR', { 
-                    style: 'currency', 
-                    currency: 'EUR' 
-                  }).format(
-                    stock?.reduce((sum, item) => sum + (item.quantity * item.product.unitPrice), 0) || 0
+                  {formatCurrency(
+                    stock?.reduce(
+                      (sum: number, item) =>
+                        sum + item.quantity * item.product.unitPrice,
+                      0
+                    ) || 0
                   )}
                 </p>
               </div>
@@ -159,7 +320,7 @@ export default function WarehouseDetailsPage() {
             </CardHeader>
             <CardContent>
               {stockLoading ? (
-                <div>Chargement...</div>
+                <TableSkeleton columns={6} />
               ) : (
                 <Table>
                   <TableHeader>
@@ -175,21 +336,17 @@ export default function WarehouseDetailsPage() {
                   <TableBody>
                     {stock?.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.product.name}</TableCell>
+                        <TableCell className="font-medium">
+                          {item.product.name}
+                        </TableCell>
                         <TableCell>{item.product.sku}</TableCell>
                         <TableCell>{item.quantity}</TableCell>
                         <TableCell>{item.reservedQuantity}</TableCell>
                         <TableCell>
-                          {new Intl.NumberFormat('fr-FR', { 
-                            style: 'currency', 
-                            currency: 'EUR' 
-                          }).format(item.product.unitPrice)}
+                          {formatCurrency(item.product.unitPrice)}
                         </TableCell>
                         <TableCell>
-                          {new Intl.NumberFormat('fr-FR', { 
-                            style: 'currency', 
-                            currency: 'EUR' 
-                          }).format(item.quantity * item.product.unitPrice)}
+                          {formatCurrency(item.quantity * item.product.unitPrice)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -207,7 +364,7 @@ export default function WarehouseDetailsPage() {
             </CardHeader>
             <CardContent>
               {movementsLoading ? (
-                <div>Chargement...</div>
+                <TableSkeleton columns={6} />
               ) : (
                 <Table>
                   <TableHeader>
@@ -235,12 +392,12 @@ export default function WarehouseDetailsPage() {
                           {movement.user.firstName} {movement.user.lastName}
                         </TableCell>
                         <TableCell>
-                          {formatDistanceToNow(new Date(movement.createdAt), { 
-                            addSuffix: true, 
-                            locale: fr 
+                          {formatDistanceToNow(new Date(movement.createdAt), {
+                            addSuffix: true,
+                            locale: fr,
                           })}
                         </TableCell>
-                        <TableCell>{movement.reference || '-'}</TableCell>
+                        <TableCell>{movement.reference || "-"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -257,7 +414,7 @@ export default function WarehouseDetailsPage() {
             </CardHeader>
             <CardContent>
               {ordersLoading ? (
-                <div>Chargement...</div>
+                <TableSkeleton columns={6} />
               ) : (
                 <Table>
                   <TableHeader>
@@ -273,7 +430,9 @@ export default function WarehouseDetailsPage() {
                   <TableBody>
                     {purchaseOrders?.map((order) => (
                       <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                        <TableCell className="font-medium">
+                          {order.orderNumber}
+                        </TableCell>
                         <TableCell>{order.supplier.name}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(order.status)}>
@@ -281,21 +440,35 @@ export default function WarehouseDetailsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {new Intl.NumberFormat('fr-FR', { 
-                            style: 'currency', 
-                            currency: 'EUR' 
-                          }).format(order.totalAmount)}
+                          {formatCurrency(order.totalAmount)}
                         </TableCell>
                         <TableCell>
-                          {order.expectedDate ? 
-                            new Date(order.expectedDate).toLocaleDateString('fr-FR') : 
-                            '-'
-                          }
+                          {order.expectedDate
+                            ? new Date(order.expectedDate).toLocaleDateString(
+                                "fr-FR"
+                              )
+                            : "-"}
                         </TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm">
-                            Voir détails
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/preferences/organizations/${organizationId}/warehouses/${warehouseId}/purchase-orders/${order.id}`}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Voir
+                              </Link>
+                            </Button>
+                            {order.status !== 'RECEIVED' && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => markAsReceivedMutation.mutate(order.id)}
+                                disabled={markAsReceivedMutation.isPending}
+                              >
+                                <Package className="h-4 w-4 mr-2" />
+                                {markAsReceivedMutation.isPending ? 'Traitement...' : 'Recevoir'}
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -317,6 +490,40 @@ export default function WarehouseDetailsPage() {
       <CreatePurchaseOrderDialog
         open={orderDialogOpen}
         onOpenChange={setOrderDialogOpen}
+        organizationId={organizationId}
+        warehouseId={warehouseId}
+      />
+
+      <StockTransferDialog
+        open={transferDialogOpen}
+        onOpenChange={setTransferDialogOpen}
+        organizationId={organizationId}
+        fromWarehouseId={warehouseId}
+        fromWarehouseName={warehouse.name}
+        stock={stock || []}
+      />
+
+      <StoreTransferDialog
+        open={storeTransferDialogOpen}
+        onOpenChange={setStoreTransferDialogOpen}
+        organizationId={organizationId}
+        warehouseId={warehouseId}
+        warehouseName={warehouse.name}
+        stock={stock || []}
+      />
+
+      <DeleteWarehouseDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        warehouseId={warehouseId}
+        warehouseName={warehouse.name}
+        organizationId={organizationId}
+        onSuccess={() => router.push(`/preferences/organizations/${organizationId}/warehouses`)}
+      />
+
+      <RestockDialog
+        open={restockDialogOpen}
+        onOpenChange={setRestockDialogOpen}
         organizationId={organizationId}
         warehouseId={warehouseId}
       />

@@ -13,6 +13,7 @@ export interface AuthResponse {
   user?: User;
   organizations?: Organization[];
   selectedOrganization?: Organization | null;
+  requiresOtp?: boolean;
 }
 
 export interface VerifyEmailParams {

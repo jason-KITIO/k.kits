@@ -93,8 +93,10 @@ export function VerificationForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Vérification</CardTitle>
+          <CardTitle className="text-xl">Vérification de sécurité</CardTitle>
           <CardDescription>
+            Pour votre sécurité, un code de vérification est requis car vous ne vous êtes pas connecté depuis plus d'un mois.
+            <br /><br />
             Entrez le code envoyé à :{" "}
             <span className="text-green-500">{contact ?? ""}</span>
           </CardDescription>

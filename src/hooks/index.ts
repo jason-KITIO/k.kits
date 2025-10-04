@@ -25,8 +25,10 @@ export * from "./use-stock-returns";
 
 // Hooks d'optimisation
 export * from "./use-cache-config";
+export * from "./use-optimized-query";
 export * from "./use-prefetch";
 export * from "./use-optimistic-mutations";
+export * from "./use-skeleton";
 
 // Configuration par défaut pour tous les hooks
 export { CACHE_CONFIG, COMMON_OPTIONS, SPECIAL_OPTIONS } from "./use-cache-config";

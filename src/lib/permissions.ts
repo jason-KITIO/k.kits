@@ -13,6 +13,12 @@ export const PERMISSIONS = {
   STOCK_TRANSFER: "stock.transfer",
   STOCK_INVENTORY: "stock.inventory",
   
+  // Entrepôts
+  WAREHOUSE_CREATE: "warehouse.create",
+  WAREHOUSE_READ: "warehouse.read",
+  WAREHOUSE_UPDATE: "warehouse.update",
+  WAREHOUSE_DELETE: "warehouse.delete",
+  
   // Ventes
   SALE_CREATE: "sale.create",
   SALE_READ: "sale.read",
@@ -65,6 +71,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.PRODUCT_UPDATE,
       PERMISSIONS.STOCK_READ,
       PERMISSIONS.STOCK_ADJUST,
+      PERMISSIONS.WAREHOUSE_READ,
+      PERMISSIONS.WAREHOUSE_CREATE,
       PERMISSIONS.SALE_READ,
       PERMISSIONS.CUSTOMER_READ,
       PERMISSIONS.CUSTOMER_CREATE,
@@ -94,7 +102,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.STOCK_READ,
       PERMISSIONS.STOCK_ADJUST,
       PERMISSIONS.STOCK_TRANSFER,
-      PERMISSIONS.STOCK_INVENTORY
+      PERMISSIONS.STOCK_INVENTORY,
+      PERMISSIONS.WAREHOUSE_READ
     ],
     color: "#0066FF"
   }
