@@ -14,7 +14,6 @@ import {
   Zap,
   CheckCircle,
   ArrowRight,
-  Star,
   AlertTriangle,
   ArrowRightLeft,
   LogOut,
@@ -23,11 +22,13 @@ import { AnimatedSection } from "@/components/ui/animated-section";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { useAuth } from "@/providers/auth-provider";
 import { useLogout } from "@/hooks/use-logout";
+import { useTheme } from "next-themes";
 import "../../styles/animations.css";
 
 export function LandingPage() {
   const { user, isLoading } = useAuth();
   const logout = useLogout();
+  const { theme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -86,28 +87,18 @@ export function LandingPage() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex flex-row items-center space-x-2 animate-fade-in-left">
             <Image
-              src="/logo.svg"
+              src={theme === "dark" ? "/logo1.svg" : "/logo.svg"}
               alt="K.Kits Logo"
               width={32}
               height={32}
               className="h-8 w-8"
             />
             <span className="text-2xl font-bold text-primary h-6">K.Kits</span>
+            <Badge variant="secondary" className="text-xs">
+              BETA
+            </Badge>
           </div>
-          <nav className="hidden md:flex items-center space-x-6 animate-fade-in">
-            <Link
-              href="#features"
-              className="text-sm hover:text-primary transition-all duration-300 hover:scale-105"
-            >
-              Fonctionnalités
-            </Link>
-            <Link
-              href="/support"
-              className="text-sm hover:text-primary transition-all duration-300 hover:scale-105"
-            >
-              Support
-            </Link>
-          </nav>
+          <nav className="hidden md:flex items-center space-x-6 animate-fade-in"></nav>
           <div className="flex items-center space-x-4 animate-fade-in-right">
             <ThemeSwitcher />
             {mounted &&
@@ -156,22 +147,25 @@ export function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-4">
+      <section className="py-24 md:py-32 px-4 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto text-center">
-          <Badge variant="secondary" className="mb-4 animate-bounce">
+          <Badge variant="secondary" className="mb-6 animate-bounce shadow-sm">
             <Zap className="h-3 w-3 mr-1 animate-pulse" />
-            Nouvelle version disponible
+            Essai gratuit 14 jours • Sans carte bancaire
           </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in-up">
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 animate-fade-in-up tracking-tight">
             Gérez votre inventaire
-            <span className="text-primary block animate-fade-in-up animation-delay-200">
+            <span className="text-primary block mt-2 animate-fade-in-up animation-delay-200 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
               en toute simplicité
             </span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up animation-delay-400">
-            K.Kits est la solution complète pour gérer vos stocks, suivre vos
-            produits et optimiser votre inventaire. Parfait pour les PME et
-            grandes organisations.
+          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto animate-fade-in-up animation-delay-400 leading-relaxed">
+            La solution complète pour gérer vos stocks, suivre vos produits et
+            optimiser votre inventaire.
+            <span className="font-semibold text-foreground">
+              Rejoignez 500+ organisations
+            </span>{" "}
+            qui nous font confiance.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-600">
             {mounted && user ? (
@@ -211,16 +205,16 @@ export function LandingPage() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 bg-muted/50">
+      <section className="py-20 bg-gradient-to-b from-muted/30 to-background border-y">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             {stats.map((stat, index) => (
               <AnimatedSection key={index} delay={index * 100}>
-                <div className="text-center group hover:scale-105 transition-all duration-300">
-                  <div className="text-3xl md:text-4xl font-bold text-primary mb-2 group-hover:animate-pulse">
+                <div className="text-center group hover:scale-110 transition-all duration-300">
+                  <div className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent mb-2 group-hover:scale-105 transition-transform">
                     {stat.number}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm md:text-base font-medium text-muted-foreground">
                     {stat.label}
                   </div>
                 </div>
@@ -231,29 +225,34 @@ export function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-4">
+      <section id="features" className="py-24 md:py-32 px-4">
         <div className="container mx-auto">
-          <AnimatedSection className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <AnimatedSection className="text-center mb-20">
+            <Badge variant="outline" className="mb-4">
+              Fonctionnalités
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">
               Tout ce dont vous avez besoin
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Une suite complète d&apos;outils pour gérer efficacement votre
               inventaire et optimiser vos opérations.
             </p>
           </AnimatedSection>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <AnimatedSection key={index} delay={index * 150}>
-                  <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
-                    <CardContent className="p-6">
-                      <Icon className="h-12 w-12 text-primary mb-4 group-hover:animate-bounce transition-all duration-300 group-hover:text-blue-600" />
-                      <h3 className="text-xl font-semibold mb-2">
+                  <Card className="border-2 hover:border-primary/50 shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group bg-gradient-to-br from-background to-muted/20">
+                    <CardContent className="p-8">
+                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                        <Icon className="h-7 w-7 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-3">
                         {feature.title}
                       </h3>
-                      <p className="text-muted-foreground">
+                      <p className="text-muted-foreground leading-relaxed">
                         {feature.description}
                       </p>
                     </CardContent>
@@ -265,191 +264,13 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Technologies */}
-      <section className="py-16 bg-muted/50">
-        <div className="container mx-auto px-4 text-center">
-          <AnimatedSection>
-            <h3 className="text-2xl font-bold mb-8">
-              Construit avec les meilleures technologies
-            </h3>
-          </AnimatedSection>
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-            {[
-              "Next.js 15",
-              "TypeScript",
-              "Prisma",
-              "PostgreSQL",
-              "Redis",
-              "Twilio",
-            ].map((tech, index) => (
-              <AnimatedSection key={tech} delay={index * 100}>
-                <Badge
-                  variant="outline"
-                  className="hover:scale-110 transition-all duration-300"
-                >
-                  {tech}
-                </Badge>
-              </AnimatedSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto">
-          <AnimatedSection className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Tarifs simples et transparents
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Choisissez le plan qui correspond à vos besoins. Pas de frais
-              cachés.
-            </p>
-          </AnimatedSection>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Starter",
-                price: "Gratuit",
-                description: "Parfait pour débuter",
-                features: [
-                  "Jusqu&apos;à 100 produits",
-                  "1 entrepôt",
-                  "Rapports de base",
-                  "Support email",
-                ],
-              },
-              {
-                name: "Pro",
-                price: "19 000 FCFA/mois",
-                description: "Pour les entreprises en croissance",
-                features: [
-                  "Produits illimités",
-                  "Entrepôts illimités",
-                  "Rapports avancés",
-                  "Support prioritaire",
-                  "API accès",
-                ],
-                popular: true,
-              },
-              {
-                name: "Enterprise",
-                price: "Sur devis",
-                description: "Pour les grandes organisations",
-                features: [
-                  "Tout de Pro",
-                  "Support dédié",
-                  "Formation équipe",
-                  "Intégrations custom",
-                ],
-              },
-            ].map((plan, index) => (
-              <AnimatedSection key={plan.name} delay={index * 200}>
-                <Card
-                  className={`relative ${
-                    plan.popular ? "border-primary shadow-lg" : ""
-                  }`}
-                >
-                  {plan.popular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      Populaire
-                    </Badge>
-                  )}
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-                    <div className="text-3xl font-bold mb-2">{plan.price}</div>
-                    <p className="text-muted-foreground mb-6">
-                      {plan.description}
-                    </p>
-                    <ul className="space-y-2 mb-6">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-center">
-                          <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                          <span className="text-sm">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      className="w-full"
-                      variant={plan.popular ? "default" : "outline"}
-                    >
-                      {plan.name === "Enterprise"
-                        ? "Nous contacter"
-                        : "Commencer"}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </AnimatedSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-16 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <AnimatedSection className="text-center mb-16">
-            <h3 className="text-2xl font-bold mb-8">
-              Ce que disent nos clients
-            </h3>
-          </AnimatedSection>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Marie Dubois",
-                role: "Directrice Logistique",
-                content:
-                  "K.Kits a révolutionné notre gestion de stock. Gain de temps énorme !",
-              },
-              {
-                name: "Pierre Martin",
-                role: "Gérant PME",
-                content:
-                  "Interface intuitive et fonctionnalités complètes. Exactement ce qu&apos;il nous fallait.",
-              },
-              {
-                name: "Sophie Laurent",
-                role: "Responsable Achats",
-                content:
-                  "Les alertes automatiques nous ont évité plusieurs ruptures de stock.",
-              },
-            ].map((testimonial, index) => (
-              <AnimatedSection key={testimonial.name} delay={index * 150}>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex mb-4">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className="h-4 w-4 fill-yellow-400 text-yellow-400"
-                        />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground mb-4">
-                      &quot;{testimonial.content}&quot;
-                    </p>
-                    <div>
-                      <div className="font-semibold">{testimonial.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {testimonial.role}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
-      <section className="py-20 px-4">
+      <section className="py-24 md:py-32 px-4 bg-gradient-to-b from-muted/30 to-background">
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-fade-in-up">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 animate-fade-in-up tracking-tight">
             Prêt à optimiser votre inventaire ?
           </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
+          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto animate-fade-in-up animation-delay-200 leading-relaxed">
             Rejoignez des centaines d&apos;organisations qui font confiance à
             K.Kits pour gérer leur stock.
           </p>
@@ -475,26 +296,15 @@ export function LandingPage() {
                 </Button>
               </Link>
             )}
-            <Link href="/support">
+            <Link href="/feedback">
               <Button
                 variant="outline"
                 size="lg"
                 className="transition-all duration-300 hover:scale-105 hover:shadow-lg"
               >
-                Contacter l&apos;équipe
+                Nous contacter
               </Button>
             </Link>
-          </div>
-          <div className="flex items-center justify-center mt-8 space-x-1 animate-fade-in-up animation-delay-600">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className="h-5 w-5 fill-yellow-400 text-yellow-400"
-              />
-            ))}
-            <span className="ml-2 text-sm text-muted-foreground">
-              4.9/5 - Plus de 200 avis clients
-            </span>
           </div>
         </div>
       </section>
@@ -506,7 +316,7 @@ export function LandingPage() {
             <div className="animate-fade-in-left">
               <div className="flex items-center space-x-2 mb-4">
                 <Image
-                  src="/logo.svg"
+                  src={theme === "dark" ? "/logo1.svg" : "/logo.svg"}
                   alt="K.Kits Logo"
                   width={24}
                   height={24}
@@ -524,47 +334,23 @@ export function LandingPage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
                   <Link
-                    href="#features"
-                    className="hover:text-primary transition-colors duration-300"
-                  >
-                    Fonctionnalités
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     href="/api-docs"
                     className="hover:text-primary transition-colors duration-300"
                   >
-                    API
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/support"
-                    className="hover:text-primary transition-colors duration-300"
-                  >
-                    Support
+                    Documentation API
                   </Link>
                 </li>
               </ul>
             </div>
             <div className="animate-fade-in-up animation-delay-400">
-              <h4 className="font-semibold mb-4">Entreprise</h4>
+              <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
                   <Link
                     href="/feedback"
                     className="hover:text-primary transition-colors duration-300"
                   >
-                    Feedback
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/support"
-                    className="hover:text-primary transition-colors duration-300"
-                  >
-                    Contact
+                    Nous contacter
                   </Link>
                 </li>
               </ul>

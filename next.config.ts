@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Configuration pour Docker
+  output: 'standalone',
 };
 
 export default nextConfig;

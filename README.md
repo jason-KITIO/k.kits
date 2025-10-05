@@ -350,19 +350,46 @@ pnpm test:coverage
 
 ## 🚀 Déploiement
 
-### **Vercel (Recommandé)**
+### **Docker (Recommandé)**
+
+#### Démarrage rapide avec Docker Compose
+```bash
+# Copier la configuration
+copy .env.docker .env
+
+# Lancer tous les services (app + PostgreSQL + Redis)
+docker-compose up -d
+
+# Voir les logs
+docker-compose logs -f app
+```
+
+L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
+
+#### Développement local avec Docker
+```bash
+# Lancer uniquement PostgreSQL et Redis
+docker-compose -f docker-compose.dev.yml up -d
+
+# Puis lancer l'app en local
+pnpm dev
+```
+
+#### Build manuel de l'image
+```bash
+# Build de l'image
+docker build -t k-kits:latest .
+
+# Lancement du conteneur
+docker run -p 3000:3000 --env-file .env k-kits:latest
+```
+
+📚 **Documentation complète** : Voir [docs/docker/](docs/docker/) pour plus de détails
+
+### **Vercel**
 ```bash
 # Déploiement automatique via Git
 vercel --prod
-```
-
-### **Docker**
-```bash
-# Build de l'image
-docker build -t k-kits .
-
-# Lancement du conteneur
-docker run -p 3000:3000 k-kits
 ```
 
 ### **Variables d'environnement de production**
@@ -398,9 +425,15 @@ docker run -p 3000:3000 k-kits
 - [ ] Multi-devises et multi-langues
 - [ ] API webhooks
 
+## 📚 Documentation
+
+- **[Documentation Complète](docs/)** - Tous les guides et documentations
+- **[Docker](docs/docker/)** - Conteneurisation et déploiement
+- **[Guides](docs/guides/)** - Guides d'utilisation
+- **[Features](docs/features/)** - Implémentations techniques
+
 ## 📞 Support & Contact
 
-- **Documentation** : [Voir le Wiki](https://github.com/Jason-Kitio/k.kits/wiki)
 - **Issues** : [GitHub Issues](https://github.com/Jason-Kitio/k.kits/issues)
 - **Discussions** : [GitHub Discussions](https://github.com/Jason-Kitio/k.kits/discussions)
 - **Email** : support@k-kits.com
