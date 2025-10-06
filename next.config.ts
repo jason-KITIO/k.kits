@@ -1,15 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // pour enlever les erreur de build
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Configuration pour Docker
-  output: 'standalone',
+  // Configuration pour Docker uniquement (pas sur Vercel)
+  ...(process.env.DOCKER_BUILD === 'true' && { output: 'standalone' }),
 };
 
 export default nextConfig;
