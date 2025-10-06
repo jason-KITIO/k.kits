@@ -1,0 +1,25 @@
+REFACTORISATION K.KITS - PROGRESSION
+
+Fichiers refactorisés: 7/95 (7%)
+Lignes réduites: 2,215/17,000 (13%)
+Fichiers créés: 57
+
+TERMINÉS:
+1. use-warehouses.ts (442 → 7 fichiers)
+2. useStore.ts (405 → 7 fichiers)
+3. use-stores.ts (166 → 9 fichiers)
+4. use-sidebar-permissions.ts (165 → 4 fichiers)
+5. landing-page.tsx (376 → 6 fichiers)
+6. create-purchase-order-dialog.tsx (340 → 4 fichiers)
+7. profit-report.tsx (321 → 4 fichiers)
+
+RESTANTS: 88 fichiers
+
+PROCHAINS:
+- customer-report.tsx (291)
+- user-settings.tsx (287)
+- role-list.tsx (276)
+- performance-report.tsx (275)
+- app-sidebar.tsx (267)
+
+Voir docs/refactorisation/ pour détails

@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { StoreEditLoadingSkeleton } from "@/components/pages/store-edit/StoreEditLoadingSkeleton";
+import { StoreFormCard } from "@/components/pages/store-form/StoreFormCard";
 import { ArrowLeft, Store } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -59,32 +60,7 @@ export default function EditStorePage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 p-6">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-8 w-8" />
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-[200px]" />
-            <Skeleton className="h-4 w-[300px]" />
-          </div>
-        </div>
-        <Card className="max-w-2xl">
-          <CardHeader>
-            <Skeleton className="h-6 w-[250px]" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-[100px]" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (isLoading) return <StoreEditLoadingSkeleton />;
 
   return (
     <div className="space-y-6 p-6">

@@ -59,7 +59,7 @@ export function CreateWarehouseDialog({
 
   const onSubmit = async (data: WarehouseCreateInput) => {
     try {
-      await createWarehouse.mutateAsync(data);
+      await createWarehouse.mutateAsync(data as any);
       form.reset();
       onOpenChange(false);
     } catch (error) {

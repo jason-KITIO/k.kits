@@ -2,10 +2,10 @@
 
 import { useParams } from "next/navigation";
 import { useOptimizedQuery } from "@/hooks/use-optimized-query";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Receipt, User, CreditCard } from "lucide-react";
-import Link from "next/link";
+import { CreditCard, Receipt, User } from "lucide-react";
+import { SaleDetailsHeader } from "@/components/pages/sale-details/SaleDetailsHeader";
+import { SaleInfoCards } from "@/components/pages/sale-details/SaleInfoCards";
 
 export default function SaleDetailsPage() {
   const params = useParams();
@@ -31,19 +31,7 @@ export default function SaleDetailsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/preferences/organizations/${organizationId}/stores/${storeId}/sales`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Détails de la vente</h1>
-          <p className="text-muted-foreground">
-            Vente #{sale.id.slice(-8)}
-          </p>
-        </div>
-      </div>
+      <SaleDetailsHeader organizationId={organizationId} storeId={storeId} saleId={sale.id} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>

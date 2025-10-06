@@ -2,15 +2,10 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCreateStore, useStore } from "@/hooks/useStore";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Store } from "lucide-react";
-import Link from "next/link";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { StoreFormHeader } from "@/components/pages/store-form/StoreFormHeader";
+import { StoreFormCard } from "@/components/pages/store-form/StoreFormCard";
 
 export default function NewStorePage() {
   const params = useParams();
@@ -24,6 +19,7 @@ export default function NewStorePage() {
     address: "",
     phone: "",
     type: "PHYSICAL" as "PHYSICAL" | "ONLINE" | "HYBRID",
+    active: true,
   });
 
   const { data: duplicateStore } = useStore(organizationId, duplicateId || '');
@@ -36,6 +32,7 @@ export default function NewStorePage() {
         address: duplicateStore.address || "",
         phone: duplicateStore.phone || "",
         type: duplicateStore.type as "PHYSICAL" | "ONLINE" | "HYBRID",
+        active: true,
       });
     }
   }, [duplicateStore]);
@@ -58,94 +55,14 @@ export default function NewStorePage() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/preferences/organizations/${organizationId}/stores`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">
-            {duplicateId ? "Dupliquer la boutique" : "Nouvelle boutique"}
-          </h1>
-          <p className="text-muted-foreground">
-            {duplicateId ? "Créer une copie de la boutique" : "Créez un nouveau point de vente"}
-          </p>
-        </div>
-      </div>
-
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Store className="h-5 w-5" />
-            Informations de la boutique
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nom de la boutique *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Ex: Boutique Centre-Ville"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="type">Type de boutique *</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value: "PHYSICAL" | "ONLINE" | "HYBRID") => 
-                  setFormData(prev => ({ ...prev, type: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PHYSICAL">Physique</SelectItem>
-                  <SelectItem value="ONLINE">En ligne</SelectItem>
-                  <SelectItem value="HYBRID">Hybride</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Adresse</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                placeholder="Ex: 123 Rue de la Paix, Paris"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Téléphone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="Ex: +237 698 765 432"
-              />
-            </div>
-
-            <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={createStore.isPending}>
-                {createStore.isPending ? "Création..." : "Créer la boutique"}
-              </Button>
-              <Button type="button" variant="outline" asChild>
-                <Link href={`/preferences/organizations/${organizationId}/stores`}>
-                  Annuler
-                </Link>
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <StoreFormHeader organizationId={organizationId} isDuplicate={!!duplicateId} />
+      <StoreFormCard
+        formData={formData}
+        onFormDataChange={setFormData}
+        onSubmit={handleSubmit}
+        isSubmitting={createStore.isPending}
+        organizationId={organizationId}
+      />
     </div>
   );
 }

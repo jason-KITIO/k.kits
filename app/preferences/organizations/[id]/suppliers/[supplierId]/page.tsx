@@ -1,13 +1,12 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Building, Mail, Phone, MapPin, FileText, CreditCard, Calendar } from "lucide-react";
-import Link from "next/link";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Building, Mail, Phone, CreditCard, Calendar, MapPin, FileText } from "lucide-react";
+import { SupplierDetailsHeader } from "@/components/pages/supplier-details/SupplierDetailsHeader";
+import { SupplierInfoCards } from "@/components/pages/supplier-details/SupplierInfoCards";
 
 export default function SupplierDetailsPage() {
   const params = useParams();
@@ -56,27 +55,7 @@ export default function SupplierDetailsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/preferences/organizations/${organizationId}/suppliers`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold">{supplier.name}</h1>
-            <Badge variant={supplier.active ? "default" : "secondary"}>
-              {supplier.active ? "Actif" : "Inactif"}
-            </Badge>
-          </div>
-          <p className="text-muted-foreground">Détails du fournisseur</p>
-        </div>
-        <Button asChild>
-          <Link href={`/preferences/organizations/${organizationId}/suppliers/${supplierId}/edit`}>
-            Modifier
-          </Link>
-        </Button>
-      </div>
+      <SupplierDetailsHeader organizationId={organizationId} supplierId={supplierId} supplier={supplier} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>

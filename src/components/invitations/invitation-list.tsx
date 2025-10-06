@@ -1,25 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import {
-  useInvitations,
-  useCreateInvitation,
-  useCancelInvitation,
-} from "@/hooks/use-invitations";
+import { useInvitations, useCreateInvitation, useCancelInvitation } from "@/hooks/use-invitations";
 import { useRoles } from "@/hooks/use-roles";
 import { CreateInvitationData, Invitation } from "@/types/invitation";
-import { Input } from "../ui/input";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent, CardHeader } from "../ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+import { InvitationForm } from "./list/InvitationForm";
+import { InvitationItem } from "./list/InvitationItem";
 
 interface InvitationListProps {
   organizationId: string;
@@ -27,10 +15,7 @@ interface InvitationListProps {
 
 export function InvitationList({ organizationId }: InvitationListProps) {
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState<CreateInvitationData>({
-    email: "",
-    roleId: "",
-  });
+  const [formData, setFormData] = useState<CreateInvitationData>({ email: "", roleId: "" });
 
   const { data: invitations, isLoading } = useInvitations(organizationId);
   const { data: roles } = useRoles(organizationId);
@@ -51,21 +36,6 @@ export function InvitationList({ organizationId }: InvitationListProps) {
   const handleCancel = async (invitationId: string) => {
     if (confirm("Annuler cette invitation ?")) {
       await cancelMutation.mutateAsync(invitationId);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "hsl(var(--warning))";
-      case "ACCEPTED":
-        return "hsl(var(--success))";
-      case "EXPIRED":
-        return "hsl(var(--muted))";
-      case "CANCELLED":
-        return "hsl(var(--destructive))";
-      default:
-        return "hsl(var(--muted))";
     }
   };
 
@@ -114,62 +84,14 @@ export function InvitationList({ organizationId }: InvitationListProps) {
       </div>
 
       {showForm && (
-        <div className="bg-card p-6 rounded-lg border">
-          <h3 className="text-lg font-semibold mb-4">Inviter un utilisateur</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
-              <Input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Rôle</label>
-              <Select
-                value={formData.roleId}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, roleId: value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner le rôle" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Sélectionner un rôle</SelectLabel>
-                    {(roles as any)?.map((role: any) => (
-                      <SelectItem key={role.id} value={role.id}>
-                        {role.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={createMutation.isPending}
-                className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 disabled:opacity-50"
-              >
-                {createMutation.isPending ? "Envoi..." : "Envoyer invitation"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/90"
-              >
-                Annuler
-              </button>
-            </div>
-          </form>
-        </div>
+        <InvitationForm
+          formData={formData}
+          roles={roles as any}
+          onChange={setFormData}
+          onSubmit={handleSubmit}
+          onCancel={() => setShowForm(false)}
+          isPending={createMutation.isPending}
+        />
       )}
 
       <div className="bg-card rounded-lg border">
@@ -180,40 +102,12 @@ export function InvitationList({ organizationId }: InvitationListProps) {
           ) : (
             <div className="space-y-3">
               {(invitations as any)?.map((invitation: Invitation) => (
-                <div
+                <InvitationItem
                   key={invitation.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium">{invitation.email}</span>
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          invitation.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                          invitation.status === 'ACCEPTED' ? 'bg-green-100 text-green-800' :
-                          invitation.status === 'EXPIRED' ? 'bg-gray-100 text-gray-800' :
-                          invitation.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {invitation.status}
-                      </span>
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      Rôle: {invitation.role.name} • Expire le{" "}
-                      {new Date(invitation.expiresAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                  {invitation.status === "PENDING" && (
-                    <button
-                      onClick={() => handleCancel(invitation.id)}
-                      disabled={cancelMutation.isPending}
-                      className="text-destructive hover:text-destructive/90 px-3 py-1 text-sm"
-                    >
-                      Annuler
-                    </button>
-                  )}
-                </div>
+                  invitation={invitation}
+                  onCancel={handleCancel}
+                  isPending={cancelMutation.isPending}
+                />
               ))}
             </div>
           )}
