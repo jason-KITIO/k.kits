@@ -27,6 +27,7 @@ RUN pnpm prisma generate
 
 # Build Next.js app
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DOCKER_BUILD=true
 RUN pnpm build
 
 # Stage 3: Runner
