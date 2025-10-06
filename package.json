@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && next build --turbopack",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
@@ -59,7 +59,7 @@
     "swagger-ui-react": "^5.28.0",
     "tailwind-merge": "^3.3.1",
     "twilio": "^5.8.0",
-    "zod": "^4.1.5"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
